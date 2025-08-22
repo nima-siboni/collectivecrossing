@@ -1,0 +1,8 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.6
+    hooks:
+      - id: ruff
+        args: [--fix, --config, tool-config.toml]
+      - id: ruff-format
+        args: [--config, tool-config.toml]
