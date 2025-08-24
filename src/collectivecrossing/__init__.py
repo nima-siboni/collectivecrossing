@@ -1,6 +1,5 @@
+from collectivecrossing.envs.collectivecrossing import CollectiveCrossingEnv
 from gymnasium.envs.registration import register
-
-from .envs.collectivecrossing import CollectiveCrossingEnv
 
 register(
     id="collectivecrossing/CollectiveCrossing-v0",
