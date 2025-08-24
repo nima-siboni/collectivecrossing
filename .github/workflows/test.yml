@@ -40,6 +40,18 @@ jobs:
       run: |
         uv run pytest tests/ -v --tb=short --junitxml=test-results/results.xml
     
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: "test-results/results.xml"
+        comment_mode: create
+        comment_title: "Test Results"
+        compare_to_earlier_commit: true
+        fail_on: 'errors'
+        comment_on_pr: true
+        comment_on_commits: false
+    
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
