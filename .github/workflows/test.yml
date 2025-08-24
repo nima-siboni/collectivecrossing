@@ -36,6 +36,7 @@ jobs:
       run: |
         uv sync --dev
         uv pip install -e .
+        python -c "import collectivecrossing; print('Package imported successfully')"
     
     - name: Run pre-commit
       run: |
@@ -43,7 +44,7 @@ jobs:
     
     - name: Run tests with pytest
       run: |
-        uv run pytest tests/ -v --tb=short --junitxml=test-results/results.xml --cov=src/collectivecrossing --cov-report=xml:coverage.xml --cov-report=term-missing
+        uv run pytest tests/ -v --tb=short --junitxml=test-results/results.xml --cov=src --cov-report=xml:coverage.xml --cov-report=term-missing
     
     - name: Check coverage file
       run: |
