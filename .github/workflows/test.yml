@@ -57,6 +57,15 @@ jobs:
         comment_on_pr: true
         comment_on_commits: false
     
+    - name: Publish Coverage Report
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+    
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
@@ -66,4 +75,5 @@ jobs:
           .pytest_cache/
           test-results/
           test-results/results.xml
+          coverage.xml
         if-no-files-found: warn
