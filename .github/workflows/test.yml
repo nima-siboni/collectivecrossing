@@ -38,7 +38,7 @@ jobs:
     
     - name: Run tests with pytest
       run: |
-        uv run pytest tests/ -v --tb=short
+        uv run pytest tests/ -v --tb=short --junitxml=test-results/results.xml
     
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -48,3 +48,5 @@ jobs:
         path: |
           .pytest_cache/
           test-results/
+          test-results/results.xml
+        if-no-files-found: warn
