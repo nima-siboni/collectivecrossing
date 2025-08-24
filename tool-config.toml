@@ -2,7 +2,7 @@
 # This file can be copied to other projects for consistent tooling setup
 
 # Ruff configuration (when used with --config flag)
-target-version = "py310"
+target-version = "py313"
 line-length = 100
 
 [lint]
