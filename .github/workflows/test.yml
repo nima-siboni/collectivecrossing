@@ -43,7 +43,12 @@ jobs:
     
     - name: Run tests with pytest
       run: |
-        uv run pytest tests/ -v --tb=short --junitxml=test-results/results.xml
+        uv run pytest tests/ -v --tb=short --junitxml=test-results/results.xml --cov=src/collectivecrossing --cov-report=xml:coverage.xml --cov-report=term-missing
+    
+    - name: Check coverage file
+      run: |
+        ls -la coverage.xml
+        cat coverage.xml | head -20
     
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
