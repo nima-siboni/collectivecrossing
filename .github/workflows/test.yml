@@ -45,7 +45,7 @@ jobs:
       if: always()
       with:
         files: "test-results/results.xml"
-        comment_mode: create
+        comment_mode: always
         comment_title: "Test Results"
         compare_to_earlier_commit: true
         fail_on: 'errors'
