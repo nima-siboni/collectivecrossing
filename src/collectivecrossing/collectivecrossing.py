@@ -128,7 +128,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         # Process actions for all agents
         for agent_id, action in action_dict.items():
             # check the validity of the action
-            self._check_action_validity(agent_id, action)
+            self._check_action_and_agent_validity(agent_id, action)
 
             # Get current position
             current_pos = self._get_agent_position(agent_id)
