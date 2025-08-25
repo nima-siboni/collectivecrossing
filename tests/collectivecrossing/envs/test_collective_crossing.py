@@ -1,73 +1,90 @@
 import numpy as np
 import pytest
 from collectivecrossing import CollectiveCrossingEnv
+from collectivecrossing.configs import CollectiveCrossingConfig
 
 
 def test_environment_initialization():
     """Test that the environment initializes correctly"""
     env = CollectiveCrossingEnv(
-        width=10,
-        height=8,
-        division_y=4,
-        tram_door_x=5,
-        tram_door_width=2,
-        tram_length=8,
-        num_boarding_agents=3,
-        num_exiting_agents=2,
-        exiting_destination_area_y=0,
-        boarding_destination_area_y=7,
+        config=CollectiveCrossingConfig(
+            width=10,
+            height=8,
+            division_y=4,
+            tram_door_x=5,
+            tram_door_width=2,
+            tram_length=8,
+            num_boarding_agents=3,
+            num_exiting_agents=2,
+            exiting_destination_area_y=0,
+            boarding_destination_area_y=7,
+            max_steps=100,
+            render_mode="human",
+        )
     )
 
-    assert env.width == 10
-    assert env.height == 8
-    assert env.division_y == 4
-    assert env.tram_door_x == 5
-    assert env.tram_door_width == 2
-    assert env.num_boarding_agents == 3
-    assert env.num_exiting_agents == 2
-    assert env.exiting_destination_area_y == 0
-    assert env.boarding_destination_area_y == 7
+    assert env.config.width == 10
+    assert env.config.height == 8
+    assert env.config.division_y == 4
+    assert env.config.tram_door_x == 5
+    assert env.config.tram_door_width == 2
+    assert env.config.num_boarding_agents == 3
+    assert env.config.num_exiting_agents == 2
+    assert env.config.exiting_destination_area_y == 0
+    assert env.config.boarding_destination_area_y == 7
 
 
 def test_environment_reset():
     """Test that the environment resets correctly"""
     env = CollectiveCrossingEnv(
-        width=12,
-        height=6,
-        division_y=3,
-        tram_door_x=6,
-        tram_door_width=2,
-        tram_length=10,
-        num_boarding_agents=2,
-        num_exiting_agents=1,
+        config=CollectiveCrossingConfig(
+            width=10,
+            height=8,
+            division_y=4,
+            tram_door_x=5,
+            tram_door_width=2,
+            tram_length=8,
+            num_boarding_agents=3,
+            num_exiting_agents=2,
+            exiting_destination_area_y=0,
+            boarding_destination_area_y=7,
+            max_steps=100,
+            render_mode="human",
+        )
     )
 
     observations, infos = env.reset(seed=42)
 
     # Check that all agents are present
-    assert len(observations) == 3  # 2 boarding + 1 exiting
-    assert len(infos) == 3
+    assert len(observations) == 5  # 3 boarding + 2 exiting
+    assert len(infos) == 5
 
     # Check that boarding agents are in the waiting area
     boarding_agents = [k for k in observations.keys() if k.startswith("boarding")]
-    assert len(boarding_agents) == 2
+    assert len(boarding_agents) == 3
 
     # Check that exiting agents are in the tram area
     exiting_agents = [k for k in observations.keys() if k.startswith("exiting")]
-    assert len(exiting_agents) == 1
+    assert len(exiting_agents) == 2
 
 
 def test_agent_movement():
     """Test that agents can move correctly"""
     env = CollectiveCrossingEnv(
-        width=10,
-        height=6,
-        division_y=3,
-        tram_door_x=5,
-        tram_door_width=2,
-        tram_length=8,
-        num_boarding_agents=1,
-        num_exiting_agents=1,
+        config=CollectiveCrossingConfig(
+            width=10,
+            height=8,
+            division_y=4,
+            tram_door_x=5,
+            tram_door_width=2,
+            tram_length=8,
+            num_boarding_agents=3,
+            num_exiting_agents=1,
+            exiting_destination_area_y=0,
+            boarding_destination_area_y=7,
+            max_steps=100,
+            render_mode="human",
+        )
     )
 
     observations, _ = env.reset(seed=42)
@@ -83,7 +100,7 @@ def test_agent_movement():
     new_observations, rewards, terminated, truncated, infos = env.step(actions)
 
     # Check that agents are still present
-    assert len(new_observations) == 2
+    assert len(new_observations) == 4
 
     # Check that positions haven't changed (wait action)
     for agent_id in new_observations.keys():
@@ -95,16 +112,20 @@ def test_agent_movement():
 def test_agent_termination():
     """Test that agents terminate when reaching their destination areas"""
     env = CollectiveCrossingEnv(
-        width=8,
-        height=6,
-        division_y=3,
-        tram_door_x=4,
-        tram_door_width=2,
-        tram_length=6,
-        num_boarding_agents=1,
-        num_exiting_agents=1,
-        exiting_destination_area_y=0,
-        boarding_destination_area_y=5,
+        config=CollectiveCrossingConfig(
+            width=10,
+            height=8,
+            division_y=4,
+            tram_door_x=5,
+            tram_door_width=2,
+            tram_length=8,
+            num_boarding_agents=1,
+            num_exiting_agents=1,
+            exiting_destination_area_y=0,
+            boarding_destination_area_y=7,
+            max_steps=100,
+            render_mode="human",
+        )
     )
 
     observations, _ = env.reset(seed=42)
@@ -193,14 +214,20 @@ def test_rendering():
 def test_action_space():
     """Test that actions are within the expected space"""
     env = CollectiveCrossingEnv(
-        width=10,
-        height=6,
-        division_y=3,
-        tram_door_x=5,
-        tram_door_width=2,
-        tram_length=8,
-        num_boarding_agents=2,
-        num_exiting_agents=1,
+        config=CollectiveCrossingConfig(
+            width=10,
+            height=6,
+            division_y=3,
+            tram_door_x=5,
+            tram_door_width=2,
+            tram_length=8,
+            num_boarding_agents=2,
+            num_exiting_agents=1,
+            exiting_destination_area_y=0,
+            boarding_destination_area_y=4,
+            max_steps=100,
+            render_mode="human",
+        )
     )
 
     observations, _ = env.reset(seed=42)

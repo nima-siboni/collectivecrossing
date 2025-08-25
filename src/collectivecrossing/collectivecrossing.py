@@ -1,7 +1,9 @@
 import gymnasium as gym
 import numpy as np
-from collectivecrossing.actions import Actions
-from collectivecrossing.agent_utils import AgentType
+from collectivecrossing.actions import ACTION_TO_DIRECTION
+from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.types import AgentType
+from collectivecrossing.utils.geometry import TramBoundaries, calculate_tram_boundaries
 from gymnasium import spaces
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
@@ -22,83 +24,23 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
     def __init__(
         self,
-        width: int = 12,
-        height: int = 8,
-        division_y: int = 4,  # Y-coordinate of the horizontal division line
-        tram_door_x: int = 6,  # X-coordinate of tram door center
-        tram_door_width: int = 2,  # Width of tram door
-        tram_length: int = 12,  # Length of the tram (horizontal dimension)
-        num_boarding_agents: int = 5,
-        num_exiting_agents: int = 3,
-        render_mode: str | None = None,
-        max_steps: int = 100,
-        exiting_destination_area_y: int = 0,  # Y-coordinate of exiting destination area (bottom border)
-        boarding_destination_area_y: int = None,  # Y-coordinate of boarding destination area (in tram area)
+        config: CollectiveCrossingConfig,
     ):
         super().__init__()
 
-        self.width = width
-        self.height = height
-        self.division_y = division_y
-        self.tram_door_x = tram_door_x
-        self.tram_door_width = tram_door_width
-        self.tram_length = tram_length
-        self.num_boarding_agents = num_boarding_agents
-        self.num_exiting_agents = num_exiting_agents
-        self.render_mode = render_mode
-        self.max_steps = max_steps
-        self.exiting_destination_area_y = exiting_destination_area_y
+        self._config = config
 
-        # Set default boarding destination area if not specified
-        if boarding_destination_area_y is None:
-            self.boarding_destination_area_y = self.height - 1  # Top of tram area
-        else:
-            self.boarding_destination_area_y = boarding_destination_area_y
-
-        # Validate tram parameters
-        if tram_length > width:
-            raise ValueError(f"Tram length ({tram_length}) cannot exceed grid width ({width})")
-        if tram_door_x < 0 or tram_door_x >= tram_length:
-            raise ValueError(
-                f"Tram door x-coordinate ({tram_door_x}) must be within tram boundaries (0 to {tram_length-1})"
-            )
-
-        # Validate destination areas
-        if exiting_destination_area_y < 0 or exiting_destination_area_y >= division_y:
-            raise ValueError(
-                f"Exiting destination area y-coordinate ({exiting_destination_area_y}) must be within waiting area (0 to {division_y-1})"
-            )
-
-        if (
-            self.boarding_destination_area_y < division_y
-            or self.boarding_destination_area_y >= height
-        ):
-            raise ValueError(
-                f"Boarding destination area y-coordinate ({self.boarding_destination_area_y}) must be within tram area ({division_y} to {height-1})"
-            )
-
-        # Calculate tram door boundaries
-        self.tram_door_left = max(0, tram_door_x - tram_door_width // 2)
-        self.tram_door_right = min(tram_length - 1, tram_door_x + tram_door_width // 2)
-
-        # Calculate tram boundaries
-        self.tram_left = 0
-        self.tram_right = tram_length - 1
+        # Calculate tram boundaries using the dataclass
+        self._tram_boundaries = calculate_tram_boundaries(self.config)
 
         # Agent tracking
-        self.boarding_agents = {}  # agent_id -> position
-        self.exiting_agents = {}  # agent_id -> position
-        self.agent_types = {}  # agent_id -> AgentType
-        self.step_count = 0
+        self._boarding_agents = {}  # agent_id -> position
+        self._exiting_agents = {}  # agent_id -> position
+        self._agent_types = {}  # agent_id -> AgentType
+        self._step_count = 0
 
         # Action mapping
-        self._action_to_direction = {
-            Actions.right.value: np.array([1, 0]),
-            Actions.up.value: np.array([0, 1]),
-            Actions.left.value: np.array([-1, 0]),
-            Actions.down.value: np.array([0, -1]),
-            Actions.wait.value: np.array([0, 0]),
-        }
+        self._action_to_direction = ACTION_TO_DIRECTION
 
         # Initialize agent IDs
         self._init_agent_ids()
@@ -107,34 +49,77 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         self._setup_spaces()
 
         # Rendering
-        self.window = None
-        self.clock = None
+        self._window = None
+        self._clock = None
+
+    @property
+    def config(self):
+        return self._config
+
+    @property
+    def tram_boundaries(self) -> TramBoundaries:
+        return self._tram_boundaries
+
+    @property
+    def tram_door_left(self) -> int:
+        return self._tram_boundaries.tram_door_left
+
+    @property
+    def tram_door_right(self) -> int:
+        return self._tram_boundaries.tram_door_right
+
+    @property
+    def tram_left(self) -> int:
+        return self._tram_boundaries.tram_left
+
+    @property
+    def tram_right(self) -> int:
+        return self._tram_boundaries.tram_right
 
     @property
     def all_agent_ids(self):
-        return self.boarding_agent_ids + self.exiting_agent_ids
+        return self._boarding_agent_ids + self._exiting_agent_ids
+
+    @property
+    def action_space(self):
+        return self._action_space
+
+    @property
+    def observation_space(self):
+        return self._observation_space
+
+    @property
+    def boarding_agent_ids(self):
+        return self._boarding_agent_ids
+
+    @property
+    def exiting_agent_ids(self):
+        return self._exiting_agent_ids
 
     def _init_agent_ids(self):
         """Initialize agent IDs for boarding and exiting agents"""
-        self.boarding_agent_ids = [f"boarding_{i}" for i in range(self.num_boarding_agents)]
-        self.exiting_agent_ids = [f"exiting_{i}" for i in range(self.num_exiting_agents)]
+        self._boarding_agent_ids = [f"boarding_{i}" for i in range(self.config.num_boarding_agents)]
+        self._exiting_agent_ids = [f"exiting_{i}" for i in range(self.config.num_exiting_agents)]
 
         # Set agent types
-        for agent_id in self.boarding_agent_ids:
-            self.agent_types[agent_id] = AgentType.BOARDING
-        for agent_id in self.exiting_agent_ids:
-            self.agent_types[agent_id] = AgentType.EXITING
+        for agent_id in self._boarding_agent_ids:
+            self._agent_types[agent_id] = AgentType.BOARDING
+        for agent_id in self._exiting_agent_ids:
+            self._agent_types[agent_id] = AgentType.EXITING
 
     def _setup_spaces(self):
         """Setup observation and action spaces for all agents"""
         # All agents have the same action space (5 actions including wait)
-        self.action_space = spaces.Discrete(5)
+        self._action_space = spaces.Discrete(5)
 
         # Observation space includes agent position, tram info, and other agents
         # For simplicity, we'll use a flattened representation
         obs_size = 2 + 6 + len(self.all_agent_ids) * 2  # agent_pos + tram_info + all_other_agents
-        self.observation_space = spaces.Box(
-            low=0, high=max(self.width, self.height) - 1, shape=(obs_size,), dtype=np.int32
+        self._observation_space = spaces.Box(
+            low=0,
+            high=max(self.config.width, self.config.height) - 1,
+            shape=(obs_size,),
+            dtype=np.int32,
         )
 
     def _get_agent_observation(self, agent_id: str) -> np.ndarray:
@@ -144,8 +129,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         # Start with agent's own position and tram door information
         tram_door_info = np.array(
             [
-                self.tram_door_x,  # Door center X
-                self.division_y,  # Division line Y
+                self.config.tram_door_x,  # Door center X
+                self.config.division_y,  # Division line Y
                 self.tram_door_left,  # Door left boundary
                 self.tram_door_right,  # Door right boundary
             ]
@@ -165,40 +150,43 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
     def _get_agent_position(self, agent_id: str) -> np.ndarray:
         """Get current position of an agent"""
-        if agent_id in self.boarding_agents:
-            return self.boarding_agents[agent_id]
-        elif agent_id in self.exiting_agents:
-            return self.exiting_agents[agent_id]
+        if agent_id in self._boarding_agents:
+            return self._boarding_agents[agent_id]
+        elif agent_id in self._exiting_agents:
+            return self._exiting_agents[agent_id]
         else:
             raise ValueError(f"Unknown agent ID: {agent_id}")
 
     def _is_valid_position(self, pos: np.ndarray) -> bool:
         """Check if a position is within the grid bounds"""
-        return 0 <= pos[0] < self.width and 0 <= pos[1] < self.height
+        return 0 <= pos[0] < self.config.width and 0 <= pos[1] < self.config.height
 
     def _is_position_occupied(self, pos: np.ndarray, exclude_agent: str = None) -> bool:
         """Check if a position is occupied by another agent"""
-        for agent_id, agent_pos in self.boarding_agents.items():
+        for agent_id, agent_pos in self._boarding_agents.items():
             if agent_id != exclude_agent and np.array_equal(agent_pos, pos):
                 return True
-        for agent_id, agent_pos in self.exiting_agents.items():
+        for agent_id, agent_pos in self._exiting_agents.items():
             if agent_id != exclude_agent and np.array_equal(agent_pos, pos):
                 return True
         return False
 
     def _is_in_tram_area(self, pos: np.ndarray) -> bool:
         """Check if a position is in the tram area (upper part within tram boundaries)"""
-        return pos[1] >= self.division_y and self.tram_left <= pos[0] <= self.tram_right
+        return pos[1] >= self.config.division_y and self.tram_left <= pos[0] <= self.tram_right
 
     def _is_at_tram_door(self, pos: np.ndarray) -> bool:
         """Check if a position is at the tram door"""
-        return pos[1] == self.division_y and self.tram_door_left <= pos[0] <= self.tram_door_right
+        return (
+            pos[1] == self.config.division_y
+            and self.tram_door_left <= pos[0] <= self.tram_door_right
+        )
 
     def _would_cross_tram_wall(self, current_pos: np.ndarray, new_pos: np.ndarray) -> bool:
         """Check if a move would cross a tram wall"""
         # Check if moving across the division line (y = division_y)
-        if (current_pos[1] < self.division_y and new_pos[1] >= self.division_y) or (
-            current_pos[1] >= self.division_y and new_pos[1] < self.division_y
+        if (current_pos[1] < self.config.division_y and new_pos[1] >= self.config.division_y) or (
+            current_pos[1] >= self.config.division_y and new_pos[1] < self.config.division_y
         ):
             # Only allow crossing at the door
             if not (self.tram_door_left <= new_pos[0] <= self.tram_door_right):
@@ -206,7 +194,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         # Check if moving across tram side walls (x = tram_left or x = tram_right)
         # Only check if the agent is in the tram area (y >= division_y)
-        if current_pos[1] >= self.division_y or new_pos[1] >= self.division_y:
+        if current_pos[1] >= self.config.division_y or new_pos[1] >= self.config.division_y:
             # Check left wall crossing (from inside tram to outside)
             if self.tram_left <= current_pos[0] <= self.tram_right and new_pos[0] < self.tram_left:
                 return True
@@ -218,11 +206,11 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
     def _is_in_exiting_destination_area(self, pos: np.ndarray) -> bool:
         """Check if a position is in the exiting destination area"""
-        return pos[1] == self.exiting_destination_area_y
+        return pos[1] == self.config.exiting_destination_area_y
 
     def _is_in_boarding_destination_area(self, pos: np.ndarray) -> bool:
         """Check if a position is in the boarding destination area"""
-        return pos[1] == self.boarding_destination_area_y
+        return pos[1] == self.config.boarding_destination_area_y
 
     def reset(
         self, *, seed: int | None = None, options: dict | None = None
@@ -230,25 +218,25 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """Reset the environment to initial state"""
         super().reset(seed=seed)
 
-        self.step_count = 0
-        self.boarding_agents = {}
-        self.exiting_agents = {}
+        self._step_count = 0
+        self._boarding_agents = {}
+        self._exiting_agents = {}
 
         # Initialize boarding agents (start in lower part, away from door)
         for _, agent_id in enumerate(self.boarding_agent_ids):
             while True:
                 pos = np.array(
                     [
-                        self.np_random.integers(0, self.width),
-                        self.np_random.integers(0, self.division_y),  # Lower part
+                        self.np_random.integers(0, self.config.width),
+                        self.np_random.integers(0, self.config.division_y),  # Lower part
                     ]
                 )
                 # Avoid positions directly under the door initially
                 if not self._is_position_occupied(pos) and not (
                     self.tram_door_left <= pos[0] <= self.tram_door_right
-                    and pos[1] == self.division_y - 1
+                    and pos[1] == self.config.division_y - 1
                 ):
-                    self.boarding_agents[agent_id] = pos
+                    self._boarding_agents[agent_id] = pos
                     break
 
         # Initialize exiting agents (start in upper part, tram area)
@@ -257,11 +245,13 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 pos = np.array(
                     [
                         self.np_random.integers(self.tram_left, self.tram_right + 1),
-                        self.np_random.integers(self.division_y, self.height),  # Upper part
+                        self.np_random.integers(
+                            self.config.division_y, self.config.height
+                        ),  # Upper part
                     ]
                 )
                 if not self._is_position_occupied(pos):
-                    self.exiting_agents[agent_id] = pos
+                    self._exiting_agents[agent_id] = pos
                     break
 
         # Get observations for all agents
@@ -269,9 +259,9 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         infos = {}
         for agent_id in self.all_agent_ids:
             observations[agent_id] = self._get_agent_observation(agent_id)
-            infos[agent_id] = {"agent_type": self.agent_types[agent_id].value}
+            infos[agent_id] = {"agent_type": self._agent_types[agent_id].value}
 
-        self.agents_to_remove = []
+        self._agents_to_remove = []
         return observations, infos
 
     def step(
@@ -280,8 +270,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         dict[str, np.ndarray], dict[str, float], dict[str, bool], dict[str, bool], dict[str, dict]
     ]:
         """Execute one step in the environment"""
-        self.step_count += 1
-        max_steps_reached = self.step_count >= self.max_steps
+        self._step_count += 1
+        max_steps_reached = self._step_count >= self.config.max_steps
 
         observations = {}
         rewards = {}
@@ -289,15 +279,15 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         truncateds = {}
         infos = {}
 
-        for agent_id in self.agents_to_remove:
+        for agent_id in self._agents_to_remove:
             action_dict.pop(agent_id)
-            if agent_id in self.boarding_agents:
-                del self.boarding_agents[agent_id]
-                self.boarding_agent_ids.remove(agent_id)
-            elif agent_id in self.exiting_agents:
-                del self.exiting_agents[agent_id]
-                self.exiting_agent_ids.remove(agent_id)
-        self.agents_to_remove = []
+            if agent_id in self._boarding_agents:
+                del self._boarding_agents[agent_id]
+                self._boarding_agent_ids.remove(agent_id)
+            elif agent_id in self._exiting_agents:
+                del self._exiting_agents[agent_id]
+                self._exiting_agent_ids.remove(agent_id)
+        self._agents_to_remove = []
 
         # Process actions for all agents
         for agent_id, action in action_dict.items():
@@ -324,10 +314,10 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 and not self._would_cross_tram_wall(current_pos, new_pos)
             ):
                 # Update position
-                if agent_id in self.boarding_agents:
-                    self.boarding_agents[agent_id] = new_pos
+                if agent_id in self._boarding_agents:
+                    self._boarding_agents[agent_id] = new_pos
                 else:
-                    self.exiting_agents[agent_id] = new_pos
+                    self._exiting_agents[agent_id] = new_pos
 
             # Calculate reward
             reward = self._calculate_reward(agent_id)
@@ -338,7 +328,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             terminateds[agent_id] = agent_terminated
             truncateds[agent_id] = max_steps_reached
             infos[agent_id] = {
-                "agent_type": self.agent_types[agent_id].value,
+                "agent_type": self._agent_types[agent_id].value,
                 "in_tram_area": self._is_in_tram_area(self._get_agent_position(agent_id)),
                 "at_door": self._is_at_tram_door(self._get_agent_position(agent_id)),
             }
@@ -347,7 +337,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             # Remove terminated agents from the environment (after calculating rewards and checking termination)
             if agent_terminated:
                 # add this agent to the list of agents which needs to be removed in the next step
-                self.agents_to_remove.append(agent_id)
+                self._agents_to_remove.append(agent_id)
 
         # Check if environment is done
         all_terminated = all(terminateds.values()) if terminateds else False
@@ -360,7 +350,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
     def _calculate_reward(self, agent_id: str) -> float:
         """Calculate reward for an agent"""
         agent_pos = self._get_agent_position(agent_id)
-        agent_type = self.agent_types[agent_id]
+        agent_type = self._agent_types[agent_id]
 
         if agent_type == AgentType.BOARDING:
             # Boarding agents get positive reward for reaching tram door and boarding destination area
@@ -372,8 +362,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 return 5.0  # Good progress - in tram area
             else:
                 # Small reward for moving towards the door
-                distance_to_door = abs(agent_pos[0] - self.tram_door_x) + (
-                    self.division_y - agent_pos[1]
+                distance_to_door = abs(agent_pos[0] - self.config.tram_door_x) + (
+                    self.config.division_y - agent_pos[1]
                 )
                 return -distance_to_door * 0.1
         else:  # EXITING
@@ -384,15 +374,15 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 return 5.0  # Good progress - exited tram area
             else:
                 # Small reward for moving towards exit
-                distance_to_exit = abs(agent_pos[0] - self.tram_door_x) + (
-                    agent_pos[1] - self.division_y
+                distance_to_exit = abs(agent_pos[0] - self.config.tram_door_x) + (
+                    agent_pos[1] - self.config.division_y
                 )
                 return distance_to_exit * 0.1
 
     def _is_agent_done(self, agent_id: str) -> bool:
         """Check if an agent has completed its goal"""
         agent_pos = self._get_agent_position(agent_id)
-        agent_type = self.agent_types[agent_id]
+        agent_type = self._agent_types[agent_id]
 
         if agent_type == AgentType.BOARDING:
             # Boarding agents are done when they reach the boarding destination area
@@ -468,9 +458,9 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         # tram area
         ax.add_patch(
             patches.Rectangle(
-                (self.tram_left, self.division_y),
+                (self.tram_left, self.config.division_y),
                 self.tram_right - self.tram_left + 1,
-                self.height - self.division_y,
+                self.config.height - self.config.division_y,
                 facecolor=colors["tram_area"],
                 edgecolor="none",
                 alpha=0.7,
@@ -481,8 +471,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         ax.add_patch(
             patches.Rectangle(
                 (0, 0),
-                self.width,
-                self.division_y,
+                self.config.width,
+                self.config.division_y,
                 facecolor=colors["waiting_area"],
                 edgecolor="none",
                 alpha=0.7,
@@ -490,11 +480,11 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         )
 
         # exiting destination area
-        if self.exiting_destination_area_y < self.division_y:
+        if self.config.exiting_destination_area_y < self.config.division_y:
             ax.add_patch(
                 patches.Rectangle(
-                    (0, self.exiting_destination_area_y),
-                    self.width,
+                    (0, self.config.exiting_destination_area_y),
+                    self.config.width,
                     1,
                     facecolor=colors["exiting_destination_area"],
                     edgecolor="none",
@@ -503,10 +493,10 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             )
 
         # boarding destination area (limited to tram geometry)
-        if self.boarding_destination_area_y >= self.division_y:
+        if self.config.boarding_destination_area_y >= self.config.division_y:
             ax.add_patch(
                 patches.Rectangle(
-                    (self.tram_left, self.boarding_destination_area_y),
+                    (self.tram_left, self.config.boarding_destination_area_y),
                     self.tram_right - self.tram_left + 1,
                     1,
                     facecolor=colors["boarding_destination_area"],
@@ -519,7 +509,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         if self.tram_door_left > self.tram_left:
             ax.add_patch(
                 patches.Rectangle(
-                    (self.tram_left, self.division_y - wall_thickness / 2),
+                    (self.tram_left, self.config.division_y - wall_thickness / 2),
                     self.tram_door_left - self.tram_left,
                     wall_thickness,
                     facecolor=colors["tram_wall"],
@@ -531,7 +521,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         if self.tram_door_right < self.tram_right:
             ax.add_patch(
                 patches.Rectangle(
-                    (self.tram_door_right + 1, self.division_y - wall_thickness / 2),
+                    (self.tram_door_right + 1, self.config.division_y - wall_thickness / 2),
                     self.tram_right - self.tram_door_right,
                     wall_thickness,
                     facecolor=colors["tram_wall"],
@@ -541,7 +531,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 )
             )
 
-        for y in range(self.division_y, self.height):
+        for y in range(self.config.division_y, self.config.height):
             ax.add_patch(
                 patches.Rectangle(
                     (self.tram_left - wall_thickness / 2, y),
@@ -567,7 +557,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         ax.add_patch(
             patches.Rectangle(
-                (self.tram_door_left, self.division_y),
+                (self.tram_door_left, self.config.division_y),
                 self.tram_door_right - self.tram_door_left + 1,
                 1,
                 facecolor=colors["door"],
@@ -577,7 +567,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             )
         )
 
-        for agent_id, (x, y) in self.boarding_agents.items():
+        for agent_id, (x, y) in self._boarding_agents.items():
             for r, a in [(0.4, 0.3), (0.3, 0.5), (0.2, 0.8)]:
                 ax.add_patch(
                     patches.Circle(
@@ -602,7 +592,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 weight="bold",
             )
 
-        for agent_id, (x, y) in self.exiting_agents.items():
+        for agent_id, (x, y) in self._exiting_agents.items():
             for r, a in [(0.4, 0.3), (0.3, 0.5), (0.2, 0.8)]:
                 ax.add_patch(
                     patches.Circle(
@@ -626,8 +616,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 weight="bold",
             )
 
-        ax.set_xlim(0, self.width)
-        ax.set_ylim(0, self.height)
+        ax.set_xlim(0, self.config.width)
+        ax.set_ylim(0, self.config.height)
         ax.set_aspect("equal")
         ax.grid(True, alpha=0.3, linestyle="-", linewidth=0.5)
         ax.set_title("Collective Crossing Environment", fontsize=14, weight="bold", pad=20)
