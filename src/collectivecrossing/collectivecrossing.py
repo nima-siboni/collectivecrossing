@@ -1,7 +1,7 @@
 import gymnasium as gym
 import numpy as np
-from collectivecrossing.envs.actions import Actions
-from collectivecrossing.envs.agent_utils import AgentType
+from collectivecrossing.actions import Actions
+from collectivecrossing.agent_utils import AgentType
 from gymnasium import spaces
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 

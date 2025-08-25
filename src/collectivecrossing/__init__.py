@@ -1,10 +1,10 @@
 from gymnasium.envs.registration import register
 
-from .envs.collectivecrossing import CollectiveCrossingEnv
+from .collectivecrossing import CollectiveCrossingEnv
 
 register(
     id="collectivecrossing/CollectiveCrossing-v0",
-    entry_point="collectivecrossing.envs:CollectiveCrossingEnv",
+    entry_point="collectivecrossing:CollectiveCrossingEnv",
 )
 
 __all__ = ["CollectiveCrossingEnv"]

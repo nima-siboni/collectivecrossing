@@ -15,7 +15,7 @@ requires-python = ">=3.10,<3.14"
 readme = "README.md"
 
 [tool.hatch.build.targets.wheel]
-packages = ["collectivecrossing"]
+packages = ["src/collectivecrossing"]
 
 [build-system]
 requires = ["hatchling"]
