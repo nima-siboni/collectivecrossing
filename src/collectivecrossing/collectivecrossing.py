@@ -305,6 +305,10 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 raise ValueError(
                     f"Unknown agent ID: {agent_id} in action_dict. The action_dict keys must be a subset of the all_agent_ids. Current all_agent_ids: {self.all_agent_ids}"
                 )
+            if action not in self._action_to_direction:
+                raise ValueError(
+                    f"Invalid action: {action} for agent {agent_id}. Valid actions are: {list(self._action_to_direction.keys())}"
+                )
 
             # Get current position
             current_pos = self._get_agent_position(agent_id)
