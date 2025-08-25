@@ -52,166 +52,6 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         self._window = None
         self._clock = None
 
-    @property
-    def config(self):
-        return self._config
-
-    @property
-    def tram_boundaries(self) -> TramBoundaries:
-        return self._tram_boundaries
-
-    @property
-    def tram_door_left(self) -> int:
-        return self._tram_boundaries.tram_door_left
-
-    @property
-    def tram_door_right(self) -> int:
-        return self._tram_boundaries.tram_door_right
-
-    @property
-    def tram_left(self) -> int:
-        return self._tram_boundaries.tram_left
-
-    @property
-    def tram_right(self) -> int:
-        return self._tram_boundaries.tram_right
-
-    @property
-    def all_agent_ids(self):
-        return self._boarding_agent_ids + self._exiting_agent_ids
-
-    @property
-    def action_space(self):
-        return self._action_space
-
-    @property
-    def observation_space(self):
-        return self._observation_space
-
-    @property
-    def boarding_agent_ids(self):
-        return self._boarding_agent_ids
-
-    @property
-    def exiting_agent_ids(self):
-        return self._exiting_agent_ids
-
-    def _init_agent_ids(self):
-        """Initialize agent IDs for boarding and exiting agents"""
-        self._boarding_agent_ids = [f"boarding_{i}" for i in range(self.config.num_boarding_agents)]
-        self._exiting_agent_ids = [f"exiting_{i}" for i in range(self.config.num_exiting_agents)]
-
-        # Set agent types
-        for agent_id in self._boarding_agent_ids:
-            self._agent_types[agent_id] = AgentType.BOARDING
-        for agent_id in self._exiting_agent_ids:
-            self._agent_types[agent_id] = AgentType.EXITING
-
-    def _setup_spaces(self):
-        """Setup observation and action spaces for all agents"""
-        # All agents have the same action space (5 actions including wait)
-        self._action_space = spaces.Discrete(5)
-
-        # Observation space includes agent position, tram info, and other agents
-        # For simplicity, we'll use a flattened representation
-        obs_size = 2 + 6 + len(self.all_agent_ids) * 2  # agent_pos + tram_info + all_other_agents
-        self._observation_space = spaces.Box(
-            low=0,
-            high=max(self.config.width, self.config.height) - 1,
-            shape=(obs_size,),
-            dtype=np.int32,
-        )
-
-    def _get_agent_observation(self, agent_id: str) -> np.ndarray:
-        """Get observation for a specific agent"""
-        agent_pos = self._get_agent_position(agent_id)
-
-        # Start with agent's own position and tram door information
-        tram_door_info = np.array(
-            [
-                self.config.tram_door_x,  # Door center X
-                self.config.division_y,  # Division line Y
-                self.tram_door_left,  # Door left boundary
-                self.tram_door_right,  # Door right boundary
-            ]
-        )
-        obs = np.concatenate([agent_pos, tram_door_info])
-
-        # Add positions of all other agents
-        for other_id in self.all_agent_ids:
-            if other_id != agent_id:
-                other_pos = self._get_agent_position(other_id)
-                obs = np.concatenate([obs, other_pos])
-            else:
-                # Use a placeholder for self (will be masked out)
-                obs = np.concatenate([obs, np.array([-1, -1])])
-
-        return obs.astype(np.int32)
-
-    def _get_agent_position(self, agent_id: str) -> np.ndarray:
-        """Get current position of an agent"""
-        if agent_id in self._boarding_agents:
-            return self._boarding_agents[agent_id]
-        elif agent_id in self._exiting_agents:
-            return self._exiting_agents[agent_id]
-        else:
-            raise ValueError(f"Unknown agent ID: {agent_id}")
-
-    def _is_valid_position(self, pos: np.ndarray) -> bool:
-        """Check if a position is within the grid bounds"""
-        return 0 <= pos[0] < self.config.width and 0 <= pos[1] < self.config.height
-
-    def _is_position_occupied(self, pos: np.ndarray, exclude_agent: str = None) -> bool:
-        """Check if a position is occupied by another agent"""
-        for agent_id, agent_pos in self._boarding_agents.items():
-            if agent_id != exclude_agent and np.array_equal(agent_pos, pos):
-                return True
-        for agent_id, agent_pos in self._exiting_agents.items():
-            if agent_id != exclude_agent and np.array_equal(agent_pos, pos):
-                return True
-        return False
-
-    def _is_in_tram_area(self, pos: np.ndarray) -> bool:
-        """Check if a position is in the tram area (upper part within tram boundaries)"""
-        return pos[1] >= self.config.division_y and self.tram_left <= pos[0] <= self.tram_right
-
-    def _is_at_tram_door(self, pos: np.ndarray) -> bool:
-        """Check if a position is at the tram door"""
-        return (
-            pos[1] == self.config.division_y
-            and self.tram_door_left <= pos[0] <= self.tram_door_right
-        )
-
-    def _would_cross_tram_wall(self, current_pos: np.ndarray, new_pos: np.ndarray) -> bool:
-        """Check if a move would cross a tram wall"""
-        # Check if moving across the division line (y = division_y)
-        if (current_pos[1] < self.config.division_y and new_pos[1] >= self.config.division_y) or (
-            current_pos[1] >= self.config.division_y and new_pos[1] < self.config.division_y
-        ):
-            # Only allow crossing at the door
-            if not (self.tram_door_left <= new_pos[0] <= self.tram_door_right):
-                return True
-
-        # Check if moving across tram side walls (x = tram_left or x = tram_right)
-        # Only check if the agent is in the tram area (y >= division_y)
-        if current_pos[1] >= self.config.division_y or new_pos[1] >= self.config.division_y:
-            # Check left wall crossing (from inside tram to outside)
-            if self.tram_left <= current_pos[0] <= self.tram_right and new_pos[0] < self.tram_left:
-                return True
-            # Check right wall crossing (from inside tram to outside)
-            if self.tram_left <= current_pos[0] <= self.tram_right and new_pos[0] > self.tram_right:
-                return True
-
-        return False
-
-    def _is_in_exiting_destination_area(self, pos: np.ndarray) -> bool:
-        """Check if a position is in the exiting destination area"""
-        return pos[1] == self.config.exiting_destination_area_y
-
-    def _is_in_boarding_destination_area(self, pos: np.ndarray) -> bool:
-        """Check if a position is in the boarding destination area"""
-        return pos[1] == self.config.boarding_destination_area_y
-
     def reset(
         self, *, seed: int | None = None, options: dict | None = None
     ) -> tuple[dict[str, np.ndarray], dict[str, dict]]:
@@ -271,7 +111,6 @@ class CollectiveCrossingEnv(MultiAgentEnv):
     ]:
         """Execute one step in the environment"""
         self._step_count += 1
-        max_steps_reached = self._step_count >= self.config.max_steps
 
         observations = {}
         rewards = {}
@@ -326,7 +165,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             # Check if agent is done
             agent_terminated = self._is_agent_done(agent_id)
             terminateds[agent_id] = agent_terminated
-            truncateds[agent_id] = max_steps_reached
+            truncateds[agent_id] = self._is_truncated(self._step_count, self.config.max_steps)
             infos[agent_id] = {
                 "agent_type": self._agent_types[agent_id].value,
                 "in_tram_area": self._is_in_tram_area(self._get_agent_position(agent_id)),
@@ -343,53 +182,9 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         all_terminated = all(terminateds.values()) if terminateds else False
 
         terminateds["__all__"] = all_terminated
-        truncateds["__all__"] = max_steps_reached
+        truncateds["__all__"] = self._is_truncated(self._step_count, self.config.max_steps)
 
         return observations, rewards, terminateds, truncateds, infos
-
-    def _calculate_reward(self, agent_id: str) -> float:
-        """Calculate reward for an agent"""
-        agent_pos = self._get_agent_position(agent_id)
-        agent_type = self._agent_types[agent_id]
-
-        if agent_type == AgentType.BOARDING:
-            # Boarding agents get positive reward for reaching tram door and boarding destination area
-            if self._is_in_boarding_destination_area(agent_pos):
-                return 15.0  # Successfully reached boarding destination area
-            elif self._is_at_tram_door(agent_pos):
-                return 10.0  # Successfully reached tram door
-            elif self._is_in_tram_area(agent_pos):
-                return 5.0  # Good progress - in tram area
-            else:
-                # Small reward for moving towards the door
-                distance_to_door = abs(agent_pos[0] - self.config.tram_door_x) + (
-                    self.config.division_y - agent_pos[1]
-                )
-                return -distance_to_door * 0.1
-        else:  # EXITING
-            # Exiting agents get positive reward for reaching exiting destination area
-            if self._is_in_exiting_destination_area(agent_pos):
-                return 10.0  # Successfully reached exiting destination area
-            elif not self._is_in_tram_area(agent_pos):
-                return 5.0  # Good progress - exited tram area
-            else:
-                # Small reward for moving towards exit
-                distance_to_exit = abs(agent_pos[0] - self.config.tram_door_x) + (
-                    agent_pos[1] - self.config.division_y
-                )
-                return distance_to_exit * 0.1
-
-    def _is_agent_done(self, agent_id: str) -> bool:
-        """Check if an agent has completed its goal"""
-        agent_pos = self._get_agent_position(agent_id)
-        agent_type = self._agent_types[agent_id]
-
-        if agent_type == AgentType.BOARDING:
-            # Boarding agents are done when they reach the boarding destination area
-            return self._is_in_boarding_destination_area(agent_pos)
-        else:  # EXITING
-            # Exiting agents are done when they reach the exiting destination area
-            return self._is_in_exiting_destination_area(agent_pos)
 
     def get_observation_space(self, agent_id: str) -> gym.Space:
         """Get observation space for a specific agent"""
@@ -412,6 +207,22 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             return None
         else:
             raise NotImplementedError(f"Render mode {mode} not supported")
+
+    @staticmethod
+    def _is_truncated(current_step_count: int, max_steps: int) -> bool:
+        """
+        Return True if the episode is truncated, False otherwise.
+
+        The logic is that the episode is truncated if the step count is greater than the max steps.
+
+        Args:
+            current_step_count: The current step count.
+            max_steps: The maximum number of steps.
+
+        Returns:
+            True if the episode is truncated, False otherwise.
+        """
+        return current_step_count >= max_steps
 
     def _render_matplotlib(self):
         """Return an RGB array via Agg without touching pyplot (safe for animations)."""
@@ -724,3 +535,207 @@ class CollectiveCrossingEnv(MultiAgentEnv):
     def close(self):
         """Close the environment"""
         pass
+
+    @property
+    def config(self):
+        return self._config
+
+    @property
+    def tram_boundaries(self) -> TramBoundaries:
+        return self._tram_boundaries
+
+    @property
+    def tram_door_left(self) -> int:
+        return self._tram_boundaries.tram_door_left
+
+    @property
+    def tram_door_right(self) -> int:
+        return self._tram_boundaries.tram_door_right
+
+    @property
+    def tram_left(self) -> int:
+        return self._tram_boundaries.tram_left
+
+    @property
+    def tram_right(self) -> int:
+        return self._tram_boundaries.tram_right
+
+    @property
+    def all_agent_ids(self):
+        return self._boarding_agent_ids + self._exiting_agent_ids
+
+    @property
+    def action_space(self):
+        return self._action_space
+
+    @property
+    def observation_space(self):
+        return self._observation_space
+
+    @property
+    def boarding_agent_ids(self):
+        return self._boarding_agent_ids
+
+    @property
+    def exiting_agent_ids(self):
+        return self._exiting_agent_ids
+
+    def _init_agent_ids(self):
+        """Initialize agent IDs for boarding and exiting agents"""
+        self._boarding_agent_ids = [f"boarding_{i}" for i in range(self.config.num_boarding_agents)]
+        self._exiting_agent_ids = [f"exiting_{i}" for i in range(self.config.num_exiting_agents)]
+
+        # Set agent types
+        for agent_id in self._boarding_agent_ids:
+            self._agent_types[agent_id] = AgentType.BOARDING
+        for agent_id in self._exiting_agent_ids:
+            self._agent_types[agent_id] = AgentType.EXITING
+
+    def _setup_spaces(self):
+        """Setup observation and action spaces for all agents"""
+        # All agents have the same action space (5 actions including wait)
+        self._action_space = spaces.Discrete(5)
+
+        # Observation space includes agent position, tram info, and other agents
+        # For simplicity, we'll use a flattened representation
+        obs_size = 2 + 6 + len(self.all_agent_ids) * 2  # agent_pos + tram_info + all_other_agents
+        self._observation_space = spaces.Box(
+            low=0,
+            high=max(self.config.width, self.config.height) - 1,
+            shape=(obs_size,),
+            dtype=np.int32,
+        )
+
+    def _get_agent_observation(self, agent_id: str) -> np.ndarray:
+        """Get observation for a specific agent"""
+        agent_pos = self._get_agent_position(agent_id)
+
+        # Start with agent's own position and tram door information
+        tram_door_info = np.array(
+            [
+                self.config.tram_door_x,  # Door center X
+                self.config.division_y,  # Division line Y
+                self.tram_door_left,  # Door left boundary
+                self.tram_door_right,  # Door right boundary
+            ]
+        )
+        obs = np.concatenate([agent_pos, tram_door_info])
+
+        # Add positions of all other agents
+        for other_id in self.all_agent_ids:
+            if other_id != agent_id:
+                other_pos = self._get_agent_position(other_id)
+                obs = np.concatenate([obs, other_pos])
+            else:
+                # Use a placeholder for self (will be masked out)
+                obs = np.concatenate([obs, np.array([-1, -1])])
+
+        return obs.astype(np.int32)
+
+    def _get_agent_position(self, agent_id: str) -> np.ndarray:
+        """Get current position of an agent"""
+        if agent_id in self._boarding_agents:
+            return self._boarding_agents[agent_id]
+        elif agent_id in self._exiting_agents:
+            return self._exiting_agents[agent_id]
+        else:
+            raise ValueError(f"Unknown agent ID: {agent_id}")
+
+    def _is_valid_position(self, pos: np.ndarray) -> bool:
+        """Check if a position is within the grid bounds"""
+        return 0 <= pos[0] < self.config.width and 0 <= pos[1] < self.config.height
+
+    def _is_position_occupied(self, pos: np.ndarray, exclude_agent: str = None) -> bool:
+        """Check if a position is occupied by another agent"""
+        for agent_id, agent_pos in self._boarding_agents.items():
+            if agent_id != exclude_agent and np.array_equal(agent_pos, pos):
+                return True
+        for agent_id, agent_pos in self._exiting_agents.items():
+            if agent_id != exclude_agent and np.array_equal(agent_pos, pos):
+                return True
+        return False
+
+    def _is_in_tram_area(self, pos: np.ndarray) -> bool:
+        """Check if a position is in the tram area (upper part within tram boundaries)"""
+        return pos[1] >= self.config.division_y and self.tram_left <= pos[0] <= self.tram_right
+
+    def _is_at_tram_door(self, pos: np.ndarray) -> bool:
+        """Check if a position is at the tram door"""
+        return (
+            pos[1] == self.config.division_y
+            and self.tram_door_left <= pos[0] <= self.tram_door_right
+        )
+
+    def _would_cross_tram_wall(self, current_pos: np.ndarray, new_pos: np.ndarray) -> bool:
+        """Check if a move would cross a tram wall"""
+        # Check if moving across the division line (y = division_y)
+        if (current_pos[1] < self.config.division_y and new_pos[1] >= self.config.division_y) or (
+            current_pos[1] >= self.config.division_y and new_pos[1] < self.config.division_y
+        ):
+            # Only allow crossing at the door
+            if not (self.tram_door_left <= new_pos[0] <= self.tram_door_right):
+                return True
+
+        # Check if moving across tram side walls (x = tram_left or x = tram_right)
+        # Only check if the agent is in the tram area (y >= division_y)
+        if current_pos[1] >= self.config.division_y or new_pos[1] >= self.config.division_y:
+            # Check left wall crossing (from inside tram to outside)
+            if self.tram_left <= current_pos[0] <= self.tram_right and new_pos[0] < self.tram_left:
+                return True
+            # Check right wall crossing (from inside tram to outside)
+            if self.tram_left <= current_pos[0] <= self.tram_right and new_pos[0] > self.tram_right:
+                return True
+
+        return False
+
+    def _is_in_exiting_destination_area(self, pos: np.ndarray) -> bool:
+        """Check if a position is in the exiting destination area"""
+        return pos[1] == self.config.exiting_destination_area_y
+
+    def _is_in_boarding_destination_area(self, pos: np.ndarray) -> bool:
+        """Check if a position is in the boarding destination area"""
+        return pos[1] == self.config.boarding_destination_area_y
+
+    def _calculate_reward(self, agent_id: str) -> float:
+        """Calculate reward for an agent"""
+        agent_pos = self._get_agent_position(agent_id)
+        agent_type = self._agent_types[agent_id]
+
+        if agent_type == AgentType.BOARDING:
+            # Boarding agents get positive reward for reaching tram door and boarding destination area
+            if self._is_in_boarding_destination_area(agent_pos):
+                return 15.0  # Successfully reached boarding destination area
+            elif self._is_at_tram_door(agent_pos):
+                return 10.0  # Successfully reached tram door
+            elif self._is_in_tram_area(agent_pos):
+                return 5.0  # Good progress - in tram area
+            else:
+                # Small reward for moving towards the door
+                distance_to_door = abs(agent_pos[0] - self.config.tram_door_x) + (
+                    self.config.division_y - agent_pos[1]
+                )
+                return -distance_to_door * 0.1
+        else:  # EXITING
+            # Exiting agents get positive reward for reaching exiting destination area
+            if self._is_in_exiting_destination_area(agent_pos):
+                return 10.0  # Successfully reached exiting destination area
+            elif not self._is_in_tram_area(agent_pos):
+                return 5.0  # Good progress - exited tram area
+            else:
+                # Small reward for moving towards exit
+                distance_to_exit = abs(agent_pos[0] - self.config.tram_door_x) + (
+                    agent_pos[1] - self.config.division_y
+                )
+                return distance_to_exit * 0.1
+
+    def _is_agent_done(self, agent_id: str) -> bool:
+        """Check if an agent has completed its goal"""
+        agent_pos = self._get_agent_position(agent_id)
+        agent_type = self._agent_types[agent_id]
+
+        if agent_type == AgentType.BOARDING:
+            # Boarding agents are done when they reach the boarding destination area
+            return self._is_in_boarding_destination_area(agent_pos)
+        else:  # EXITING
+            # Exiting agents are done when they reach the exiting destination area
+            return self._is_in_exiting_destination_area(agent_pos)
