@@ -444,10 +444,10 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             "background": "#f8f9fa",
             "tram_area": "#e3f2fd",
             "waiting_area": "#fff3e0",
-            "exiting_destination_area": "#2196f3",  # Light red, similar to boarding agents (#f44336)
-            "boarding_destination_area": "#f44336",  # Light blue, similar to exiting agents (#2196f3)
+            "exiting_destination_area": "#f44336",  # Red color for exit area
+            "boarding_destination_area": "#2196f3",  # Blue color for seats area
             "tram_wall": "#424242",
-            "door": "#4caf50",
+            "door": "#90caf9",  # Light blue, darker than tram area
             "boarding_agent": "#f44336",
             "exiting_agent": "#2196f3",
         }
@@ -561,11 +561,88 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 self.tram_door_right - self.tram_door_left + 1,
                 1,
                 facecolor=colors["door"],
-                edgecolor="darkgreen",
-                linewidth=2,
+                edgecolor="none",
                 alpha=0.8,
             )
         )
+
+        # Add text labels directly on the graph
+        # Tram area label
+        tram_center_x = (self.tram_left + self.tram_right) / 2
+        tram_center_y = self.config.division_y + (self.config.height - self.config.division_y) / 2
+        ax.text(
+            tram_center_x,
+            tram_center_y,
+            "TRAM",
+            fontsize=12,
+            weight="bold",
+            ha="center",
+            va="center",
+            color="darkblue",
+            alpha=0.8,
+        )
+
+        # Waiting area label
+        waiting_center_x = self.config.width / 2
+        waiting_center_y = self.config.division_y / 2
+        ax.text(
+            waiting_center_x,
+            waiting_center_y,
+            "PLATFORM",
+            fontsize=12,
+            weight="bold",
+            ha="center",
+            va="center",
+            color="darkorange",
+            alpha=0.8,
+        )
+
+        # Tram door label
+        door_center_x = (self.tram_door_left + self.tram_door_right) / 2
+        door_center_y = self.config.division_y + 0.5
+        ax.text(
+            door_center_x,
+            door_center_y,
+            "DOOR",
+            fontsize=10,
+            weight="bold",
+            ha="center",
+            va="center",
+            color="darkblue",
+            alpha=0.9,
+        )
+
+        # Exiting destination area label
+        if self.config.exiting_destination_area_y < self.config.division_y:
+            exit_center_x = self.config.width / 2
+            exit_center_y = self.config.exiting_destination_area_y + 0.5
+            ax.text(
+                exit_center_x,
+                exit_center_y,
+                "EXIT",
+                fontsize=10,
+                weight="bold",
+                ha="center",
+                va="center",
+                color="white",
+                alpha=0.9,
+            )
+
+        # Boarding destination area label
+        if self.config.boarding_destination_area_y >= self.config.division_y:
+            boarding_center_x = (self.tram_left + self.tram_right) / 2
+            boarding_center_y = self.config.boarding_destination_area_y + 0.5
+            ax.text(
+                boarding_center_x,
+                boarding_center_y,
+                "SEATS",
+                fontsize=10,
+                weight="bold",
+                ha="center",
+                va="center",
+                color="white",
+                alpha=0.9,
+            )
 
         for agent_id, (x, y) in self._boarding_agents.items():
             for r, a in [(0.4, 0.3), (0.3, 0.5), (0.2, 0.8)]:
@@ -625,18 +702,24 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         ax.set_xticks([])
         ax.set_yticks([])
 
-        from matplotlib.patches import Patch
-
+        # Create legend elements only for agent types (areas are labeled on graph)
         legend_elements = [
-            Patch(facecolor="#e3f2fd", alpha=0.7, label="Tram Area"),
-            Patch(facecolor="#fff3e0", alpha=0.7, label="Waiting Area"),
-            Patch(facecolor="#ffcdd2", alpha=0.8, label="Exiting Destination Area"),
-            Patch(facecolor="#ffeb3b", alpha=0.8, label="Boarding Destination Area"),
-            Patch(facecolor="#4caf50", alpha=0.8, label="Tram Door"),
-            patches.Circle((0, 0), 0.1, facecolor="#f44336", label="Boarding Agents"),
-            patches.Circle((0, 0), 0.1, facecolor="#2196f3", label="Exiting Agents"),
+            patches.Circle(
+                (0, 0), 0.1, facecolor=colors["boarding_agent"], label="Boarding Agents"
+            ),
+            patches.Circle((0, 0), 0.1, facecolor=colors["exiting_agent"], label="Exiting Agents"),
         ]
-        ax.legend(handles=legend_elements, loc="upper right", bbox_to_anchor=(1.15, 1))
+
+        # Place legend below the image
+        ax.legend(
+            handles=legend_elements,
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.05),  # Below the image
+            ncol=2,  # Two columns
+            frameon=True,
+            fancybox=True,
+            shadow=True,
+        )
 
     def close(self):
         """Close the environment"""

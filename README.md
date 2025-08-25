@@ -1,5 +1,7 @@
 # 🚇 Collective Crossing
 
+![Collective Crossing Animation](docs/images/collective_crossing_animation.gif)
+
 A multi-agent reinforcement learning environment for simulating collective behavior in tram boarding/exiting scenarios. This project provides a sophisticated grid-world environment where multiple agents interact to achieve their goals while avoiding collisions.
 
 ## 🎯 Overview
