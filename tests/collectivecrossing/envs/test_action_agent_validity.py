@@ -9,7 +9,7 @@ from collectivecrossing.configs import CollectiveCrossingConfig
 
 
 class TestActionAgentValidity:
-    """Test cases for the _check_action_agent_validity method."""
+    """Test cases for the _check_action_and_agent_validity method."""
 
     @pytest.fixture
     def env(self):
@@ -39,7 +39,7 @@ class TestActionAgentValidity:
         action = 0  # Move right
 
         # Should not raise any exception
-        env._check_action_agent_validity(agent_id, action)
+        env._check_action_and_agent_validity(agent_id, action)
 
     def test_valid_agent_invalid_action(self, env):
         """Test that valid agent ID with invalid action raises ValueError."""
@@ -49,7 +49,7 @@ class TestActionAgentValidity:
         invalid_action = 999  # Invalid action
 
         with pytest.raises(ValueError) as exc_info:
-            env._check_action_agent_validity(agent_id, invalid_action)
+            env._check_action_and_agent_validity(agent_id, invalid_action)
 
         assert "Invalid action" in str(exc_info.value)
         assert str(invalid_action) in str(exc_info.value)
@@ -63,7 +63,7 @@ class TestActionAgentValidity:
         action = 0  # Valid action
 
         with pytest.raises(ValueError) as exc_info:
-            env._check_action_agent_validity(invalid_agent_id, action)
+            env._check_action_and_agent_validity(invalid_agent_id, action)
 
         assert "Unknown agent ID" in str(exc_info.value)
         assert invalid_agent_id in str(exc_info.value)
@@ -77,7 +77,7 @@ class TestActionAgentValidity:
         invalid_action = 999
 
         with pytest.raises(ValueError) as exc_info:
-            env._check_action_agent_validity(invalid_agent_id, invalid_action)
+            env._check_action_and_agent_validity(invalid_agent_id, invalid_action)
 
         # Should fail on agent ID check first
         assert "Unknown agent ID" in str(exc_info.value)
@@ -92,7 +92,7 @@ class TestActionAgentValidity:
 
         for action in valid_actions:
             # Should not raise any exception
-            env._check_action_agent_validity(agent_id, action)
+            env._check_action_and_agent_validity(agent_id, action)
 
     def test_all_agent_types(self, env):
         """Test that both boarding and exiting agents pass validation."""
@@ -102,11 +102,11 @@ class TestActionAgentValidity:
 
         # Test boarding agents
         for agent_id in env.boarding_agent_ids:
-            env._check_action_agent_validity(agent_id, action)
+            env._check_action_and_agent_validity(agent_id, action)
 
         # Test exiting agents
         for agent_id in env.exiting_agent_ids:
-            env._check_action_agent_validity(agent_id, action)
+            env._check_action_and_agent_validity(agent_id, action)
 
     def test_negative_action(self, env):
         """Test that negative action values raise ValueError."""
@@ -116,7 +116,7 @@ class TestActionAgentValidity:
         negative_action = -1
 
         with pytest.raises(ValueError) as exc_info:
-            env._check_action_agent_validity(agent_id, negative_action)
+            env._check_action_and_agent_validity(agent_id, negative_action)
 
         assert "Invalid action" in str(exc_info.value)
         assert str(negative_action) in str(exc_info.value)
@@ -129,7 +129,7 @@ class TestActionAgentValidity:
         large_action = 1000000
 
         with pytest.raises(ValueError) as exc_info:
-            env._check_action_agent_validity(agent_id, large_action)
+            env._check_action_and_agent_validity(agent_id, large_action)
 
         assert "Invalid action" in str(exc_info.value)
         assert str(large_action) in str(exc_info.value)
@@ -142,7 +142,7 @@ class TestActionAgentValidity:
         action = 0
 
         with pytest.raises(ValueError) as exc_info:
-            env._check_action_agent_validity(empty_agent_id, action)
+            env._check_action_and_agent_validity(empty_agent_id, action)
 
         assert "Unknown agent ID" in str(exc_info.value)
         assert empty_agent_id in str(exc_info.value)
@@ -155,7 +155,7 @@ class TestActionAgentValidity:
         action = 0
 
         with pytest.raises(ValueError) as exc_info:
-            env._check_action_agent_validity(none_agent_id, action)
+            env._check_action_and_agent_validity(none_agent_id, action)
 
         assert "Unknown agent ID" in str(exc_info.value)
 
@@ -167,7 +167,7 @@ class TestActionAgentValidity:
         action = 0
 
         with pytest.raises(ValueError) as exc_info:
-            env._check_action_agent_validity(spaced_agent_id, action)
+            env._check_action_and_agent_validity(spaced_agent_id, action)
 
         assert "Unknown agent ID" in str(exc_info.value)
         assert spaced_agent_id in str(exc_info.value)
