@@ -1,3 +1,5 @@
+import logging
+
 import gymnasium as gym
 import numpy as np
 from collectivecrossing.actions import ACTION_TO_DIRECTION
@@ -6,6 +8,9 @@ from collectivecrossing.types import AgentType
 from collectivecrossing.utils.geometry import TramBoundaries, calculate_tram_boundaries
 from gymnasium import spaces
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 
 class CollectiveCrossingEnv(MultiAgentEnv):
@@ -118,15 +123,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         truncateds = {}
         infos = {}
 
-        for agent_id in self._agents_to_remove:
-            action_dict.pop(agent_id)
-            if agent_id in self._boarding_agents:
-                del self._boarding_agents[agent_id]
-                self._boarding_agent_ids.remove(agent_id)
-            elif agent_id in self._exiting_agents:
-                del self._exiting_agents[agent_id]
-                self._exiting_agent_ids.remove(agent_id)
-        self._agents_to_remove = []
+        self._remove_terminated_agents(action_dict)
 
         # Process actions for all agents
         for agent_id, action in action_dict.items():
@@ -207,6 +204,32 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             return None
         else:
             raise NotImplementedError(f"Render mode {mode} not supported")
+
+    def _remove_terminated_agents(self, action_dict: dict[str, int]):
+        """
+        Remove agent which are in _agents_to_remove from the environment and remove the agent from the action_dict.
+
+        Note:
+        - removing from the environment means removing the agent from boarding_agents, boarding_agent_ids, exiting_agents, and exiting_agent_ids.
+        Args:
+            action_dict: The action dictionary.
+
+        Returns:
+            None
+        """
+        for agent_id in self._agents_to_remove:
+            if agent_id in action_dict:
+                action_dict.pop(agent_id)
+                logger.warning(
+                    f"Removed terminated agent {agent_id} from action_dict. This agent was terminated in the previous step."
+                )
+            if agent_id in self._boarding_agents:
+                del self._boarding_agents[agent_id]
+                self._boarding_agent_ids.remove(agent_id)
+            elif agent_id in self._exiting_agents:
+                del self._exiting_agents[agent_id]
+                self._exiting_agent_ids.remove(agent_id)
+        self._agents_to_remove = []
 
     @staticmethod
     def _is_truncated(current_step_count: int, max_steps: int) -> bool:
