@@ -4,6 +4,9 @@
   <img src="docs/images/collective_crossing_animation.gif" alt="Collective Crossing Animation" width="50%">
 </p>
 
+[![Tests](https://github.com/yourusername/collectivecrossing/workflows/Run%20Tests/badge.svg)](https://github.com/nima-siboni/collectivecrossing/actions)
+[![Coverage](https://codecov.io/gh/nima-siboni/collectivecrossing/branch/main/graph/badge.svg)](https://codecov.io/gh/nima-siboni/collectivecrossing)
+
 A multi-agent reinforcement learning environment for simulating collective behavior in tram boarding/exiting scenarios. This project provides a grid-world environment where multiple agents interact to achieve their goals while avoiding collisions.
 
 ## 🎯 Overview

@@ -46,7 +46,7 @@ jobs:
     
     - name: Run tests with pytest
       run: |
-        uv run pytest tests/ -v --tb=short --junitxml=test-results/results.xml --cov=src --cov-report=xml:coverage.xml --cov-report=term-missing
+        uv run pytest tests/ -v --tb=short --junitxml=test-results/results.xml
     
     - name: Check coverage file
       run: |
