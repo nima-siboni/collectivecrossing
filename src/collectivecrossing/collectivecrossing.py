@@ -127,14 +127,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         # Process actions for all agents
         for agent_id, action in action_dict.items():
-            if agent_id not in self.all_agent_ids:
-                raise ValueError(
-                    f"Unknown agent ID: {agent_id} in action_dict. The action_dict keys must be a subset of the all_agent_ids. Current all_agent_ids: {self.all_agent_ids}"
-                )
-            if action not in self._action_to_direction:
-                raise ValueError(
-                    f"Invalid action: {action} for agent {agent_id}. Valid actions are: {list(self._action_to_direction.keys())}"
-                )
+            # check the validity of the action
+            self._check_action_validity(agent_id, action)
 
             # Get current position
             current_pos = self._get_agent_position(agent_id)
@@ -218,11 +212,13 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             None
         """
         for agent_id in self._agents_to_remove:
+            # remove from the action_dict
             if agent_id in action_dict:
                 action_dict.pop(agent_id)
                 logger.warning(
                     f"Removed terminated agent {agent_id} from action_dict. This agent was terminated in the previous step."
                 )
+            # remove from the environment
             if agent_id in self._boarding_agents:
                 del self._boarding_agents[agent_id]
                 self._boarding_agent_ids.remove(agent_id)
@@ -762,3 +758,23 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         else:  # EXITING
             # Exiting agents are done when they reach the exiting destination area
             return self._is_in_exiting_destination_area(agent_pos)
+
+    def _check_action_agent_validity(self, agent_id: str, action: int):
+        """
+        Check if the action is valid for the agent.
+
+        Args:
+            agent_id: The ID of the agent.
+            action: The action to check.
+
+        Raises:
+            ValueError: If the agent ID is not in the all_agent_ids or the action is not in the _action_to_direction.
+        """
+        if agent_id not in self.all_agent_ids:
+            raise ValueError(
+                f"Unknown agent ID: {agent_id} in action_dict. The action_dict keys must be a subset of the all_agent_ids. Current all_agent_ids: {self.all_agent_ids}"
+            )
+        if action not in self._action_to_direction:
+            raise ValueError(
+                f"Invalid action: {action} for agent {agent_id}. Valid actions are: {list(self._action_to_direction.keys())}"
+            )
