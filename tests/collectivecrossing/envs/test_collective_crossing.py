@@ -168,14 +168,20 @@ def test_invalid_parameters():
 def test_rendering():
     """Test that rendering works without errors"""
     env = CollectiveCrossingEnv(
-        width=10,
-        height=6,
-        division_y=3,
-        tram_door_x=5,
-        tram_door_width=2,
-        tram_length=8,
-        num_boarding_agents=2,
-        num_exiting_agents=1,
+        config=CollectiveCrossingConfig(
+            width=10,
+            height=6,
+            division_y=3,
+            tram_door_x=5,
+            tram_door_width=2,
+            tram_length=8,
+            num_boarding_agents=2,
+            num_exiting_agents=1,
+            exiting_destination_area_y=0,
+            boarding_destination_area_y=4,
+            max_steps=100,
+            render_mode="human",
+        )
     )
 
     observations, _ = env.reset(seed=42)
