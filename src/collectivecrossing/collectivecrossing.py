@@ -134,15 +134,10 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             current_pos = self._get_agent_position(agent_id)
 
             # Calculate new position
-            direction = self._action_to_direction[action]
-            new_pos = current_pos + direction
+            new_pos = self._calculate_new_position(agent_id, action)
 
             # Check if move is valid
-            if (
-                self._is_valid_position(new_pos)
-                and not self._is_position_occupied(new_pos, exclude_agent=agent_id)
-                and not self._would_cross_tram_wall(current_pos, new_pos)
-            ):
+            if self._is_move_valid(agent_id, current_pos, new_pos):
                 # Update position
                 if agent_id in self._boarding_agents:
                     self._boarding_agents[agent_id] = new_pos
@@ -198,6 +193,38 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             return None
         else:
             raise NotImplementedError(f"Render mode {mode} not supported")
+
+    def _is_move_valid(self, agent_id: str, current_pos: np.ndarray, new_pos: np.ndarray) -> bool:
+        """
+        Check if the move is valid.
+
+        A move is valid if:
+        - the new position is valid
+        - the new position is not occupied
+        - the new position does not cross the tram wall
+
+        Args:
+            agent_id: The ID of the agent.
+            current_pos: The current position of the agent.
+            new_pos: The new position of the agent.
+
+        Returns:
+            True if the move is valid, False otherwise.
+        """
+        return (
+            self._is_valid_position(new_pos)
+            and not self._is_position_occupied(new_pos, exclude_agent=agent_id)
+            and not self._would_cross_tram_wall(current_pos, new_pos)
+        )
+
+    def _calculate_new_position(self, agent_id: str, action: int) -> np.ndarray:
+        """
+        Calculate the new position of the agent.
+        """
+        direction = self._action_to_direction[action]
+        current_pos = self._get_agent_position(agent_id)
+        new_pos = current_pos + direction
+        return new_pos
 
     def _remove_terminated_agents(self, action_dict: dict[str, int]):
         """
@@ -716,7 +743,20 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         return pos[1] == self.config.boarding_destination_area_y
 
     def _calculate_reward(self, agent_id: str) -> float:
-        """Calculate reward for an agent"""
+        """Calculate reward for an agent.
+
+        The reward is calculated based on the agent's position and type:
+        - Boarding agents get positive reward for reaching tram door and boarding destination area
+        - Exiting agents get positive reward for reaching exiting destination area
+        - Boarding agents get negative reward for moving towards the door
+        - Exiting agents get negative reward for moving towards the exit
+
+        Args:
+            agent_id: The ID of the agent.
+
+        Returns:
+            The reward for the agent.
+        """
         agent_pos = self._get_agent_position(agent_id)
         agent_type = self._agent_types[agent_id]
 
