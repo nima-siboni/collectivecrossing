@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main, master ]
 
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -31,10 +36,43 @@ jobs:
       run: |
         uv sync --dev
         uv pip install -e .
+        ls -la
+        python -c "import sys; print('Python path:', sys.path)"
+        uv run python -c "import collectivecrossing; print('Package imported successfully')"
+    
+    - name: Run pre-commit
+      run: |
+        uv run pre-commit run --all-files
     
     - name: Run tests with pytest
       run: |
-        uv run pytest tests/ -v --tb=short
+        uv run pytest tests/ -v --tb=short --junitxml=test-results/results.xml --cov=src --cov-report=xml:coverage.xml --cov-report=term-missing
+    
+    - name: Check coverage file
+      run: |
+        ls -la coverage.xml
+        cat coverage.xml | head -20
+    
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: "test-results/results.xml"
+        comment_mode: always
+        comment_title: "Test Results"
+        compare_to_earlier_commit: true
+        fail_on: 'errors'
+        comment_on_pr: true
+        comment_on_commits: false
+    
+    - name: Publish Coverage Report
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
     
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -44,3 +82,6 @@ jobs:
         path: |
           .pytest_cache/
           test-results/
+          test-results/results.xml
+          coverage.xml
+        if-no-files-found: warn

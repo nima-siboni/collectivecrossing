@@ -1,94 +1,136 @@
-# Collective Crossing
+# 🚇 Collective Crossing
 
-A multi-agent reinforcement learning project for crowd simulation and collective behavior modeling.
+<p align="center">
+  <img src="docs/images/collective_crossing_animation.gif" alt="Collective Crossing Animation" width="50%">
+</p>
 
-## Environments
+A multi-agent reinforcement learning environment for simulating collective behavior in tram boarding/exiting scenarios. This project provides a grid-world environment where multiple agents interact to achieve their goals while avoiding collisions.
 
-This project includes several multi-agent environments:
+## 🎯 Overview
 
-1. **CrowdCrossing** - A simple single-agent grid world environment
-2. **CollectiveCrossingEnv** - A multi-agent environment simulating collective crossing scenarios
+The `CollectiveCrossingEnv` simulates a realistic tram boarding scenario where:
+- **Boarding agents** 🚶‍♂️ start in the platform area and navigate to the tram door
+- **Exiting agents** 🚶‍♀️ start inside the tram and navigate to the exit
+- **Smart collision avoidance** 🛡️ prevents agents from occupying the same space
+- **Configurable geometry** 🏗️ allows customization of tram size, door position, and environment layout
 
-### Collective Crossing Environment
+## 🏗️ Project Structure
 
-The `CollectiveCrossingEnv` simulates a scenario where multiple agents interact in a tram boarding/exiting situation with a rectangular geometry:
+```
+collectivecrossing/
+├── 📁 src/collectivecrossing/
+│   ├── 🎮 collectivecrossing.py      # Main environment implementation
+│   ├── ⚙️ configs.py                 # Configuration classes with validation
+│   ├── 🎯 actions.py                 # Action definitions and mappings
+│   ├── 🏷️ types.py                   # Type definitions (AgentType, etc.)
+│   ├── 📁 utils/
+│   │   ├── 📐 geometry.py            # Geometry utilities (TramBoundaries)
+│   │   └── 🔧 pydantic.py            # Pydantic configuration utilities
+│   ├── 📁 wrappers/
+│   │   ├── 🎁 clip_reward.py         # Reward clipping wrapper
+│   │   ├── 🎲 discrete_actions.py    # Discrete action space wrapper
+│   │   ├── ⚖️ reacher_weighted_reward.py  # Weighted reward wrapper
+│   │   └── 📍 relative_position.py   # Relative positioning wrapper
+│   └── 📁 tests/                     # Environment-specific tests
+├── 📁 tests/                         # Main test suite
+├── 📁 examples/                      # Usage examples
+├── ⚙️ pyproject.toml                 # Project configuration
+├── 🔧 tool-config.toml               # Development tools configuration
+└── 📋 uv.lock                        # Dependency lock file
+```
 
-#### Geometry:
-- **Rectangular domain** divided by a horizontal line
-- **Upper part**: Tram area where exiting agents start
-- **Lower part**: Waiting area where boarding agents start
-- **Configurable tram door**: Position and width can be customized
-- **Configurable division line**: Y-coordinate of the horizontal division
-
-#### Features:
-- **Boarding agents**: Start in lower area, try to reach tram door
-- **Exiting agents**: Start in upper area, try to exit tram area
-- **Collision avoidance**: Agents cannot occupy the same position
-- **Configurable parameters**: Grid size, door position, number of agents
-- **Ray RLlib compatible**: Uses the [MultiAgentEnv API](https://docs.ray.io/en/latest/rllib/package_ref/env/multi_agent_env.html)
-- **Multiple rendering modes**: ASCII text and RGB array for matplotlib visualization
-
-## Installation
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Python 3.10 or higher
-- [uv](https://docs.astral.sh/uv/) package manager
+- **Python 3.10+** 🐍
+- **[uv](https://docs.astral.sh/uv/) package manager** ⚡
 
-### Quick Start
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd collectivecrossing
-   ```
-
-2. **Install dependencies**
-   ```bash
-   # Install main dependencies
-   uv sync
-   
-   # Install development dependencies
-   uv sync --dev
-   ```
-
-3. **Set up pre-commit hooks**
-   ```bash
-   # Install pre-commit hooks (automatically configured to use tool-config.toml)
-   uv run pre-commit install
-   ```
-
-## Development
-
-### Running the project
+### Installation
 
 ```bash
-# Run with uv
-uv run python -m collectivecrossing
+# Clone the repository
+git clone <repository-url>
+cd collectivecrossing
+
+# Install dependencies
+uv sync
+
+# Install development dependencies
+uv sync --dev
+
+# Set up pre-commit hooks
+uv run pre-commit install
 ```
 
-### Using the Environments
+## ⚙️ Configuration System
 
-#### Basic Usage
+The project uses a **modern, type-safe configuration system** with automatic validation:
+
+### 🔧 Configuration Building
 
 ```python
-from crowdcrossing.envs import CollectiveCrossingEnv
+from collectivecrossing.configs import CollectiveCrossingConfig
 
-# Create environment with rectangular geometry
-env = CollectiveCrossingEnv(
-    width=12,
-    height=8,
-    division_y=4,  # Horizontal division at y=4
-    tram_door_x=6,  # Door center at x=6
-    tram_door_width=2,  # Door width of 2
-    num_boarding_agents=5,
-    num_exiting_agents=3
+# Create a configuration with automatic validation
+config = CollectiveCrossingConfig(
+    width=12,                    # Environment width
+    height=8,                    # Environment height
+    division_y=4,                # Y-coordinate of tram/waiting area division
+    tram_door_x=6,               # X-coordinate of tram door center
+    tram_door_width=2,           # Width of the tram door
+    tram_length=10,              # Length of the tram
+    num_boarding_agents=5,       # Number of agents trying to board
+    num_exiting_agents=3,        # Number of agents trying to exit
+    max_steps=100,               # Maximum steps per episode
+    exiting_destination_area_y=1,    # Y-coordinate for exit destination
+    boarding_destination_area_y=7,   # Y-coordinate for boarding destination
+    render_mode="rgb_array"      # Rendering mode
 )
+```
+
+### ✅ Automatic Validation
+
+The configuration system automatically validates:
+- **Tram parameters** 🚇 (door position, width, length)
+- **Destination areas** 🎯 (within valid boundaries)
+- **Environment bounds** 📐 (grid dimensions)
+- **Agent counts** 👥 (reasonable limits)
+- **Render modes** 🎨 (valid options)
+
+```python
+# Invalid configuration will raise descriptive errors
+try:
+    config = CollectiveCrossingConfig(
+        width=10, tram_length=15  # Error: tram length > width
+    )
+except ValueError as e:
+    print(f"Configuration error: {e}")
+```
+
+## 🎮 Using the Environment
+
+### Basic Usage
+
+```python
+from collectivecrossing import CollectiveCrossingEnv
+from collectivecrossing.configs import CollectiveCrossingConfig
+
+# Create configuration
+config = CollectiveCrossingConfig(
+    width=12, height=8, division_y=4,
+    tram_door_x=6, tram_door_width=2, tram_length=10,
+    num_boarding_agents=5, num_exiting_agents=3,
+    max_steps=100, render_mode="rgb_array"
+)
+
+# Create environment
+env = CollectiveCrossingEnv(config=config)
 
 # Reset environment
 observations, infos = env.reset(seed=42)
 
-# Take actions
+# Take actions for all agents
 actions = {
     "boarding_0": 0,  # Move right
     "boarding_1": 1,  # Move up
@@ -100,82 +142,132 @@ actions = {
     "exiting_2": 2,   # Move left
 }
 
+# Step the environment
 observations, rewards, terminated, truncated, infos = env.step(actions)
 
 # Render the environment
-print(env.render())
+rgb_array = env.render()
+```
 
-# For RGB rendering with matplotlib
-env_rgb = CollectiveCrossingEnv(
-    width=12, height=8, division_y=4, tram_door_x=6, tram_door_width=2,
-    num_boarding_agents=5, num_exiting_agents=3, render_mode="rgb_array"
-)
-observations, infos = env_rgb.reset(seed=42)
-rgb_array = env_rgb.render()
+### 🎨 Visualization
 
+```python
 import matplotlib.pyplot as plt
+
+# Create environment with RGB rendering
+config = CollectiveCrossingConfig(
+    width=12, height=8, division_y=4,
+    tram_door_x=6, tram_door_width=2, tram_length=10,
+    num_boarding_agents=5, num_exiting_agents=3,
+    render_mode="rgb_array"
+)
+env = CollectiveCrossingEnv(config=config)
+
+# Reset and render
+observations, infos = env.reset(seed=42)
+rgb_array = env.render()
+
+# Display
+plt.figure(figsize=(12, 8))
 plt.imshow(rgb_array)
 plt.axis('off')
+plt.title('Collective Crossing Environment')
 plt.show()
 ```
 
-#### Testing the Environment
+## 🧪 Testing
 
 ```bash
-# Run the test script
-uv run python src/crowdcrossing/envs/test_collective_crossing.py
+# Run all tests
+uv run pytest
 
-# Run the RGB rendering test
-uv run python src/crowdcrossing/envs/test_rgb_rendering.py
+# Run specific test files
+uv run pytest tests/collectivecrossing/envs/test_collective_crossing.py
+
+# Run with coverage
+uv run pytest --cov=collectivecrossing
 ```
 
-### Code Quality
+## 🔧 Development
 
-This project uses:
-- **Ruff** for linting and formatting
-- **Pre-commit** for automated code quality checks
+### Code Quality Tools
 
-#### Configuration Structure
+This project uses modern development tools:
 
-The project uses a **separated configuration approach**:
+- **🦀 Ruff** - Fast Python linter and formatter
+- **🔒 Pre-commit** - Automated code quality checks
+- **📋 Pytest** - Testing framework
+- **🔍 Coverage** - Code coverage reporting
 
-- **`pyproject.toml`** - Project-specific settings (dependencies, metadata, build config)
-- **`tool-config.toml`** - Reusable development tool configurations (ruff, pre-commit settings)
+### Running Code Quality Tools
 
-This separation allows you to easily copy `tool-config.toml` to other projects for consistent tooling.
-
-#### Running Code Quality Tools
-
-**Pre-commit hooks** (automatically configured):
 ```bash
-# Pre-commit automatically uses tool-config.toml
-# Just commit your changes - hooks will run automatically
+# Pre-commit hooks (run automatically on commit)
 git add .
-git commit -m "your message"
-```
+git commit -m "Your commit message"
 
-**Manual tool execution**:
-```bash
-# Run linting with separate config
+# Manual linting
 uv run ruff check . --config tool-config.toml
 
-# Run formatting with separate config
+# Manual formatting
 uv run ruff format . --config tool-config.toml
 
-# Run pre-commit manually on all files
+# Run pre-commit manually
 uv run pre-commit run --all-files
 ```
 
-### Adding dependencies
+### Adding Dependencies
 
 ```bash
-# Add a main dependency
+# Add main dependency
 uv add package-name
 
-# Add a development dependency
+# Add development dependency
 uv add --dev package-name
 ```
 
-## License
+## 🎯 Key Features
 
-[Add license information here]
+### 🚇 Environment Features
+- **Multi-agent simulation** 👥 with boarding and exiting agents
+- **Collision avoidance** 🛡️ prevents agents from overlapping
+- **Configurable geometry** 🏗️ customizable tram and door positions
+- **Ray RLlib compatible** 🚀 uses MultiAgentEnv API
+- **Multiple rendering modes** 🎨 ASCII and RGB visualization
+
+### ⚙️ Configuration Features
+- **Type-safe configuration** 🔒 using Pydantic v2
+- **Automatic validation** ✅ comprehensive parameter checking
+- **Frozen configurations** 🧊 immutable after creation
+- **Clear error messages** 💬 descriptive validation failures
+
+### 🏗️ Architecture Features
+- **Modular design** 🧩 separated concerns (configs, utils, wrappers)
+- **Private encapsulation** 🔐 proper use of private members
+- **Clean interfaces** 🎯 public properties for external access
+- **Extensible wrappers** 🎁 environment modification system
+
+## 📚 Examples
+
+Check the `examples/` directory for complete usage examples:
+
+```bash
+# Run example
+uv run python examples/collectivecrossing_example.py
+```
+
+## 🤝 Contributing
+
+1. **Fork the repository** 🍴
+2. **Create a feature branch** 🌿
+3. **Make your changes** ✏️
+4. **Run tests** 🧪
+5. **Submit a pull request** 📤
+
+## 📄 License
+
+[Add your license information here]
+
+---
+
+**Happy simulating! 🚇✨**

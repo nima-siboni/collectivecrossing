@@ -10,12 +10,13 @@ dependencies = [
     "numpy>=1.24.0",
     "ray[rllib]==2.48.0",
     "matplotlib>=3.7.0",
+    "pydantic>=2.11.7",
 ]
 requires-python = ">=3.10,<3.14"
 readme = "README.md"
 
 [tool.hatch.build.targets.wheel]
-packages = ["collectivecrossing"]
+packages = ["src/collectivecrossing"]
 
 [build-system]
 requires = ["hatchling"]
@@ -26,4 +27,5 @@ dev = [
     "pre-commit>=3.5.0",
     "ruff>=0.1.6",
     "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
 ]
