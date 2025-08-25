@@ -4,12 +4,12 @@
   <img src="docs/images/collective_crossing_animation.gif" alt="Collective Crossing Animation" width="50%">
 </p>
 
-A multi-agent reinforcement learning environment for simulating collective behavior in tram boarding/exiting scenarios. This project provides a sophisticated grid-world environment where multiple agents interact to achieve their goals while avoiding collisions.
+A multi-agent reinforcement learning environment for simulating collective behavior in tram boarding/exiting scenarios. This project provides a grid-world environment where multiple agents interact to achieve their goals while avoiding collisions.
 
 ## 🎯 Overview
 
 The `CollectiveCrossingEnv` simulates a realistic tram boarding scenario where:
-- **Boarding agents** 🚶‍♂️ start in the waiting area and navigate to the tram door
+- **Boarding agents** 🚶‍♂️ start in the platform area and navigate to the tram door
 - **Exiting agents** 🚶‍♀️ start inside the tram and navigate to the exit
 - **Smart collision avoidance** 🛡️ prevents agents from occupying the same space
 - **Configurable geometry** 🏗️ allows customization of tram size, door position, and environment layout
