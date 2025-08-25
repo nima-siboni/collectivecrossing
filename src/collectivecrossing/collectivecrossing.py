@@ -759,9 +759,9 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             # Exiting agents are done when they reach the exiting destination area
             return self._is_in_exiting_destination_area(agent_pos)
 
-    def _check_action_agent_validity(self, agent_id: str, action: int):
+    def _check_action_and_agent_validity(self, agent_id: str, action: int):
         """
-        Check if the action is valid for the agent.
+        Check if the action and agent are valid.
 
         Args:
             agent_id: The ID of the agent.
