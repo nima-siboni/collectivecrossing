@@ -44,14 +44,27 @@ jobs:
       run: |
         uv run pre-commit run --all-files
     
+    - name: Create test results directory
+      run: |
+        mkdir -p test-results
+    
     - name: Run tests with pytest
       run: |
-        uv run pytest tests/ -v --tb=short --junitxml=test-results/results.xml
+        uv run pytest tests/ -v --tb=short --junitxml=test-results/results.xml --cov=src/collectivecrossing --cov-report=xml:coverage.xml --cov-report=term-missing
     
     - name: Check coverage file
       run: |
-        ls -la coverage.xml
-        cat coverage.xml | head -20
+        if [ -f coverage.xml ]; then
+          echo "Coverage file found:"
+          ls -la coverage.xml
+          echo "First 20 lines:"
+          cat coverage.xml | head -20
+        else
+          echo "Coverage file not found. Checking for other coverage files:"
+          ls -la *.xml || echo "No XML files found"
+          echo "Current directory contents:"
+          ls -la
+        fi
     
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
@@ -73,6 +86,7 @@ jobs:
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
+        verbose: true
     
     - name: Upload test results
       uses: actions/upload-artifact@v4
