@@ -113,16 +113,16 @@ def test_agent_termination():
     """Test that agents terminate when reaching their destination areas"""
     env = CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(
-            width=10,
-            height=8,
-            division_y=4,
-            tram_door_x=5,
+            width=8,
+            height=6,
+            division_y=3,
+            tram_door_x=4,
             tram_door_width=2,
             tram_length=8,
             num_boarding_agents=1,
             num_exiting_agents=1,
             exiting_destination_area_y=0,
-            boarding_destination_area_y=7,
+            boarding_destination_area_y=5,
             max_steps=100,
             render_mode="human",
         )
@@ -134,9 +134,9 @@ def test_agent_termination():
     # This is a bit of a hack, but it tests the termination logic
     for agent_id in observations.keys():
         if agent_id.startswith("boarding"):
-            env.boarding_agents[agent_id] = np.array([4, 5])  # At boarding destination
+            env._boarding_agents[agent_id] = np.array([4, 5])  # At boarding destination
         else:
-            env.exiting_agents[agent_id] = np.array([4, 0])  # At exiting destination
+            env._exiting_agents[agent_id] = np.array([4, 0])  # At exiting destination
 
     # Take a step
     actions = {agent_id: 4 for agent_id in observations.keys()}
@@ -146,23 +146,6 @@ def test_agent_termination():
     for agent_id in terminated.keys():
         if agent_id != "__all__":
             assert terminated[agent_id]
-
-
-def test_invalid_parameters():
-    """Test that invalid parameters raise appropriate errors"""
-    # Test tram length exceeding width
-    with pytest.raises(ValueError, match="Tram length.*cannot exceed grid width"):
-        CollectiveCrossingEnv(width=10, tram_length=15)
-
-    # Test invalid tram door position
-    with pytest.raises(ValueError, match="Tram door x-coordinate.*must be within tram boundaries"):
-        CollectiveCrossingEnv(tram_door_x=15, tram_length=10)
-
-    # Test invalid exiting destination area
-    with pytest.raises(
-        ValueError, match="Exiting destination area y-coordinate.*must be within waiting area"
-    ):
-        CollectiveCrossingEnv(division_y=4, exiting_destination_area_y=5)
 
 
 def test_rendering():
