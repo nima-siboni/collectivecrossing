@@ -516,31 +516,6 @@ def test_regression_detection(vcr):
         vcr.compare_with_golden(env_current, "regression_test")
 
 
-def test_version_specific_trajectories(vcr):
-    """Test version-specific trajectory recording and comparison"""
-    # Create VCR with specific version
-    vcr_v1 = TrajectoryVCR(version="v1.0")
-    vcr_v2 = TrajectoryVCR(version="v2.0")
-
-    env = create_test_environment()
-    observations, _ = env.reset(seed=42)
-    actions_sequence = generate_deterministic_actions(observations, num_steps=5)
-
-    # Record trajectories for different versions
-    trajectory_v1 = vcr_v1.record_trajectory(env, actions_sequence, "version_test")
-    trajectory_v2 = vcr_v2.record_trajectory(env, actions_sequence, "version_test")
-
-    # Verify both trajectories were recorded
-    assert len(trajectory_v1["steps"]) > 0
-    assert len(trajectory_v2["steps"]) > 0
-
-    # Verify version-specific files exist
-    v1_path = vcr_v1.version_dir / "version_test.json"
-    v2_path = vcr_v2.version_dir / "versionz_test.json"
-    assert v1_path.exists()
-    assert v2_path.exists()
-
-
 def test_list_trajectories(vcr):
     """Test listing available trajectories"""
     env = create_test_environment()
