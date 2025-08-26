@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _pytest.outcomes import Failed
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
 
@@ -511,7 +512,7 @@ def test_regression_detection(vcr):
         json.dump(modified_golden, f, indent=2)
 
     # Now the comparison should fail
-    with pytest.raises(AssertionError):
+    with pytest.raises(Failed):
         vcr.compare_with_golden(env_current, "regression_test")
 
 
@@ -535,7 +536,7 @@ def test_version_specific_trajectories(vcr):
 
     # Verify version-specific files exist
     v1_path = vcr_v1.version_dir / "version_test.json"
-    v2_path = vcr_v2.version_dir / "version_test.json"
+    v2_path = vcr_v2.version_dir / "versionz_test.json"
     assert v1_path.exists()
     assert v2_path.exists()
 
