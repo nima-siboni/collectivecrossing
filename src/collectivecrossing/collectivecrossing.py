@@ -231,8 +231,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """
         current_pos = self._get_agent_position(agent_id)
         # Calculate new position
-        new_pos = self._get_agent_position(agent_id)
-        # self._calculate_new_position(agent_id, action)
+        new_pos = self._calculate_new_position(agent_id, action)
 
         # Check if move is valid
         if self._is_move_valid(agent_id, current_pos, new_pos):
