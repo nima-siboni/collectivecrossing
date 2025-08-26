@@ -130,19 +130,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             # check the validity of the action
             self._check_action_and_agent_validity(agent_id, action)
 
-            # Get current position
-            current_pos = self._get_agent_position(agent_id)
-
-            # Calculate new position
-            new_pos = self._calculate_new_position(agent_id, action)
-
-            # Check if move is valid
-            if self._is_move_valid(agent_id, current_pos, new_pos):
-                # Update position
-                if agent_id in self._boarding_agents:
-                    self._boarding_agents[agent_id] = new_pos
-                else:
-                    self._exiting_agents[agent_id] = new_pos
+            # Move agent
+            self._move_agent(agent_id, action)
 
             # Calculate reward
             reward = self._calculate_reward(agent_id)
@@ -226,12 +215,43 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         new_pos = current_pos + direction
         return new_pos
 
+    def _move_agent(self, agent_id: str, action: int):
+        """
+        Move the agent based on the action only if the move is valid.
+
+        Note:
+        - This function has a side effect: the agent is moved to the new position, i.e. _boarding_agents or _exiting_agents is updated.
+
+        Args:
+            agent_id: The ID of the agent.
+            action: The action to move the agent.
+
+        Returns:
+            None
+        """
+        current_pos = self._get_agent_position(agent_id)
+        # Calculate new position
+        new_pos = self._calculate_new_position(agent_id, action)
+
+        # Check if move is valid
+        if self._is_move_valid(agent_id, current_pos, new_pos):
+            # Update position
+            if agent_id in self._boarding_agents:
+                self._boarding_agents[agent_id] = new_pos
+            else:
+                self._exiting_agents[agent_id] = new_pos
+
     def _remove_terminated_agents(self, action_dict: dict[str, int]):
         """
         Remove agent which are in _agents_to_remove from the environment and remove the agent from the action_dict.
 
         Note:
-        - removing from the environment means removing the agent from boarding_agents, boarding_agent_ids, exiting_agents, and exiting_agent_ids.
+        - removing from the environment means removing the agent from:
+            - boarding_agents
+            - boarding_agent_ids
+            - exiting_agents
+            - exiting_agent_ids
+
         Args:
             action_dict: The action dictionary.
 
