@@ -476,19 +476,33 @@ def test_golden_baseline_comparison(vcr):
 
 
 def test_regression_detection(vcr):
-    """Test that golden baselines can detect actual regressions"""
-    # Create a golden baseline first
-    env_golden = create_test_environment()
-    observations_golden, _ = env_golden.reset(seed=42)
-    actions_sequence = generate_deterministic_actions(observations_golden, num_steps=5)
+    """Test that golden baselines can detect actual regressions
 
-    # Create golden baseline
-    vcr.create_golden_baseline(env_golden, actions_sequence, "regression_test")
+    NOTE: This test artificially simulates a regression by modifying the golden baseline file.
+    In practice, regressions would be detected when:
+    1. Golden baselines are created from known-good code and committed to git
+    2. Code changes introduce bugs that change behavior
+    3. Current trajectories differ from golden baselines
+
+    This test demonstrates the mechanism but doesn't test real code changes.
+    """
+    # Create a golden baseline first (only if it doesn't exist)
+    golden_path = vcr.golden_dir / "regression_test.json"
+    if not golden_path.exists():
+        env_golden = create_test_environment()
+        observations_golden, _ = env_golden.reset(seed=42)
+        actions_sequence = generate_deterministic_actions(observations_golden, num_steps=5)
+        vcr.create_golden_baseline(env_golden, actions_sequence, "regression_test")
+
+    # Save the original golden baseline for restoration
+    with open(golden_path) as f:
+        original_golden = json.load(f)
 
     # Now simulate a "current" run with the same environment
     # In practice, this would be a different version of the code
     env_current = create_test_environment()
     observations_current, _ = env_current.reset(seed=42)
+    actions_sequence = generate_deterministic_actions(observations_current, num_steps=5)
 
     # Record current trajectory (same name as golden baseline, but in version_dir)
     vcr.record_trajectory(env_current, actions_sequence, "regression_test")
@@ -499,7 +513,6 @@ def test_regression_detection(vcr):
 
     # Now let's simulate what would happen if there was a bug
     # We'll modify the golden trajectory to simulate a regression
-    golden_path = vcr.golden_dir / "regression_test.json"
     with open(golden_path) as f:
         modified_golden = json.load(f)
 
@@ -519,6 +532,10 @@ def test_regression_detection(vcr):
     with pytest.raises(Failed):
         vcr.compare_with_golden(env_current, "regression_test")
 
+    # Restore the original golden baseline
+    with open(golden_path, "w") as f:
+        json.dump(original_golden, f, indent=2)
+
 
 def test_list_trajectories(vcr):
     """Test listing available trajectories"""
@@ -526,8 +543,12 @@ def test_list_trajectories(vcr):
     observations, _ = env.reset(seed=42)
     actions_sequence = generate_deterministic_actions(observations, num_steps=5)
 
-    # Create some trajectories
-    vcr.create_golden_baseline(env, actions_sequence, "test_list_golden")
+    # Create golden baseline (only if it doesn't exist)
+    golden_path = vcr.golden_dir / "test_list_golden.json"
+    if not golden_path.exists():
+        vcr.create_golden_baseline(env, actions_sequence, "test_list_golden")
+
+    # Create current trajectory
     vcr.record_trajectory(env, actions_sequence, "test_list_current")
 
     # List trajectories

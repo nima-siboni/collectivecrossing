@@ -39,6 +39,32 @@ tests/fixtures/trajectories/
     └── ...
 ```
 
+## 📝 Version Control
+
+### ✅ What to Commit
+
+- **🏆 `golden/` directory**: Golden baselines should be committed to version control
+- **📋 Test files**: All test files should be committed
+
+### ❌ What NOT to Commit
+
+- **🔄 `current/` directory**: Current trajectories are temporary test artifacts
+- **📦 Version-specific directories**: These are generated during testing
+
+The `current/` directory is automatically ignored by `.gitignore`:
+
+```gitignore
+# VCR trajectory test artifacts
+tests/fixtures/trajectories/current/
+```
+
+### 🔄 Golden Baseline Lifecycle
+
+1. **🏆 Create**: Golden baselines are created from known-good code
+2. **📝 Commit**: Golden baselines are committed to version control
+3. **🧪 Test**: Tests compare current behavior against golden baselines
+4. **🔄 Update**: Golden baselines are updated when behavior intentionally changes
+
 ## 🚀 Usage
 
 ### 1. 🏆 Creating Golden Baselines
@@ -55,13 +81,15 @@ uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_create_
 - 🐛 After fixing bugs in working code
 - ✅ When you have a stable, tested version
 
+**Important**: Tests now preserve existing golden baselines. They will only create new ones if they don't exist, preventing accidental overwrites.
+
 ### 2. 🔍 Comparing Against Golden Baselines
 
 Compare current code behavior against golden baselines to detect regressions.
 
 ```bash
 # Compare current trajectory with golden baseline
-uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_compare_with_golden_baseline -v
+uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_golden_baseline_comparison -v
 ```
 
 **What this catches:**
@@ -69,6 +97,8 @@ uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_compare
 - 🎯 Reward calculation changes
 - 🛑 Termination condition changes
 - 👁️ Observation space changes
+
+**Test Behavior**: This test requires the golden baseline to exist and will fail with a clear error message if it's missing.
 
 ### 3. 📊 Version-Specific Testing
 
@@ -269,6 +299,15 @@ When tests fail, the system provides detailed information:
    pytest.fail: Observation mismatch for agent_id at step N
    ```
    **💡 Solution**: Check for changes in environment logic that affect agent behavior.
+
+4. **🔄 Golden Baseline Modified**
+   ```
+   git status shows modified golden baseline files
+   ```
+   **💡 Solution**: Tests now preserve golden baselines. If you see modifications, it means:
+   - The test detected a regression (intentional behavior)
+   - You need to update golden baselines for intentional changes
+   - Restore golden baselines with `git restore tests/fixtures/trajectories/golden/`
 
 ### 🛠️ Debugging Commands
 
