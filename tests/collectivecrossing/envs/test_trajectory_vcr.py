@@ -437,8 +437,12 @@ def test_create_golden_baseline(vcr):
     assert golden_path.exists()
 
 
-def test_compare_with_golden_baseline(vcr):
-    """Compare current trajectory with golden baseline
+def test_golden_baseline_comparison(vcr):
+    """Compare current trajectory with existing golden baseline
+
+    This test verifies that the golden baseline comparison mechanism works correctly.
+    It uses an existing golden baseline and compares it with a current trajectory
+    created from the same environment code.
 
     NOTE: This test demonstrates the basic golden baseline comparison mechanism,
     but it doesn't actually test for regressions since both golden and current
