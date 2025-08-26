@@ -437,26 +437,82 @@ def test_create_golden_baseline(vcr):
 
 
 def test_compare_with_golden_baseline(vcr):
-    """Compare current trajectory with golden baseline"""
-    env = create_test_environment()
-    observations, _ = env.reset(seed=42)
+    """Compare current trajectory with golden baseline
 
-    # Generate deterministic actions
-    actions_sequence = generate_deterministic_actions(observations, num_steps=10)
+    NOTE: This test demonstrates the basic golden baseline comparison mechanism,
+    but it doesn't actually test for regressions since both golden and current
+    trajectories are created with the same environment code. For actual regression
+    testing, see test_regression_detection().
 
-    # First, create golden baseline (if it doesn't exist)
+    REQUIREMENT: Golden baseline must exist before running this test.
+    """
+    # Check if golden baseline exists - fail if it doesn't
     golden_path = vcr.golden_dir / "golden_basic_trajectory.json"
     if not golden_path.exists():
-        vcr.create_golden_baseline(env, actions_sequence, "golden_basic_trajectory")
+        pytest.fail(
+            "Golden baseline 'golden_basic_trajectory' not found. "
+            "Create golden baseline first using test_create_golden_baseline() or manually."
+        )
 
-    # Record current trajectory
-    vcr.record_trajectory(env, actions_sequence, "golden_basic_trajectory")
+    # Now create current trajectory with a different environment instance
+    # This simulates running the test with potentially modified code
+    env_current = create_test_environment()
+    observations_current, _ = env_current.reset(seed=42)
+    actions_sequence = generate_deterministic_actions(observations_current, num_steps=10)
+
+    # Record current trajectory (same name as golden baseline, but in version_dir)
+    vcr.record_trajectory(env_current, actions_sequence, "golden_basic_trajectory")
 
     # Compare with golden baseline
-    golden_traj, current_traj = vcr.compare_with_golden(env, "golden_basic_trajectory")
+    golden_traj, current_traj = vcr.compare_with_golden(env_current, "golden_basic_trajectory")
 
     # Verify trajectories are identical
     assert golden_traj == current_traj
+
+
+def test_regression_detection(vcr):
+    """Test that golden baselines can detect actual regressions"""
+    # Create a golden baseline first
+    env_golden = create_test_environment()
+    observations_golden, _ = env_golden.reset(seed=42)
+    actions_sequence = generate_deterministic_actions(observations_golden, num_steps=5)
+
+    # Create golden baseline
+    vcr.create_golden_baseline(env_golden, actions_sequence, "regression_test")
+
+    # Now simulate a "current" run with the same environment
+    # In practice, this would be a different version of the code
+    env_current = create_test_environment()
+    observations_current, _ = env_current.reset(seed=42)
+
+    # Record current trajectory (same name as golden baseline, but in version_dir)
+    vcr.record_trajectory(env_current, actions_sequence, "regression_test")
+
+    # This should pass because both environments are identical
+    golden_traj, current_traj = vcr.compare_with_golden(env_current, "regression_test")
+    assert golden_traj == current_traj
+
+    # Now let's simulate what would happen if there was a bug
+    # We'll modify the golden trajectory to simulate a regression
+    golden_path = vcr.golden_dir / "regression_test.json"
+    with open(golden_path) as f:
+        modified_golden = json.load(f)
+
+    # Modify the golden trajectory to simulate a bug
+    if modified_golden["steps"]:
+        # Change a reward value to simulate a bug
+        first_step = modified_golden["steps"][0]
+        if first_step["next_rewards"]:
+            first_agent = list(first_step["next_rewards"].keys())[0]
+            first_step["next_rewards"][first_agent] = 999.0  # Obviously wrong value
+
+    # Save the modified golden baseline
+    with open(golden_path, "w") as f:
+        json.dump(modified_golden, f, indent=2)
+
+    # Now the comparison should fail
+    with pytest.raises(AssertionError):
+        vcr.compare_with_golden(env_current, "regression_test")
 
 
 def test_version_specific_trajectories(vcr):
