@@ -105,7 +105,8 @@ def test_agent_observation():
         print(f"  Observation shape: {obs.shape}")
         print(f"  Agent position: [{obs[0]}, {obs[1]}]")
         print(
-            f"  Tram door info: center_x={obs[2]}, division_y={obs[3]}, left={obs[4]}, right={obs[5]}"
+            f"  Tram door info: center_x={obs[2]}, division_y={obs[3]}, left={obs[4]}, "
+            f"right={obs[5]}"
         )
         print()
 

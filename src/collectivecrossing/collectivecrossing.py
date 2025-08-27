@@ -125,10 +125,11 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         Notes:
         - Process actions for all agents for which there is an action in the action_dict
         - Calculate rewards, check termination, and update observations for **all agents**:
-        we iterate over the all agents in the environment (not only the agents for which there is an action in the action_dict),
-        because RLlib allows to return obs, rewards, terminateds, truncateds, infos for any agent in the environment
-        (See [Multi-Agent Environments](https://docs.ray.io/en/releases-2.48.0/rllib/multi-agent-envs.html)
-        for more details) in RLlib documentation.
+        we iterate over the all agents in the environment (not only the agents for which there is
+        an action in the action_dict), because RLlib allows to return obs, rewards, terminateds,
+        truncateds, infos for any agent in the environment.
+        See [here](https://docs.ray.io/en/releases-2.48.0/rllib/multi-agent-envs.html)
+        for more details in RLlib documentation.
 
         Args:
             action_dict: A dictionary of agent IDs and actions.
@@ -146,7 +147,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         # Process actions for all agents for which there is an action in the action_dict
         for agent_id, action in action_dict.items():
             # check the validity of the action and the agent
-            # this function will raise an error if the agent is not active or the action is not valid
+            # this function will raise an error if the agent is not active or the action is not
+            # valid
             self._check_action_and_agent_validity(agent_id, action)
 
             # Move agent
@@ -154,7 +156,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         # Calculate rewards, check termination, and update observations for all agents
         # Note: we need to iterate over the agents in the environment, not the action_dict
-        # because RLlib allows to return obs, rewards, terminateds, truncateds, infos for any agent in the environment.
+        # because RLlib allows to return obs, rewards, terminateds, truncateds, infos for any
+        # agent in the environment.
 
         # TODO: remove this later?
         for agent_id in self._agents.keys():
@@ -245,7 +248,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         Move the agent based on the action only if the agent is active and the move is valid.
 
         Note:
-        - This function has a side effect: the agent is moved to the new position, i.e. _boarding_agents or _exiting_agents is updated.
+        - This function has a side effect: the agent is moved to the new position,
+        i.e. _boarding_agents or _exiting_agents is updated.
 
         Args:
             agent_id: The ID of the agent.
@@ -459,7 +463,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         agent_type = self._agents[agent_id].agent_type
 
         if agent_type == AgentType.BOARDING:
-            # Boarding agents get positive reward for reaching tram door and boarding destination area
+            # Boarding agents get positive reward for reaching tram door and boarding destination
+            # area
             if self._is_in_boarding_destination_area(agent_pos):
                 return 15.0  # Successfully reached boarding destination area
             elif self._is_at_tram_door(agent_pos):
@@ -513,12 +518,14 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             action: The action to check.
 
         Raises:
-            ValueError: If the agent ID is not among the agents, the action is not in the _action_to_direction, or the agent is not active in the environment.
+            ValueError: If the agent ID is not among the agents, the action is not in the
+            _action_to_direction, or the agent is not active in the environment.
         """
         # check if the agent is among the agents
         if agent_id not in self._agents.keys():
             raise ValueError(
-                f"Unknown agent ID: {agent_id} in action_dict. The action_dict keys must be a subset of the agents. Current agents: {self._agents.keys()}"
+                f"Unknown agent ID: {agent_id} in action_dict. The action_dict keys must be a "
+                f"subset of the agents. Current agents: {self._agents.keys()}"
             )
         # check if the agent is active in the environment
         if not self._agents[agent_id].active:
@@ -526,7 +533,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         # check if the action is valid
         if action not in self._action_to_direction:
             raise ValueError(
-                f"Invalid action: {action} for agent {agent_id}. Valid actions are: {list(self._action_to_direction.keys())}"
+                f"Invalid action: {action} for agent {agent_id}. Valid actions are: "
+                f"{list(self._action_to_direction.keys())}"
             )
 
     def _render_matplotlib(self):

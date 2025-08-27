@@ -67,13 +67,15 @@ class CollectiveCrossingConfig(ConfigClass):
         # Validate tram door position within tram boundaries
         if self.tram_door_x < 0 or self.tram_door_x >= self.tram_length:
             raise ValueError(
-                f"Tram door x-coordinate ({self.tram_door_x}) must be within tram boundaries (0 to {self.tram_length-1})"
+                f"Tram door x-coordinate ({self.tram_door_x}) must be within tram boundaries "
+                f"(0 to {self.tram_length-1})"
             )
 
         # Validate tram door width
         if self.tram_door_width > self.tram_length:
             raise ValueError(
-                f"Tram door width ({self.tram_door_width}) cannot exceed tram length ({self.tram_length})"
+                f"Tram door width ({self.tram_door_width}) cannot exceed tram length "
+                f"({self.tram_length})"
             )
 
         # Validate tram door doesn't extend beyond tram boundaries
@@ -81,7 +83,8 @@ class CollectiveCrossingConfig(ConfigClass):
         door_right = min(self.tram_length - 1, self.tram_door_x + self.tram_door_width // 2)
         if door_left < 0 or door_right >= self.tram_length:
             raise ValueError(
-                f"Tram door boundaries ({door_left} to {door_right}) must be within tram boundaries (0 to {self.tram_length-1})"
+                f"Tram door boundaries ({door_left} to {door_right}) must be within tram "
+                f"boundaries (0 to {self.tram_length-1})"
             )
 
     def _validate_destination_areas(self) -> None:
@@ -92,7 +95,8 @@ class CollectiveCrossingConfig(ConfigClass):
             or self.exiting_destination_area_y >= self.division_y
         ):
             raise ValueError(
-                f"Exiting destination area y-coordinate ({self.exiting_destination_area_y}) must be within waiting area (0 to {self.division_y-1})"
+                f"Exiting destination area y-coordinate ({self.exiting_destination_area_y}) must "
+                f"be within waiting area (0 to {self.division_y-1})"
             )
 
         # Validate boarding destination area (should be in tram area)
@@ -101,7 +105,8 @@ class CollectiveCrossingConfig(ConfigClass):
             or self.boarding_destination_area_y >= self.height
         ):
             raise ValueError(
-                f"Boarding destination area y-coordinate ({self.boarding_destination_area_y}) must be within tram area ({self.division_y} to {self.height-1})"
+                f"Boarding destination area y-coordinate ({self.boarding_destination_area_y}) "
+                f"must be within tram area ({self.division_y} to {self.height-1})"
             )
 
     def _validate_environment_bounds(self) -> None:
@@ -109,13 +114,15 @@ class CollectiveCrossingConfig(ConfigClass):
         # Validate division line is within environment height
         if self.division_y >= self.height:
             raise ValueError(
-                f"Division line y-coordinate ({self.division_y}) must be less than environment height ({self.height})"
+                f"Division line y-coordinate ({self.division_y}) must be less than environment "
+                f"height ({self.height})"
             )
 
         # Validate tram door x-coordinate is within environment width
         if self.tram_door_x >= self.width:
             raise ValueError(
-                f"Tram door x-coordinate ({self.tram_door_x}) must be less than environment width ({self.width})"
+                f"Tram door x-coordinate ({self.tram_door_x}) must be less than environment "
+                f"width ({self.width})"
             )
 
     def _validate_agent_counts(self) -> None:
@@ -126,7 +133,8 @@ class CollectiveCrossingConfig(ConfigClass):
         max_agents = min(self.width * self.height // 4, 50)  # Conservative limit
         if total_agents > max_agents:
             raise ValueError(
-                f"Total number of agents ({total_agents}) exceeds reasonable limit ({max_agents}) for environment size {self.width}x{self.height}"
+                f"Total number of agents ({total_agents}) exceeds reasonable limit ({max_agents}) "
+                f"for environment size {self.width}x{self.height}"
             )
 
         # Check if agents can fit in their respective areas
@@ -135,12 +143,14 @@ class CollectiveCrossingConfig(ConfigClass):
 
         if self.num_exiting_agents > waiting_area_size // 2:
             raise ValueError(
-                f"Number of exiting agents ({self.num_exiting_agents}) may be too high for waiting area size ({waiting_area_size})"
+                f"Number of exiting agents ({self.num_exiting_agents}) may be too high for "
+                f"waiting area size ({waiting_area_size})"
             )
 
         if self.num_boarding_agents > tram_area_size // 2:
             raise ValueError(
-                f"Number of boarding agents ({self.num_boarding_agents}) may be too high for tram area size ({tram_area_size})"
+                f"Number of boarding agents ({self.num_boarding_agents}) may be too high for "
+                f"tram area size ({tram_area_size})"
             )
 
     def _validate_render_mode(self) -> None:
@@ -155,7 +165,9 @@ class CollectiveCrossingConfig(ConfigClass):
         """
         Get all validation errors without raising exceptions.
 
-        Note: As long as ConfigClass has frozen=True, this method will not be useful. In case of a validation error, the error will be raised at the moment of creating the config object.
+        Note: As long as ConfigClass has frozen=True, this method will not be useful.
+        In case of a validation error, the error will be raised at the moment of creating the
+        config object.
 
         Returns:
             List[str]: A list of validation error messages

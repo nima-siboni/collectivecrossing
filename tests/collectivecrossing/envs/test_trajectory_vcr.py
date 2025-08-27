@@ -219,7 +219,8 @@ class TrajectoryVCR:
 
         if len(steps1) != len(steps2):
             pytest.fail(
-                f"Step count mismatch: {name1} has {len(steps1)} steps, {name2} has {len(steps2)} steps"
+                f"Step count mismatch: {name1} has {len(steps1)} steps, {name2} has "
+                f"{len(steps2)} steps"
             )
 
         for step_num, (step1, step2) in enumerate(zip(steps1, steps2, strict=True)):
@@ -237,7 +238,8 @@ class TrajectoryVCR:
 
                 if not np.array_equal(obs1, obs2):
                     pytest.fail(
-                        f"Observation mismatch for {agent_id} at step {step_num} between {name1} and {name2}"
+                        f"Observation mismatch for {agent_id} at step {step_num} between "
+                        f"{name1} and {name2}"
                     )
 
             # Compare rewards
@@ -250,7 +252,8 @@ class TrajectoryVCR:
 
                 if abs(reward1 - reward2) > 1e-6:
                     pytest.fail(
-                        f"Reward mismatch for {agent_id} at step {step_num}: {name1}={reward1}, {name2}={reward2}"
+                        f"Reward mismatch for {agent_id} at step {step_num}: {name1}={reward1}, "
+                        f"{name2}={reward2}"
                     )
 
             # Compare termination states
@@ -265,7 +268,8 @@ class TrajectoryVCR:
 
                 if term1 != term2:
                     pytest.fail(
-                        f"Termination mismatch for {agent_id} at step {step_num}: {name1}={term1}, {name2}={term2}"
+                        f"Termination mismatch for {agent_id} at step {step_num}: "
+                        f"{name1}={term1}, {name2}={term2}"
                     )
 
     def list_golden_baselines(self):
