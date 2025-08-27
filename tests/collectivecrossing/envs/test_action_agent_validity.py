@@ -6,6 +6,7 @@ Tests for action and agent validity checking in CollectiveCrossingEnv.
 import pytest
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.types import AgentType
 
 
 class TestActionAgentValidity:
@@ -67,7 +68,7 @@ class TestActionAgentValidity:
 
         assert "Unknown agent ID" in str(exc_info.value)
         assert invalid_agent_id in str(exc_info.value)
-        assert "all_agent_ids" in str(exc_info.value)
+        assert "'boarding_0', 'boarding_1', 'exiting_0" in str(exc_info.value)
 
     def test_invalid_agent_invalid_action(self, env):
         """Test that invalid agent ID with invalid action raises ValueError."""
@@ -101,11 +102,19 @@ class TestActionAgentValidity:
         action = 0  # Valid action
 
         # Test boarding agents
-        for agent_id in env.boarding_agent_ids:
+        for agent_id in [
+            agent_id
+            for agent_id in env._agents.keys()
+            if env._agents[agent_id].agent_type == AgentType.BOARDING
+        ]:
             env._check_action_and_agent_validity(agent_id, action)
 
         # Test exiting agents
-        for agent_id in env.exiting_agent_ids:
+        for agent_id in [
+            agent_id
+            for agent_id in env._agents.keys()
+            if env._agents[agent_id].agent_type == AgentType.EXITING
+        ]:
             env._check_action_and_agent_validity(agent_id, action)
 
     def test_negative_action(self, env):

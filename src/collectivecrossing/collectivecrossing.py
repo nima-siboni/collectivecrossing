@@ -4,7 +4,7 @@ import gymnasium as gym
 import numpy as np
 from collectivecrossing.actions import ACTION_TO_DIRECTION
 from collectivecrossing.configs import CollectiveCrossingConfig
-from collectivecrossing.types import AgentType
+from collectivecrossing.types import Agent, AgentType
 from collectivecrossing.utils.geometry import TramBoundaries, calculate_tram_boundaries
 from gymnasium import spaces
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
@@ -38,17 +38,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         # Calculate tram boundaries using the dataclass
         self._tram_boundaries = calculate_tram_boundaries(self.config)
 
-        # Agent tracking
-        self._boarding_agents = {}  # agent_id -> position
-        self._exiting_agents = {}  # agent_id -> position
-        self._agent_types = {}  # agent_id -> AgentType
+        # Agent tracking - unified structure
+        self._agents: dict[str, Agent] = {}  # agent_id -> Agent
         self._step_count = 0
 
         # Action mapping
         self._action_to_direction = ACTION_TO_DIRECTION
-
-        # Initialize agent IDs
-        self._init_agent_ids()
 
         # Define observation and action spaces
         self._setup_spaces()
@@ -64,11 +59,10 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         super().reset(seed=seed)
 
         self._step_count = 0
-        self._boarding_agents = {}
-        self._exiting_agents = {}
+        self._agents = {}
 
         # Initialize boarding agents (start in lower part, away from door)
-        for _, agent_id in enumerate(self.boarding_agent_ids):
+        for boarding_agent_counter in range(self.config.num_boarding_agents):
             while True:
                 pos = np.array(
                     [
@@ -81,11 +75,17 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                     self.tram_door_left <= pos[0] <= self.tram_door_right
                     and pos[1] == self.config.division_y - 1
                 ):
-                    self._boarding_agents[agent_id] = pos
+                    agent = Agent(
+                        id=f"boarding_{boarding_agent_counter}",
+                        agent_type=AgentType.BOARDING,
+                        position=pos,
+                        active=True,
+                    )
+                    self._agents[agent.id] = agent
                     break
 
         # Initialize exiting agents (start in upper part, tram area)
-        for _, agent_id in enumerate(self.exiting_agent_ids):
+        for exiting_agent_counter in range(self.config.num_exiting_agents):
             while True:
                 pos = np.array(
                     [
@@ -96,17 +96,22 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                     ]
                 )
                 if not self._is_position_occupied(pos):
-                    self._exiting_agents[agent_id] = pos
+                    agent = Agent(
+                        id=f"exiting_{exiting_agent_counter}",
+                        agent_type=AgentType.EXITING,
+                        position=pos,
+                        active=True,
+                    )
+                    self._agents[agent.id] = agent
                     break
 
         # Get observations for all agents
         observations = {}
         infos = {}
-        for agent_id in self.all_agent_ids:
-            observations[agent_id] = self._get_agent_observation(agent_id)
-            infos[agent_id] = {"agent_type": self._agent_types[agent_id].value}
+        for agent in self._agents.values():
+            observations[agent.id] = self._get_agent_observation(agent.id)
+            infos[agent.id] = {"agent_type": agent.agent_type.value}
 
-        self._agents_to_remove = []
         return observations, infos
 
     def step(
@@ -114,7 +119,23 @@ class CollectiveCrossingEnv(MultiAgentEnv):
     ) -> tuple[
         dict[str, np.ndarray], dict[str, float], dict[str, bool], dict[str, bool], dict[str, dict]
     ]:
-        """Execute one step in the environment"""
+        """
+        Execute one step in the environment
+
+        Notes:
+        - Process actions for all agents for which there is an action in the action_dict
+        - Calculate rewards, check termination, and update observations for **all agents**:
+        we iterate over the all agents in the environment (not only the agents for which there is an action in the action_dict),
+        because RLlib allows to return obs, rewards, terminateds, truncateds, infos for any agent in the environment
+        (See [Multi-Agent Environments](https://docs.ray.io/en/releases-2.48.0/rllib/multi-agent-envs.html)
+        for more details) in RLlib documentation.
+
+        Args:
+            action_dict: A dictionary of agent IDs and actions.
+
+        Returns:
+            A tuple of observations, rewards, terminateds, truncateds, and infos.
+        """
         self._step_count += 1
 
         observations = {}
@@ -122,37 +143,40 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         terminateds = {}
         truncateds = {}
         infos = {}
-
-        self._remove_terminated_agents(action_dict)
-
-        # Process actions for all agents
+        # Process actions for all agents for which there is an action in the action_dict
         for agent_id, action in action_dict.items():
-            # check the validity of the action
+            # check the validity of the action and the agent
+            # this function will raise an error if the agent is not active or the action is not valid
             self._check_action_and_agent_validity(agent_id, action)
 
             # Move agent
             self._move_agent(agent_id, action)
 
-        for agent_id in self.all_agent_ids:
-            # Calculate reward
-            reward = self._calculate_reward(agent_id)
-            rewards[agent_id] = reward
+        # Calculate rewards, check termination, and update observations for all agents
+        # Note: we need to iterate over the agents in the environment, not the action_dict
+        # because RLlib allows to return obs, rewards, terminateds, truncateds, infos for any agent in the environment.
 
-            # Check if agent is done
-            agent_terminated = self._is_agent_done(agent_id)
-            terminateds[agent_id] = agent_terminated
-            truncateds[agent_id] = self._is_truncated(self._step_count, self.config.max_steps)
-            infos[agent_id] = {
-                "agent_type": self._agent_types[agent_id].value,
-                "in_tram_area": self._is_in_tram_area(self._get_agent_position(agent_id)),
-                "at_door": self._is_at_tram_door(self._get_agent_position(agent_id)),
-            }
-            observations[agent_id] = self._get_agent_observation(agent_id)
+        # TODO: remove this later?
+        for agent_id in self._agents.keys():
+            if self._agents[agent_id].active and self._is_agent_terminated(agent_id):
+                self._agents[agent_id].deactivate()
 
-            # Remove terminated agents from the environment (after calculating rewards and checking termination)
-            if agent_terminated:
-                # add this agent to the list of agents which needs to be removed in the next step
-                self._agents_to_remove.append(agent_id)
+        for agent_id in self._agents.keys():
+            if self._agents[agent_id].active:
+                # Calculate reward
+                reward = self._calculate_reward(agent_id)
+                rewards[agent_id] = reward
+
+                # Check if agent is done
+                terminateds[agent_id] = self._is_agent_terminated(agent_id)
+
+                truncateds[agent_id] = self._is_truncated(self._step_count, self.config.max_steps)
+                infos[agent_id] = {
+                    "agent_type": self._agents[agent_id].agent_type.value,
+                    "in_tram_area": self._is_in_tram_area(self._get_agent_position(agent_id)),
+                    "at_door": self._is_at_tram_door(self._get_agent_position(agent_id)),
+                }
+                observations[agent_id] = self._get_agent_observation(agent_id)
 
         # Check if environment is done
         all_terminated = all(terminateds.values()) if terminateds else False
@@ -190,7 +214,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         A move is valid if:
         - the new position is valid
-        - the new position is not occupied
+        - the new position is not occupied by an **active** agent
         - the new position does not cross the tram wall
 
         Args:
@@ -218,7 +242,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
     def _move_agent(self, agent_id: str, action: int):
         """
-        Move the agent based on the action only if the move is valid.
+        Move the agent based on the action only if the agent is active and the move is valid.
 
         Note:
         - This function has a side effect: the agent is moved to the new position, i.e. _boarding_agents or _exiting_agents is updated.
@@ -230,6 +254,10 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         Returns:
             None
         """
+        # do nothing if the agent is not active
+        if not self._agents[agent_id].active:
+            return
+        # update the position of the agent
         current_pos = self._get_agent_position(agent_id)
         # Calculate new position
         new_pos = self._calculate_new_position(agent_id, action)
@@ -237,43 +265,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         # Check if move is valid
         if self._is_move_valid(agent_id, current_pos, new_pos):
             # Update position
-            if agent_id in self._boarding_agents:
-                self._boarding_agents[agent_id] = new_pos
-            else:
-                self._exiting_agents[agent_id] = new_pos
-
-    def _remove_terminated_agents(self, action_dict: dict[str, int]):
-        """
-        Remove agent which are in _agents_to_remove from the environment and remove the agent from the action_dict.
-
-        Note:
-        - removing from the environment means removing the agent from:
-            - boarding_agents
-            - boarding_agent_ids
-            - exiting_agents
-            - exiting_agent_ids
-
-        Args:
-            action_dict: The action dictionary.
-
-        Returns:
-            None
-        """
-        for agent_id in self._agents_to_remove:
-            # remove from the action_dict
-            if agent_id in action_dict:
-                action_dict.pop(agent_id)
-                logger.warning(
-                    f"Removed terminated agent {agent_id} from action_dict. This agent was terminated in the previous step."
-                )
-            # remove from the environment
-            if agent_id in self._boarding_agents:
-                del self._boarding_agents[agent_id]
-                self._boarding_agent_ids.remove(agent_id)
-            elif agent_id in self._exiting_agents:
-                del self._exiting_agents[agent_id]
-                self._exiting_agent_ids.remove(agent_id)
-        self._agents_to_remove = []
+            self._agents[agent_id].update_position(new_pos)
 
     @staticmethod
     def _is_truncated(current_step_count: int, max_steps: int) -> bool:
@@ -320,35 +312,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         return self._tram_boundaries.tram_right
 
     @property
-    def all_agent_ids(self):
-        return self._boarding_agent_ids + self._exiting_agent_ids
-
-    @property
     def action_space(self):
         return self._action_space
 
     @property
     def observation_space(self):
         return self._observation_space
-
-    @property
-    def boarding_agent_ids(self):
-        return self._boarding_agent_ids
-
-    @property
-    def exiting_agent_ids(self):
-        return self._exiting_agent_ids
-
-    def _init_agent_ids(self):
-        """Initialize agent IDs for boarding and exiting agents"""
-        self._boarding_agent_ids = [f"boarding_{i}" for i in range(self.config.num_boarding_agents)]
-        self._exiting_agent_ids = [f"exiting_{i}" for i in range(self.config.num_exiting_agents)]
-
-        # Set agent types
-        for agent_id in self._boarding_agent_ids:
-            self._agent_types[agent_id] = AgentType.BOARDING
-        for agent_id in self._exiting_agent_ids:
-            self._agent_types[agent_id] = AgentType.EXITING
 
     def _setup_spaces(self):
         """Setup observation and action spaces for all agents"""
@@ -357,7 +326,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         # Observation space includes agent position, tram info, and other agents
         # For simplicity, we'll use a flattened representation
-        obs_size = 2 + 6 + len(self.all_agent_ids) * 2  # agent_pos + tram_info + all_other_agents
+        obs_size = 2 + 6 + len(self._agents) * 2  # agent_pos + tram_info + all_other_agents
         self._observation_space = spaces.Box(
             low=0,
             high=max(self.config.width, self.config.height) - 1,
@@ -378,10 +347,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 self.tram_door_right,  # Door right boundary
             ]
         )
+        # TODO: add active status of the agent
         obs = np.concatenate([agent_pos, tram_door_info])
 
         # Add positions of all other agents
-        for other_id in self.all_agent_ids:
+        # TODO: is this for all agents or only the active ones?
+        for other_id in self._agents.keys():
             if other_id != agent_id:
                 other_pos = self._get_agent_position(other_id)
                 obs = np.concatenate([obs, other_pos])
@@ -393,24 +364,38 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
     def _get_agent_position(self, agent_id: str) -> np.ndarray:
         """Get current position of an agent"""
-        if agent_id in self._boarding_agents:
-            return self._boarding_agents[agent_id]
-        elif agent_id in self._exiting_agents:
-            return self._exiting_agents[agent_id]
+        if agent_id in self._agents:
+            return self._agents[agent_id].position
         else:
             raise ValueError(f"Unknown agent ID: {agent_id}")
+
+    def _get_agent(self, agent_id: str) -> Agent:
+        """Get the Agent object for a given agent ID"""
+        if agent_id in self._agents:
+            return self._agents[agent_id]
+        else:
+            raise ValueError(f"Unknown agent ID: {agent_id}")
+
+    def _get_agents_by_type(self, agent_type: AgentType) -> list[Agent]:
+        """Get all agents of a specific type"""
+        return [agent for agent in self._agents.values() if agent.agent_type == agent_type]
+
+    def _get_boarding_agents(self) -> list[Agent]:
+        """Get all boarding agents"""
+        return self._get_agents_by_type(AgentType.BOARDING)
+
+    def _get_exiting_agents(self) -> list[Agent]:
+        """Get all exiting agents"""
+        return self._get_agents_by_type(AgentType.EXITING)
 
     def _is_valid_position(self, pos: np.ndarray) -> bool:
         """Check if a position is within the grid bounds"""
         return 0 <= pos[0] < self.config.width and 0 <= pos[1] < self.config.height
 
     def _is_position_occupied(self, pos: np.ndarray, exclude_agent: str = None) -> bool:
-        """Check if a position is occupied by another agent"""
-        for agent_id, agent_pos in self._boarding_agents.items():
-            if agent_id != exclude_agent and np.array_equal(agent_pos, pos):
-                return True
-        for agent_id, agent_pos in self._exiting_agents.items():
-            if agent_id != exclude_agent and np.array_equal(agent_pos, pos):
+        """Check if a position is occupied by another active agent"""
+        for agent_id, agent in self._agents.items():
+            if agent_id != exclude_agent and agent.active and np.array_equal(agent.position, pos):
                 return True
         return False
 
@@ -471,7 +456,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             The reward for the agent.
         """
         agent_pos = self._get_agent_position(agent_id)
-        agent_type = self._agent_types[agent_id]
+        agent_type = self._agents[agent_id].agent_type
 
         if agent_type == AgentType.BOARDING:
             # Boarding agents get positive reward for reaching tram door and boarding destination area
@@ -500,10 +485,17 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 )
                 return distance_to_exit * 0.1
 
-    def _is_agent_done(self, agent_id: str) -> bool:
-        """Check if an agent has completed its goal"""
+    def _is_agent_terminated(self, agent_id: str) -> bool:
+        """Check if an agent has completed its goal.
+
+        Args:
+            agent_id: The ID of the agent.
+
+        Returns:
+            True if the agent is terminated, otherwise False.
+        """
         agent_pos = self._get_agent_position(agent_id)
-        agent_type = self._agent_types[agent_id]
+        agent_type = self._agents[agent_id].agent_type
 
         if agent_type == AgentType.BOARDING:
             # Boarding agents are done when they reach the boarding destination area
@@ -521,12 +513,17 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             action: The action to check.
 
         Raises:
-            ValueError: If the agent ID is not in the all_agent_ids or the action is not in the _action_to_direction.
+            ValueError: If the agent ID is not among the agents, the action is not in the _action_to_direction, or the agent is not active in the environment.
         """
-        if agent_id not in self.all_agent_ids:
+        # check if the agent is among the agents
+        if agent_id not in self._agents.keys():
             raise ValueError(
-                f"Unknown agent ID: {agent_id} in action_dict. The action_dict keys must be a subset of the all_agent_ids. Current all_agent_ids: {self.all_agent_ids}"
+                f"Unknown agent ID: {agent_id} in action_dict. The action_dict keys must be a subset of the agents. Current agents: {self._agents.keys()}"
             )
+        # check if the agent is active in the environment
+        if not self._agents[agent_id].active:
+            raise ValueError(f"Agent {agent_id} exists but it is not active in the environment.")
+        # check if the action is valid
         if action not in self._action_to_direction:
             raise ValueError(
                 f"Invalid action: {action} for agent {agent_id}. Valid actions are: {list(self._action_to_direction.keys())}"
