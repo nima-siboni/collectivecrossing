@@ -6,9 +6,9 @@ and constraints.
 """
 
 import logging
-from typing import Any, Optional, SupportsFloat
 
 import gymnasium as gym
+import matplotlib.pyplot as plt
 import numpy as np
 from collectivecrossing.actions import ACTION_TO_DIRECTION
 from collectivecrossing.configs import CollectiveCrossingConfig
@@ -128,9 +128,11 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         return observations, infos
 
-    def step(  # type: ignore[override]
+    def step(
         self, action_dict: dict[str, int]
-    ) -> tuple[dict[Any, Any], dict[Any, Any], dict[Any, Any], dict[Any, Any], dict[Any, Any]]: 
+    ) -> tuple[
+        dict[str, np.ndarray], dict[str, float], dict[str, bool], dict[str, bool], dict[str, dict]
+    ]:
         """Execute one step in the environment.
 
         Notes:
@@ -212,7 +214,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """Get action space for a specific agent."""
         return self.action_space
 
-    def render(self, mode: str = "rgb_array") -> Optional[np.ndarray]:  # type: ignore[override]
+    def render(self, mode: str = "rgb_array") -> np.ndarray | None:
         """Render the environment.
 
         Args:
@@ -357,12 +359,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         return self._tram_boundaries.tram_right
 
     @property
-    def action_space(self) -> gym.Space:  # type: ignore[override]
+    def action_space(self) -> gym.Space:
         """Get the action space for all agents."""
         return self._action_space
 
     @property
-    def observation_space(self) -> gym.Space:  # type: ignore[override]
+    def observation_space(self) -> gym.Space:
         """Get the observation space for all agents."""
         return self._observation_space
 
@@ -588,7 +590,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 f"{list(self._action_to_direction.keys())}"
             )
 
-    def _render_matplotlib(self):  # type: ignore[no-untyped-def]
+    def _render_matplotlib(self) -> np.ndarray:
         """Return an RGB array via Agg without touching pyplot (safe for animations)."""
         import numpy as np
         from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -612,7 +614,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         arr = np.frombuffer(buf, dtype=np.uint8).reshape(height, width, 4)
         return arr[..., :3]  # RGB
 
-    def _draw_matplotlib(self, ax):  # type: ignore[no-untyped-def]
+    def _draw_matplotlib(self, ax: plt.Axes) -> None:
         """Draw the environment using matplotlib."""
         from collectivecrossing.rendering import draw_matplotlib
 
