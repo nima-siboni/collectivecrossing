@@ -1,3 +1,4 @@
+"""Tests for the collective crossing environment."""
 import numpy as np
 import pytest
 from collectivecrossing import CollectiveCrossingEnv
@@ -5,7 +6,7 @@ from collectivecrossing.configs import CollectiveCrossingConfig
 
 
 def test_environment_initialization():
-    """Test that the environment initializes correctly"""
+    """Test that the environment initializes correctly."""
     env = CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(
             width=10,
@@ -35,7 +36,7 @@ def test_environment_initialization():
 
 
 def test_environment_reset():
-    """Test that the environment resets correctly"""
+    """Test that the environment resets correctly."""
     env = CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(
             width=10,
@@ -69,7 +70,7 @@ def test_environment_reset():
 
 
 def test_agent_movement():
-    """Test that agents can move correctly"""
+    """Test that agents can move correctly."""
     env = CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(
             width=10,
@@ -96,7 +97,7 @@ def test_agent_movement():
         initial_positions[agent_id] = obs[:2]  # First two values are x, y position
 
     # Take a step with wait action (action 4)
-    actions = {agent_id: 4 for agent_id in observations.keys()}
+    actions = dict.fromkeys(observations.keys(), 4)
     new_observations, rewards, terminated, truncated, infos = env.step(actions)
 
     # Check that agents are still present
@@ -110,7 +111,7 @@ def test_agent_movement():
 
 
 def test_agent_termination():
-    """Test that agents terminate when reaching their destination areas"""
+    """Test that agents terminate when reaching their destination areas."""
     env = CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(
             width=8,
@@ -139,7 +140,7 @@ def test_agent_termination():
             env._agents[agent_id].update_position(np.array([4, 0]))  # At exiting destination
 
     # Take a step
-    actions = {agent_id: 4 for agent_id in observations.keys()}
+    actions = dict.fromkeys(observations.keys(), 4)
     new_observations, rewards, terminated, truncated, infos = env.step(actions)
 
     # Check that agents are terminated
@@ -149,7 +150,7 @@ def test_agent_termination():
 
 
 def test_rendering():
-    """Test that rendering works without errors"""
+    """Test that rendering works without errors."""
     env = CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(
             width=10,
@@ -201,7 +202,7 @@ def test_rendering():
 
 
 def test_action_space():
-    """Test that actions are within the expected space"""
+    """Test that actions are within the expected space."""
     env = CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(
             width=10,
@@ -222,10 +223,10 @@ def test_action_space():
     observations, _ = env.reset(seed=42)
 
     # Test valid actions
-    valid_actions = {agent_id: 0 for agent_id in observations.keys()}  # Right action
+    valid_actions = dict.fromkeys(observations.keys(), 0)  # Right action
     new_observations, rewards, terminated, truncated, infos = env.step(valid_actions)
 
     # Test invalid action
-    invalid_actions = {agent_id: 10 for agent_id in observations.keys()}  # Invalid action
+    invalid_actions = dict.fromkeys(observations.keys(), 10)  # Invalid action
     with pytest.raises(ValueError):
         env.step(invalid_actions)

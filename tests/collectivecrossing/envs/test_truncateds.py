@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Tests for termination and truncation logic in CollectiveCrossingEnv.
-"""
+"""Tests for termination and truncation logic in CollectiveCrossingEnv."""
 
 import pytest
 from collectivecrossing.collectivecrossing import CollectiveCrossingEnv

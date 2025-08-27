@@ -1,10 +1,9 @@
+"""Pydantic utilities for the collective crossing environment."""
 from pydantic import BaseModel, ConfigDict
 
 
 class ConfigClass(BaseModel):
-    """
-    A class that configures the pydantic model with comprehensive settings.
-    """
+    """A class that configures the pydantic model with comprehensive settings."""
 
     model_config = ConfigDict(
         # Field validation behavior

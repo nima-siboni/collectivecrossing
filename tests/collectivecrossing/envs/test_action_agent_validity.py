@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Tests for action and agent validity checking in CollectiveCrossingEnv.
-"""
+"""Tests for action and agent validity checking in CollectiveCrossingEnv."""
 
 import pytest
 from collectivecrossing import CollectiveCrossingEnv

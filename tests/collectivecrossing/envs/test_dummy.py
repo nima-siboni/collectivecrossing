@@ -1,8 +1,9 @@
+"""Dummy tests for the collective crossing environment."""
 from collectivecrossing.configs import CollectiveCrossingConfig
 
 
 def test_dummy():
-    """Basic test to ensure the package can be imported"""
+    """Basic test to ensure the package can be imported."""
     # Test basic import
     from collectivecrossing import CollectiveCrossingEnv
 

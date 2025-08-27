@@ -1,3 +1,5 @@
+"""Geometry utilities for the collective crossing environment."""
+
 from dataclasses import dataclass
 
 from collectivecrossing.configs import CollectiveCrossingConfig
@@ -5,7 +7,7 @@ from collectivecrossing.configs import CollectiveCrossingConfig
 
 @dataclass
 class TramBoundaries:
-    """Dataclass containing tram and tram door boundaries"""
+    """Dataclass containing tram and tram door boundaries."""
 
     tram_door_left: int
     tram_door_right: int
@@ -14,14 +16,16 @@ class TramBoundaries:
 
 
 def calculate_tram_boundaries(config: CollectiveCrossingConfig) -> TramBoundaries:
-    """
-    Calculate tram and tram door boundaries based on configuration.
+    """Calculate tram and tram door boundaries based on configuration.
 
     Args:
+    ----
         config: The CollectiveCrossingConfig containing tram parameters
 
     Returns:
+    -------
         TramBoundaries: Dataclass containing all tram boundary values
+
     """
     # Calculate tram door boundaries
     tram_door_left = max(0, config.tram_door_x - config.tram_door_width // 2)

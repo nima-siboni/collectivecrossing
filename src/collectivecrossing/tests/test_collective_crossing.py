@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
-"""
-Test script for the CollectiveCrossingEnv multi-agent environment.
-"""
+"""Test script for the CollectiveCrossingEnv multi-agent environment."""
 
 import numpy as np
 from collectivecrossing import CollectiveCrossingEnv
 
 
 def test_collective_crossing_env():
-    """Test the collective crossing environment with random actions"""
-
+    """Test the collective crossing environment with random actions."""
     # Create environment with rectangular geometry
     env = CollectiveCrossingEnv(
         width=12,
@@ -77,8 +74,7 @@ def test_collective_crossing_env():
 
 
 def test_agent_observation():
-    """Test agent observation structure"""
-
+    """Test agent observation structure."""
     env = CollectiveCrossingEnv(
         width=10,
         height=6,
@@ -112,8 +108,7 @@ def test_agent_observation():
 
 
 def test_geometry_configurations():
-    """Test different geometry configurations"""
-
+    """Test different geometry configurations."""
     configs = [
         {
             "name": "Wide tram, narrow door",

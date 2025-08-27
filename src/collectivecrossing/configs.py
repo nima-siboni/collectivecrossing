@@ -1,12 +1,13 @@
+"""Configuration classes for the collective crossing environment."""
 from collectivecrossing.utils.pydantic import ConfigClass
 from pydantic import Field, model_validator
 
 
 class CollectiveCrossingConfig(ConfigClass):
-    """
-    A class that configures the CollectiveCrossing environment.
+    """A class that configures the CollectiveCrossing environment.
 
-    Attributes:
+    Attributes
+    ----------
         width: Width of the environment
         height: Height of the environment
         division_y: Y-coordinate of the horizontal division line
@@ -48,7 +49,7 @@ class CollectiveCrossingConfig(ConfigClass):
 
     @model_validator(mode="after")
     def validate_config(self) -> "CollectiveCrossingConfig":
-        """Validate the configuration after all fields are set"""
+        """Validate the configuration after all fields are set."""
         self._validate_tram_parameters()
         self._validate_destination_areas()
         self._validate_environment_bounds()
@@ -57,7 +58,7 @@ class CollectiveCrossingConfig(ConfigClass):
         return self
 
     def _validate_tram_parameters(self) -> None:
-        """Validate tram-related parameters"""
+        """Validate tram-related parameters."""
         # Validate tram length vs environment width
         if self.tram_length > self.width:
             raise ValueError(
@@ -88,7 +89,7 @@ class CollectiveCrossingConfig(ConfigClass):
             )
 
     def _validate_destination_areas(self) -> None:
-        """Validate destination area parameters"""
+        """Validate destination area parameters."""
         # Validate exiting destination area (should be in waiting area)
         if (
             self.exiting_destination_area_y < 0
@@ -110,7 +111,7 @@ class CollectiveCrossingConfig(ConfigClass):
             )
 
     def _validate_environment_bounds(self) -> None:
-        """Validate environment boundary parameters"""
+        """Validate environment boundary parameters."""
         # Validate division line is within environment height
         if self.division_y >= self.height:
             raise ValueError(
@@ -126,7 +127,7 @@ class CollectiveCrossingConfig(ConfigClass):
             )
 
     def _validate_agent_counts(self) -> None:
-        """Validate agent count parameters"""
+        """Validate agent count parameters."""
         total_agents = self.num_boarding_agents + self.num_exiting_agents
 
         # Check if total agents exceed reasonable limits
@@ -154,7 +155,7 @@ class CollectiveCrossingConfig(ConfigClass):
             )
 
     def _validate_render_mode(self) -> None:
-        """Validate render mode parameter"""
+        """Validate render mode parameter."""
         valid_modes = ["human", "rgb_array", None]
         if self.render_mode not in valid_modes:
             raise ValueError(
@@ -162,15 +163,16 @@ class CollectiveCrossingConfig(ConfigClass):
             )
 
     def get_validation_errors(self) -> list[str]:
-        """
-        Get all validation errors without raising exceptions.
+        """Get all validation errors without raising exceptions.
 
         Note: As long as ConfigClass has frozen=True, this method will not be useful.
         In case of a validation error, the error will be raised at the moment of creating the
         config object.
 
-        Returns:
+        Returns
+        -------
             List[str]: A list of validation error messages
+
         """
         errors = []
 
@@ -202,5 +204,5 @@ class CollectiveCrossingConfig(ConfigClass):
         return errors
 
     def is_valid(self) -> bool:
-        """Check if the configuration is valid"""
+        """Check if the configuration is valid."""
         return len(self.get_validation_errors()) == 0

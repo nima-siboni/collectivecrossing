@@ -1,3 +1,10 @@
+"""Multi-agent environment for collective crossing simulation.
+
+This module provides a Gymnasium environment that simulates a collective crossing
+scenario where agents need to navigate through a tram area with specific rules
+and constraints.
+"""
+
 import logging
 
 import gymnasium as gym
@@ -14,8 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class CollectiveCrossingEnv(MultiAgentEnv):
-    """
-    Multi-agent environment simulating collective crossing scenario.
+    """Multi-agent environment simulating collective crossing scenario.
 
     Geometry:
     - Rectangular domain divided by a horizontal line
@@ -31,6 +37,13 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         self,
         config: CollectiveCrossingConfig,
     ):
+        """Initialize the collective crossing environment.
+
+        Args:
+        ----
+            config: Configuration object containing environment parameters.
+
+        """
         super().__init__()
 
         self._config = config
@@ -55,7 +68,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
     def reset(
         self, *, seed: int | None = None, options: dict | None = None
     ) -> tuple[dict[str, np.ndarray], dict[str, dict]]:
-        """Reset the environment to initial state"""
+        """Reset the environment to initial state."""
         super().reset(seed=seed)
 
         self._step_count = 0
@@ -119,10 +132,10 @@ class CollectiveCrossingEnv(MultiAgentEnv):
     ) -> tuple[
         dict[str, np.ndarray], dict[str, float], dict[str, bool], dict[str, bool], dict[str, dict]
     ]:
-        """
-        Execute one step in the environment
+        """Execute one step in the environment.
 
         Notes:
+        -----
         - Process actions for all agents for which there is an action in the action_dict
         - Calculate rewards, check termination, and update observations for **all agents**:
         we iterate over the all agents in the environment (not only the agents for which there is
@@ -132,10 +145,13 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         for more details in RLlib documentation.
 
         Args:
+        ----
             action_dict: A dictionary of agent IDs and actions.
 
         Returns:
+        -------
             A tuple of observations, rewards, terminateds, truncateds, and infos.
+
         """
         self._step_count += 1
 
@@ -190,14 +206,29 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         return observations, rewards, terminateds, truncateds, infos
 
     def get_observation_space(self, agent_id: str) -> gym.Space:
-        """Get observation space for a specific agent"""
+        """Get observation space for a specific agent."""
         return self.observation_space
 
     def get_action_space(self, agent_id: str) -> gym.Space:
-        """Get action space for a specific agent"""
+        """Get action space for a specific agent."""
         return self.action_space
 
     def render(self, mode="rgb_array"):
+        """Render the environment.
+
+        Args:
+        ----
+            mode: Rendering mode. Supports "rgb_array" and "human".
+
+        Returns:
+        -------
+            Rendered image as numpy array for "rgb_array" mode, None for "human" mode.
+
+        Raises:
+        ------
+            NotImplementedError: If the rendering mode is not supported.
+
+        """
         if mode == "rgb_array":
             return self._render_matplotlib()
         elif mode == "human":
@@ -212,8 +243,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             raise NotImplementedError(f"Render mode {mode} not supported")
 
     def _is_move_valid(self, agent_id: str, current_pos: np.ndarray, new_pos: np.ndarray) -> bool:
-        """
-        Check if the move is valid.
+        """Check if the move is valid.
 
         A move is valid if:
         - the new position is valid
@@ -221,12 +251,15 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         - the new position does not cross the tram wall
 
         Args:
+        ----
             agent_id: The ID of the agent.
             current_pos: The current position of the agent.
             new_pos: The new position of the agent.
 
         Returns:
+        -------
             True if the move is valid, False otherwise.
+
         """
         return (
             self._is_valid_position(new_pos)
@@ -235,28 +268,29 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         )
 
     def _calculate_new_position(self, agent_id: str, action: int) -> np.ndarray:
-        """
-        Calculate the new position of the agent.
-        """
+        """Calculate the new position of the agent."""
         direction = self._action_to_direction[action]
         current_pos = self._get_agent_position(agent_id)
         new_pos = current_pos + direction
         return new_pos
 
     def _move_agent(self, agent_id: str, action: int):
-        """
-        Move the agent based on the action only if the agent is active and the move is valid.
+        """Move the agent based on the action only if the agent is active and the move is valid.
 
         Note:
+        ----
         - This function has a side effect: the agent is moved to the new position,
         i.e. _boarding_agents or _exiting_agents is updated.
 
         Args:
+        ----
             agent_id: The ID of the agent.
             action: The action to move the agent.
 
         Returns:
+        -------
             None
+
         """
         # do nothing if the agent is not active
         if not self._agents[agent_id].active:
@@ -273,58 +307,68 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
     @staticmethod
     def _is_truncated(current_step_count: int, max_steps: int) -> bool:
-        """
-        Return True if the episode is truncated, False otherwise.
+        """Return True if the episode is truncated, False otherwise.
 
         The logic is that the episode is truncated if the step count is greater than the max steps.
 
         Args:
+        ----
             current_step_count: The current step count.
             max_steps: The maximum number of steps.
 
         Returns:
+        -------
             True if the episode is truncated, False otherwise.
+
         """
         return current_step_count >= max_steps
 
     def close(self):
-        """Close the environment"""
+        """Close the environment."""
         pass
 
     @property
     def config(self):
+        """Get the environment configuration."""
         return self._config
 
     @property
     def tram_boundaries(self) -> TramBoundaries:
+        """Get the tram boundaries."""
         return self._tram_boundaries
 
     @property
     def tram_door_left(self) -> int:
+        """Get the left boundary of the tram door."""
         return self._tram_boundaries.tram_door_left
 
     @property
     def tram_door_right(self) -> int:
+        """Get the right boundary of the tram door."""
         return self._tram_boundaries.tram_door_right
 
     @property
     def tram_left(self) -> int:
+        """Get the left boundary of the tram area."""
         return self._tram_boundaries.tram_left
 
     @property
     def tram_right(self) -> int:
+        """Get the right boundary of the tram area."""
         return self._tram_boundaries.tram_right
 
     @property
     def action_space(self):
+        """Get the action space for all agents."""
         return self._action_space
 
     @property
     def observation_space(self):
+        """Get the observation space for all agents."""
         return self._observation_space
 
     def _setup_spaces(self):
-        """Setup observation and action spaces for all agents"""
+        """Set up observation and action spaces for all agents."""
         # All agents have the same action space (5 actions including wait)
         self._action_space = spaces.Discrete(5)
 
@@ -339,7 +383,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         )
 
     def _get_agent_observation(self, agent_id: str) -> np.ndarray:
-        """Get observation for a specific agent"""
+        """Get observation for a specific agent."""
         agent_pos = self._get_agent_position(agent_id)
 
         # Start with agent's own position and tram door information
@@ -367,55 +411,55 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         return obs.astype(np.int32)
 
     def _get_agent_position(self, agent_id: str) -> np.ndarray:
-        """Get current position of an agent"""
+        """Get current position of an agent."""
         if agent_id in self._agents:
             return self._agents[agent_id].position
         else:
             raise ValueError(f"Unknown agent ID: {agent_id}")
 
     def _get_agent(self, agent_id: str) -> Agent:
-        """Get the Agent object for a given agent ID"""
+        """Get the Agent object for a given agent ID."""
         if agent_id in self._agents:
             return self._agents[agent_id]
         else:
             raise ValueError(f"Unknown agent ID: {agent_id}")
 
     def _get_agents_by_type(self, agent_type: AgentType) -> list[Agent]:
-        """Get all agents of a specific type"""
+        """Get all agents of a specific type."""
         return [agent for agent in self._agents.values() if agent.agent_type == agent_type]
 
     def _get_boarding_agents(self) -> list[Agent]:
-        """Get all boarding agents"""
+        """Get all boarding agents."""
         return self._get_agents_by_type(AgentType.BOARDING)
 
     def _get_exiting_agents(self) -> list[Agent]:
-        """Get all exiting agents"""
+        """Get all exiting agents."""
         return self._get_agents_by_type(AgentType.EXITING)
 
     def _is_valid_position(self, pos: np.ndarray) -> bool:
-        """Check if a position is within the grid bounds"""
+        """Check if a position is within the grid bounds."""
         return 0 <= pos[0] < self.config.width and 0 <= pos[1] < self.config.height
 
     def _is_position_occupied(self, pos: np.ndarray, exclude_agent: str = None) -> bool:
-        """Check if a position is occupied by another active agent"""
+        """Check if a position is occupied by another active agent."""
         for agent_id, agent in self._agents.items():
             if agent_id != exclude_agent and agent.active and np.array_equal(agent.position, pos):
                 return True
         return False
 
     def _is_in_tram_area(self, pos: np.ndarray) -> bool:
-        """Check if a position is in the tram area (upper part within tram boundaries)"""
+        """Check if a position is in the tram area (upper part within tram boundaries)."""
         return pos[1] >= self.config.division_y and self.tram_left <= pos[0] <= self.tram_right
 
     def _is_at_tram_door(self, pos: np.ndarray) -> bool:
-        """Check if a position is at the tram door"""
+        """Check if a position is at the tram door."""
         return (
             pos[1] == self.config.division_y
             and self.tram_door_left <= pos[0] <= self.tram_door_right
         )
 
     def _would_cross_tram_wall(self, current_pos: np.ndarray, new_pos: np.ndarray) -> bool:
-        """Check if a move would cross a tram wall"""
+        """Check if a move would cross a tram wall."""
         # Check if moving across the division line (y = division_y)
         if (current_pos[1] < self.config.division_y and new_pos[1] >= self.config.division_y) or (
             current_pos[1] >= self.config.division_y and new_pos[1] < self.config.division_y
@@ -437,11 +481,11 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         return False
 
     def _is_in_exiting_destination_area(self, pos: np.ndarray) -> bool:
-        """Check if a position is in the exiting destination area"""
+        """Check if a position is in the exiting destination area."""
         return pos[1] == self.config.exiting_destination_area_y
 
     def _is_in_boarding_destination_area(self, pos: np.ndarray) -> bool:
-        """Check if a position is in the boarding destination area"""
+        """Check if a position is in the boarding destination area."""
         return pos[1] == self.config.boarding_destination_area_y
 
     def _calculate_reward(self, agent_id: str) -> float:
@@ -454,10 +498,13 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         - Exiting agents get negative reward for moving towards the exit
 
         Args:
+        ----
             agent_id: The ID of the agent.
 
         Returns:
+        -------
             The reward for the agent.
+
         """
         agent_pos = self._get_agent_position(agent_id)
         agent_type = self._agents[agent_id].agent_type
@@ -494,10 +541,13 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """Check if an agent has completed its goal.
 
         Args:
+        ----
             agent_id: The ID of the agent.
 
         Returns:
+        -------
             True if the agent is terminated, otherwise False.
+
         """
         agent_pos = self._get_agent_position(agent_id)
         agent_type = self._agents[agent_id].agent_type
@@ -510,16 +560,18 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             return self._is_in_exiting_destination_area(agent_pos)
 
     def _check_action_and_agent_validity(self, agent_id: str, action: int):
-        """
-        Check if the action and agent are valid.
+        """Check if the action and agent are valid.
 
         Args:
+        ----
             agent_id: The ID of the agent.
             action: The action to check.
 
         Raises:
+        ------
             ValueError: If the agent ID is not among the agents, the action is not in the
             _action_to_direction, or the agent is not active in the environment.
+
         """
         # check if the agent is among the agents
         if agent_id not in self._agents.keys():

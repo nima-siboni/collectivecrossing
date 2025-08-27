@@ -1,3 +1,6 @@
+"""Rendering utilities for the collective crossing environment."""
+
+
 def _render_matplotlib(self):
     """Return an RGB array via Agg without touching pyplot (safe for animations)."""
     import numpy as np
@@ -27,8 +30,10 @@ def draw_matplotlib(env, ax):
     """Draw the environment using matplotlib.
 
     Args:
+    ----
         env: The CollectiveCrossingEnv instance
         ax: The matplotlib axis to draw on
+
     """
     import matplotlib.patches as patches
 
