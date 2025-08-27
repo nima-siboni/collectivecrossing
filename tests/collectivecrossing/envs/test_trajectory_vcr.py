@@ -13,7 +13,9 @@ from collectivecrossing.configs import CollectiveCrossingConfig
 class TrajectoryVCR:
     """VCR-style recorder for environment trajectories."""
 
-    def __init__(self, cassette_dir="tests/fixtures/trajectories", version=None):
+    def __init__(
+        self, cassette_dir: str = "tests/fixtures/trajectories", version: str | None = None
+    ) -> None:
         """Initialize the trajectory VCR recorder.
 
         Args:
@@ -31,7 +33,13 @@ class TrajectoryVCR:
         self.version_dir = self.cassette_dir / self.version
         self.version_dir.mkdir(exist_ok=True)
 
-    def record_trajectory(self, env, actions_sequence, cassette_name, golden=False):
+    def record_trajectory(
+        self,
+        env: CollectiveCrossingEnv,
+        actions_sequence: list[dict[str, int]],
+        cassette_name: str,
+        golden: bool = False,
+    ) -> dict:
         """Record a trajectory by running actions and capturing all states."""
         if golden:
             cassette_path = self.golden_dir / f"{cassette_name}.json"
@@ -41,7 +49,7 @@ class TrajectoryVCR:
         # Reset environment
         observations, infos = env.reset(seed=42)
 
-        trajectory = {
+        trajectory: dict = {
             "config": {
                 "width": env.config.width,
                 "height": env.config.height,
@@ -96,7 +104,9 @@ class TrajectoryVCR:
 
         return trajectory
 
-    def replay_trajectory(self, env, cassette_name, use_golden=True):
+    def replay_trajectory(
+        self, env: CollectiveCrossingEnv, cassette_name: str, use_golden: bool = True
+    ) -> dict:
         """Replay a recorded trajectory and verify consistency."""
         if use_golden:
             cassette_path = self.golden_dir / f"{cassette_name}.json"
@@ -174,11 +184,15 @@ class TrajectoryVCR:
 
         return trajectory
 
-    def create_golden_baseline(self, env, actions_sequence, cassette_name):
+    def create_golden_baseline(
+        self, env: CollectiveCrossingEnv, actions_sequence: list[dict[str, int]], cassette_name: str
+    ) -> dict:
         """Create a golden baseline trajectory from known good code."""
         return self.record_trajectory(env, actions_sequence, cassette_name, golden=True)
 
-    def compare_with_golden(self, env, cassette_name):
+    def compare_with_golden(
+        self, env: CollectiveCrossingEnv, cassette_name: str
+    ) -> tuple[dict, dict]:
         """Compare current trajectory with golden baseline."""
         golden_path = self.golden_dir / f"{cassette_name}.json"
         current_path = self.version_dir / f"{cassette_name}.json"
@@ -203,7 +217,9 @@ class TrajectoryVCR:
 
         return golden_trajectory, current_trajectory
 
-    def _compare_trajectories(self, trajectory1, trajectory2, name1, name2):
+    def _compare_trajectories(
+        self, trajectory1: dict, trajectory2: dict, name1: str, name2: str
+    ) -> None:
         """Compare two trajectories and report differences."""
         # Compare configs
         if trajectory1["config"] != trajectory2["config"]:
@@ -281,18 +297,18 @@ class TrajectoryVCR:
                         f"{name1}={term1}, {name2}={term2}"
                     )
 
-    def list_golden_baselines(self):
+    def list_golden_baselines(self) -> list[str]:
         """List all available golden baselines."""
         golden_files = list(self.golden_dir.glob("*.json"))
         return [f.stem for f in golden_files]
 
-    def list_version_trajectories(self):
+    def list_version_trajectories(self) -> list[str]:
         """List all available version trajectories."""
         version_files = list(self.version_dir.glob("*.json"))
         return [f.stem for f in version_files]
 
 
-def create_test_environment():
+def create_test_environment() -> CollectiveCrossingEnv:
     """Create a standard test environment."""
     return CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(
@@ -312,7 +328,9 @@ def create_test_environment():
     )
 
 
-def generate_deterministic_actions(observations, num_steps=20):
+def generate_deterministic_actions(
+    observations: dict[str, np.ndarray], num_steps: int = 20
+) -> list[dict[str, int]]:
     """Generate deterministic actions based on agent positions."""
     actions_sequence = []
 
@@ -355,12 +373,12 @@ def generate_deterministic_actions(observations, num_steps=20):
 
 
 @pytest.fixture
-def vcr():
+def vcr() -> TrajectoryVCR:
     """Fixture for the trajectory VCR recorder."""
     return TrajectoryVCR()
 
 
-def test_record_trajectory(vcr):
+def test_record_trajectory(vcr: TrajectoryVCR) -> None:
     """Record a trajectory for future comparison."""
     env = create_test_environment()
     observations, _ = env.reset(seed=42)
@@ -377,7 +395,7 @@ def test_record_trajectory(vcr):
     assert "initial_observations" in trajectory
 
 
-def test_replay_trajectory(vcr):
+def test_replay_trajectory(vcr: TrajectoryVCR) -> None:
     """Replay a recorded trajectory and verify consistency."""
     env = create_test_environment()
 
@@ -388,7 +406,7 @@ def test_replay_trajectory(vcr):
     assert len(trajectory["steps"]) > 0
 
 
-def test_trajectory_consistency(vcr):
+def test_trajectory_consistency(vcr: TrajectoryVCR) -> None:
     """Test that the same environment produces consistent trajectories."""
     env1 = create_test_environment()
     env2 = create_test_environment()
@@ -409,7 +427,7 @@ def test_trajectory_consistency(vcr):
     assert trajectory1 == trajectory2
 
 
-def test_trajectory_with_random_actions(vcr):
+def test_trajectory_with_random_actions(vcr: TrajectoryVCR) -> None:
     """Test trajectory recording with random but seeded actions."""
     env = create_test_environment()
     observations, _ = env.reset(seed=42)
@@ -430,7 +448,7 @@ def test_trajectory_with_random_actions(vcr):
     assert len(trajectory["steps"]) == 10
 
 
-def test_create_golden_baseline(vcr):
+def test_create_golden_baseline(vcr: TrajectoryVCR) -> None:
     """Create a golden baseline from known good code."""
     env = create_test_environment()
     observations, _ = env.reset(seed=42)
@@ -451,7 +469,7 @@ def test_create_golden_baseline(vcr):
     assert golden_path.exists()
 
 
-def test_golden_baseline_comparison(vcr):
+def test_golden_baseline_comparison(vcr: TrajectoryVCR) -> None:
     """Compare current trajectory with existing golden baseline.
 
     This test verifies that the golden baseline comparison mechanism works correctly.
@@ -489,7 +507,7 @@ def test_golden_baseline_comparison(vcr):
     assert golden_traj == current_traj
 
 
-def test_regression_detection(vcr):
+def test_regression_detection(vcr: TrajectoryVCR) -> None:
     """Test that golden baselines can detect actual regressions.
 
     NOTE: This test artificially simulates a regression by modifying the golden baseline file.
@@ -551,7 +569,7 @@ def test_regression_detection(vcr):
         json.dump(original_golden, f, indent=2)
 
 
-def test_list_trajectories(vcr):
+def test_list_trajectories(vcr: TrajectoryVCR) -> None:
     """Test listing available trajectories."""
     env = create_test_environment()
     observations, _ = env.reset(seed=42)

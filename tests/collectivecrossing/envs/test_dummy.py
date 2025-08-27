@@ -2,7 +2,7 @@
 from collectivecrossing.configs import CollectiveCrossingConfig
 
 
-def test_dummy():
+def test_dummy() -> None:
     """Basic test to ensure the package can be imported."""
     # Test basic import
     from collectivecrossing import CollectiveCrossingEnv

@@ -605,7 +605,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         self._draw_matplotlib(ax)
 
         # Avoid pyplot tight_layout; use OO API:
-        fig.set_tight_layout(True)
+        fig.tight_layout()
 
         # Render to buffer
         canvas.draw()

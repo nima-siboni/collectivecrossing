@@ -5,7 +5,7 @@ from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
 
 
-def test_environment_initialization():
+def test_environment_initialization() -> None:
     """Test that the environment initializes correctly."""
     env = CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(
@@ -35,7 +35,7 @@ def test_environment_initialization():
     assert env.config.boarding_destination_area_y == 7
 
 
-def test_environment_reset():
+def test_environment_reset() -> None:
     """Test that the environment resets correctly."""
     env = CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(
@@ -69,7 +69,7 @@ def test_environment_reset():
     assert len(exiting_agents) == 2
 
 
-def test_agent_movement():
+def test_agent_movement() -> None:
     """Test that agents can move correctly."""
     env = CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(
@@ -110,7 +110,7 @@ def test_agent_movement():
         assert np.array_equal(new_pos, initial_pos)
 
 
-def test_agent_termination():
+def test_agent_termination() -> None:
     """Test that agents terminate when reaching their destination areas."""
     env = CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(
@@ -149,7 +149,7 @@ def test_agent_termination():
             assert terminated[agent_id]
 
 
-def test_rendering():
+def test_rendering() -> None:
     """Test that rendering works without errors."""
     env = CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(
@@ -201,7 +201,7 @@ def test_rendering():
 #         assert np.all(obs <= env.observation_space.high)
 
 
-def test_action_space():
+def test_action_space() -> None:
     """Test that actions are within the expected space."""
     env = CollectiveCrossingEnv(
         config=CollectiveCrossingConfig(

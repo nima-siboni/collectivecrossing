@@ -23,7 +23,7 @@ class TestTruncationLogic:
             (1000000, 999999, True),  # Large numbers
         ],
     )
-    def test_is_truncated(self, current_step, max_steps, expected):
+    def test_is_truncated(self, current_step: int, max_steps: int, expected: bool) -> None:
         """Test the _is_truncated method with various inputs."""
         result = CollectiveCrossingEnv._is_truncated(current_step, max_steps)
         assert (
