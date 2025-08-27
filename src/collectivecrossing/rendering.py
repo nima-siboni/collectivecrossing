@@ -236,43 +236,32 @@ def draw_matplotlib(env, ax):
             alpha=0.9,
         )
 
-    for agent_id, (x, y) in env._boarding_agents.items():
-        for r, a in [(0.4, 0.3), (0.3, 0.5), (0.2, 0.8)]:
-            ax.add_patch(
-                patches.Circle(
-                    (x + 0.5, y + 0.5),
-                    r,
-                    facecolor=colors["boarding_agent"],
-                    edgecolor="darkred",
-                    linewidth=1,
-                    alpha=a,
-                )
-            )
-        # defensive split
-        label = agent_id.split("_", 1)[-1] if "_" in agent_id else agent_id
-        ax.text(
-            x + 0.5,
-            y + 0.5,
-            label,
-            ha="center",
-            va="center",
-            fontsize=8,
-            color="white",
-            weight="bold",
-        )
+    # Draw all agents using the unified Agent structure
+    for agent_id, agent in env._agents.items():
+        x, y = agent.x, agent.y
 
-    for agent_id, (x, y) in env._exiting_agents.items():
+        # Choose color based on agent type
+        if agent.is_boarding:
+            color = colors["boarding_agent"]
+            edge_color = "darkred"
+        else:  # exiting
+            color = colors["exiting_agent"]
+            edge_color = "darkblue"
+
+        # Draw agent with multiple circles for depth effect
         for r, a in [(0.4, 0.3), (0.3, 0.5), (0.2, 0.8)]:
             ax.add_patch(
                 patches.Circle(
                     (x + 0.5, y + 0.5),
                     r,
-                    facecolor=colors["exiting_agent"],
-                    edgecolor="darkblue",
+                    facecolor=color,
+                    edgecolor=edge_color,
                     linewidth=1,
                     alpha=a,
                 )
             )
+
+        # Add agent label
         label = agent_id.split("_", 1)[-1] if "_" in agent_id else agent_id
         ax.text(
             x + 0.5,

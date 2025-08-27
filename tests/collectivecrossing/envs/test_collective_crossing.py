@@ -134,9 +134,9 @@ def test_agent_termination():
     # This is a bit of a hack, but it tests the termination logic
     for agent_id in observations.keys():
         if agent_id.startswith("boarding"):
-            env._boarding_agents[agent_id] = np.array([4, 5])  # At boarding destination
+            env._agents[agent_id].update_position(np.array([4, 5]))  # At boarding destination
         else:
-            env._exiting_agents[agent_id] = np.array([4, 0])  # At exiting destination
+            env._agents[agent_id].update_position(np.array([4, 0]))  # At exiting destination
 
     # Take a step
     actions = {agent_id: 4 for agent_id in observations.keys()}
