@@ -270,7 +270,15 @@ uv run python examples/collectivecrossing_example.py
 
 ## 📄 License
 
-[Add your license information here]
+This project is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+
+You are free to:
+- **Use** the code for personal, academic, or commercial purposes
+- **Modify** and adapt the code to suit your needs
+- **Distribute** original or modified versions, provided you include the required license notice and attribution
+- **Contribute** improvements or changes back to the project
+
+See the [LICENSE](LICENSE) file for the full legal text and details.
 
 ---
 
