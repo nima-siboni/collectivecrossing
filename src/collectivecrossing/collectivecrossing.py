@@ -133,6 +133,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             # Move agent
             self._move_agent(agent_id, action)
 
+        for agent_id in self.all_agent_ids:
             # Calculate reward
             reward = self._calculate_reward(agent_id)
             rewards[agent_id] = reward
