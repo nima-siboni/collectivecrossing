@@ -1,6 +1,8 @@
 """Tests for the collective crossing environment."""
+
 import numpy as np
 import pytest
+
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
 

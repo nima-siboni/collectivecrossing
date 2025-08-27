@@ -2,6 +2,7 @@
 """Tests for action and agent validity checking in CollectiveCrossingEnv."""
 
 import pytest
+
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
 from collectivecrossing.types import AgentType

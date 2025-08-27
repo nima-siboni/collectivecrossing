@@ -1,4 +1,5 @@
 """Actions for the agents in the collective crossing environment."""
+
 from enum import Enum
 
 import numpy as np

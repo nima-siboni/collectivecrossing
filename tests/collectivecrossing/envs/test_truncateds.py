@@ -2,6 +2,7 @@
 """Tests for termination and truncation logic in CollectiveCrossingEnv."""
 
 import pytest
+
 from collectivecrossing.collectivecrossing import CollectiveCrossingEnv
 
 
@@ -26,9 +27,9 @@ class TestTruncationLogic:
     def test_is_truncated(self, current_step: int, max_steps: int, expected: bool) -> None:
         """Test the _is_truncated method with various inputs."""
         result = CollectiveCrossingEnv._is_truncated(current_step, max_steps)
-        assert (
-            result is expected
-        ), f"Expected {expected} for step {current_step} with max {max_steps}, got {result}"
+        assert result is expected, (
+            f"Expected {expected} for step {current_step} with max {max_steps}, got {result}"
+        )
 
 
 if __name__ == "__main__":

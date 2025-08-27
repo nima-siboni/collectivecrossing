@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 from _pytest.outcomes import Failed
+
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
 
@@ -16,12 +17,14 @@ class TrajectoryVCR:
     def __init__(
         self, cassette_dir: str = "tests/fixtures/trajectories", version: str | None = None
     ) -> None:
-        """Initialize the trajectory VCR recorder.
+        """
+        Initialize the trajectory VCR recorder.
 
         Args:
         ----
             cassette_dir: Directory to store trajectory cassettes.
             version: Version identifier for the cassette.
+
         """
         self.cassette_dir = Path(cassette_dir)
         self.cassette_dir.mkdir(parents=True, exist_ok=True)
@@ -171,16 +174,16 @@ class TrajectoryVCR:
             # Verify rewards match
             for agent_id, expected_reward in step_data["next_rewards"].items():
                 if agent_id in rewards:  # Agent might have been terminated
-                    assert (
-                        abs(rewards[agent_id] - expected_reward) < 1e-6
-                    ), f"Step {step_num} reward mismatch for {agent_id}"
+                    assert abs(rewards[agent_id] - expected_reward) < 1e-6, (
+                        f"Step {step_num} reward mismatch for {agent_id}"
+                    )
 
             # Verify termination states match
             for agent_id, expected_terminated in step_data["next_terminated"].items():
                 if agent_id in terminated:  # Agent might have been terminated
-                    assert (
-                        terminated[agent_id] == expected_terminated
-                    ), f"Step {step_num} termination mismatch for {agent_id}"
+                    assert terminated[agent_id] == expected_terminated, (
+                        f"Step {step_num} termination mismatch for {agent_id}"
+                    )
 
         return trajectory
 
@@ -470,7 +473,8 @@ def test_create_golden_baseline(vcr: TrajectoryVCR) -> None:
 
 
 def test_golden_baseline_comparison(vcr: TrajectoryVCR) -> None:
-    """Compare current trajectory with existing golden baseline.
+    """
+    Compare current trajectory with existing golden baseline.
 
     This test verifies that the golden baseline comparison mechanism works correctly.
     It uses an existing golden baseline and compares it with a current trajectory
@@ -508,7 +512,8 @@ def test_golden_baseline_comparison(vcr: TrajectoryVCR) -> None:
 
 
 def test_regression_detection(vcr: TrajectoryVCR) -> None:
-    """Test that golden baselines can detect actual regressions.
+    """
+    Test that golden baselines can detect actual regressions.
 
     NOTE: This test artificially simulates a regression by modifying the golden baseline file.
     In practice, regressions would be detected when:

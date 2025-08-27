@@ -1,4 +1,5 @@
 """Rendering utilities for the collective crossing environment."""
+
 from typing import Any
 
 import numpy as np
@@ -29,7 +30,8 @@ def _render_matplotlib(self: Any) -> np.ndarray:
 
 
 def draw_matplotlib(env: Any, ax: Any) -> None:
-    """Draw the environment using matplotlib.
+    """
+    Draw the environment using matplotlib.
 
     Args:
     ----

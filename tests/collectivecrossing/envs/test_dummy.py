@@ -1,4 +1,5 @@
 """Dummy tests for the collective crossing environment."""
+
 from collectivecrossing.configs import CollectiveCrossingConfig
 
 

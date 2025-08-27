@@ -16,7 +16,8 @@ class TramBoundaries:
 
 
 def calculate_tram_boundaries(config: CollectiveCrossingConfig) -> TramBoundaries:
-    """Calculate tram and tram door boundaries based on configuration.
+    """
+    Calculate tram and tram door boundaries based on configuration.
 
     Args:
     ----

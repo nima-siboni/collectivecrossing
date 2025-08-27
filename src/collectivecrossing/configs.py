@@ -1,10 +1,13 @@
 """Configuration classes for the collective crossing environment."""
-from collectivecrossing.utils.pydantic import ConfigClass
+
 from pydantic import Field, model_validator
+
+from collectivecrossing.utils.pydantic import ConfigClass
 
 
 class CollectiveCrossingConfig(ConfigClass):
-    """A class that configures the CollectiveCrossing environment.
+    """
+    A class that configures the CollectiveCrossing environment.
 
     Attributes
     ----------
@@ -69,7 +72,7 @@ class CollectiveCrossingConfig(ConfigClass):
         if self.tram_door_x < 0 or self.tram_door_x >= self.tram_length:
             raise ValueError(
                 f"Tram door x-coordinate ({self.tram_door_x}) must be within tram boundaries "
-                f"(0 to {self.tram_length-1})"
+                f"(0 to {self.tram_length - 1})"
             )
 
         # Validate tram door width
@@ -85,7 +88,7 @@ class CollectiveCrossingConfig(ConfigClass):
         if door_left < 0 or door_right >= self.tram_length:
             raise ValueError(
                 f"Tram door boundaries ({door_left} to {door_right}) must be within tram "
-                f"boundaries (0 to {self.tram_length-1})"
+                f"boundaries (0 to {self.tram_length - 1})"
             )
 
     def _validate_destination_areas(self) -> None:
@@ -97,7 +100,7 @@ class CollectiveCrossingConfig(ConfigClass):
         ):
             raise ValueError(
                 f"Exiting destination area y-coordinate ({self.exiting_destination_area_y}) must "
-                f"be within waiting area (0 to {self.division_y-1})"
+                f"be within waiting area (0 to {self.division_y - 1})"
             )
 
         # Validate boarding destination area (should be in tram area)
@@ -107,7 +110,7 @@ class CollectiveCrossingConfig(ConfigClass):
         ):
             raise ValueError(
                 f"Boarding destination area y-coordinate ({self.boarding_destination_area_y}) "
-                f"must be within tram area ({self.division_y} to {self.height-1})"
+                f"must be within tram area ({self.division_y} to {self.height - 1})"
             )
 
     def _validate_environment_bounds(self) -> None:
@@ -163,7 +166,8 @@ class CollectiveCrossingConfig(ConfigClass):
             )
 
     def get_validation_errors(self) -> list[str]:
-        """Get all validation errors without raising exceptions.
+        """
+        Get all validation errors without raising exceptions.
 
         Note: As long as ConfigClass has frozen=True, this method will not be useful.
         In case of a validation error, the error will be raised at the moment of creating the

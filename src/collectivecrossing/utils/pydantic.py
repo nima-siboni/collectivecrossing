@@ -1,4 +1,5 @@
 """Pydantic utilities for the collective crossing environment."""
+
 from pydantic import BaseModel, ConfigDict
 
 

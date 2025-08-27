@@ -1,4 +1,5 @@
 """Agent types and data structures for the collective crossing environment."""
+
 from dataclasses import dataclass
 from enum import Enum
 
