@@ -280,6 +280,31 @@ When tests fail, the system provides detailed information:
 
 ## 🔧 Troubleshooting
 
+### 🤔 Understanding Test Skipping
+
+The VCR testing system is designed to **skip tests** when required golden baseline files are missing. This is intentional behavior to prevent false failures when baseline data isn't available.
+
+**Why tests are skipped:**
+- 🏆 **Golden baselines missing**: Tests require specific golden baseline files to compare against
+- 🔍 **No comparison data**: Without baselines, tests can't verify consistency
+- 🛡️ **Prevents false failures**: Skipping is better than failing due to missing data
+
+**Common skipped tests:**
+- `test_replay_trajectory`: Requires `test_basic_trajectory.json` in golden directory
+- `test_trajectory_consistency`: Requires `consistency_test.json` in golden directory
+
+**How to identify what's missing:**
+```bash
+# Run tests with verbose output to see skip reasons
+uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py -v -rs
+
+# Check what golden baselines exist
+ls tests/fixtures/trajectories/golden/
+
+# Check what current trajectories exist
+ls tests/fixtures/trajectories/current/
+```
+
 ### 🚨 Common Issues
 
 1. **❌ Missing Golden Baseline**
@@ -288,19 +313,48 @@ When tests fail, the system provides detailed information:
    ```
    **💡 Solution**: Run the golden baseline creation test first.
 
-2. **⚙️ Config Mismatch**
+2. **⏭️ Tests Being Skipped**
+   ```
+   pytest.skip: Golden cassette test_basic_trajectory not found. Create golden baseline first.
+   pytest.skip: Golden cassette consistency_test not found. Create golden baseline first.
+   ```
+   **💡 Solution**: These tests require specific golden baseline files. You can resolve this by:
+   
+   **Option A: Create golden baselines automatically**
+   ```bash
+   # Create all required golden baselines
+   uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_create_golden_baseline -v
+   ```
+   
+   **Option B: Copy existing current trajectories to golden baselines**
+   ```bash
+   # Copy specific missing files
+   cp tests/fixtures/trajectories/current/test_basic_trajectory.json tests/fixtures/trajectories/golden/
+   cp tests/fixtures/trajectories/current/consistency_test.json tests/fixtures/trajectories/golden/
+   ```
+   
+   **Option C: Check what golden baselines exist**
+   ```bash
+   # List existing golden baselines
+   ls tests/fixtures/trajectories/golden/
+   
+   # List current trajectories that can be copied
+   ls tests/fixtures/trajectories/current/
+   ```
+
+3. **⚙️ Config Mismatch**
    ```
    pytest.fail: Config mismatch between golden and current
    ```
    **💡 Solution**: Ensure environment configuration matches between recording and replay.
 
-3. **👁️ Observation Mismatch**
+4. **👁️ Observation Mismatch**
    ```
    pytest.fail: Observation mismatch for agent_id at step N
    ```
    **💡 Solution**: Check for changes in environment logic that affect agent behavior.
 
-4. **🔄 Golden Baseline Modified**
+5. **🔄 Golden Baseline Modified**
    ```
    git status shows modified golden baseline files
    ```
