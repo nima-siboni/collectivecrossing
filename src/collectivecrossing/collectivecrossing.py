@@ -6,6 +6,7 @@ and constraints.
 """
 
 import logging
+from typing import Any, Optional, SupportsFloat
 
 import gymnasium as gym
 import numpy as np
@@ -127,11 +128,9 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         return observations, infos
 
-    def step(
+    def step(  # type: ignore[override]
         self, action_dict: dict[str, int]
-    ) -> tuple[
-        dict[str, np.ndarray], dict[str, float], dict[str, bool], dict[str, bool], dict[str, dict]
-    ]:
+    ) -> tuple[dict[Any, Any], dict[Any, Any], dict[Any, Any], dict[Any, Any], dict[Any, Any]]: 
         """Execute one step in the environment.
 
         Notes:
@@ -213,7 +212,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """Get action space for a specific agent."""
         return self.action_space
 
-    def render(self, mode="rgb_array"):
+    def render(self, mode: str = "rgb_array") -> Optional[np.ndarray]:  # type: ignore[override]
         """Render the environment.
 
         Args:
@@ -274,7 +273,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         new_pos = current_pos + direction
         return new_pos
 
-    def _move_agent(self, agent_id: str, action: int):
+    def _move_agent(self, agent_id: str, action: int) -> None:
         """Move the agent based on the action only if the agent is active and the move is valid.
 
         Note:
@@ -323,12 +322,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """
         return current_step_count >= max_steps
 
-    def close(self):
+    def close(self) -> None:
         """Close the environment."""
         pass
 
     @property
-    def config(self):
+    def config(self) -> CollectiveCrossingConfig:
         """Get the environment configuration."""
         return self._config
 
@@ -358,16 +357,16 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         return self._tram_boundaries.tram_right
 
     @property
-    def action_space(self):
+    def action_space(self) -> gym.Space:  # type: ignore[override]
         """Get the action space for all agents."""
         return self._action_space
 
     @property
-    def observation_space(self):
+    def observation_space(self) -> gym.Space:  # type: ignore[override]
         """Get the observation space for all agents."""
         return self._observation_space
 
-    def _setup_spaces(self):
+    def _setup_spaces(self) -> None:
         """Set up observation and action spaces for all agents."""
         # All agents have the same action space (5 actions including wait)
         self._action_space = spaces.Discrete(5)
@@ -440,7 +439,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """Check if a position is within the grid bounds."""
         return 0 <= pos[0] < self.config.width and 0 <= pos[1] < self.config.height
 
-    def _is_position_occupied(self, pos: np.ndarray, exclude_agent: str = None) -> bool:
+    def _is_position_occupied(self, pos: np.ndarray, exclude_agent: str | None = None) -> bool:
         """Check if a position is occupied by another active agent."""
         for agent_id, agent in self._agents.items():
             if agent_id != exclude_agent and agent.active and np.array_equal(agent.position, pos):
@@ -559,7 +558,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             # Exiting agents are done when they reach the exiting destination area
             return self._is_in_exiting_destination_area(agent_pos)
 
-    def _check_action_and_agent_validity(self, agent_id: str, action: int):
+    def _check_action_and_agent_validity(self, agent_id: str, action: int) -> None:
         """Check if the action and agent are valid.
 
         Args:
@@ -589,7 +588,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 f"{list(self._action_to_direction.keys())}"
             )
 
-    def _render_matplotlib(self):
+    def _render_matplotlib(self):  # type: ignore[no-untyped-def]
         """Return an RGB array via Agg without touching pyplot (safe for animations)."""
         import numpy as np
         from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -613,7 +612,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         arr = np.frombuffer(buf, dtype=np.uint8).reshape(height, width, 4)
         return arr[..., :3]  # RGB
 
-    def _draw_matplotlib(self, ax):
+    def _draw_matplotlib(self, ax):  # type: ignore[no-untyped-def]
         """Draw the environment using matplotlib."""
         from collectivecrossing.rendering import draw_matplotlib
 

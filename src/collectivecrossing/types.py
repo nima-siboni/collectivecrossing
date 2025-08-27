@@ -21,7 +21,7 @@ class Agent:
     position: np.ndarray
     active: bool
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Ensure position is a numpy array."""
         if not isinstance(self.position, np.ndarray):
             self.position = np.array(self.position)
@@ -36,15 +36,16 @@ class Agent:
         """Get the y coordinate of the agent's position."""
         return int(self.position[1])
 
-    def update_position(self, new_position: np.ndarray):
+    def update_position(self, new_position: np.ndarray) -> None:
         """Update the agent's position."""
         self.position = np.array(new_position)
 
-    def deactivate(self):
+    def deactivate(self) -> None:
         """Mark the agent as deactivated (set active to False)."""
-        if not self.active:
+        if self.active:
+            self.active = False
+        else:
             raise ValueError("Agent is already deactivated.")
-        self.active = False
 
     @property
     def is_boarding(self) -> bool:

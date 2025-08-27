@@ -1,9 +1,11 @@
 """Rendering utilities for the collective crossing environment."""
+from typing import Any
+
+import numpy as np
 
 
-def _render_matplotlib(self):
+def _render_matplotlib(self: Any) -> np.ndarray:
     """Return an RGB array via Agg without touching pyplot (safe for animations)."""
-    import numpy as np
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
     from matplotlib.figure import Figure
 
@@ -16,7 +18,7 @@ def _render_matplotlib(self):
     self._draw_matplotlib(ax)
 
     # Avoid pyplot tight_layout; use OO API:
-    fig.set_tight_layout(True)
+    fig.tight_layout()
 
     # Render to buffer
     canvas.draw()
@@ -26,7 +28,7 @@ def _render_matplotlib(self):
     return arr[..., :3]  # RGB
 
 
-def draw_matplotlib(env, ax):
+def draw_matplotlib(env: Any, ax: Any) -> None:
     """Draw the environment using matplotlib.
 
     Args:
