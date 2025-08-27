@@ -1,3 +1,5 @@
+"""Collective crossing environment package."""
+
 from gymnasium.envs.registration import register
 
 from .collectivecrossing import CollectiveCrossingEnv

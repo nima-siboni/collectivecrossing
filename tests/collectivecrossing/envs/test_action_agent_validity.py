@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""
-Tests for action and agent validity checking in CollectiveCrossingEnv.
-"""
+"""Tests for action and agent validity checking in CollectiveCrossingEnv."""
 
 import pytest
+
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
 from collectivecrossing.types import AgentType
@@ -13,7 +12,7 @@ class TestActionAgentValidity:
     """Test cases for the _check_action_and_agent_validity method."""
 
     @pytest.fixture
-    def env(self):
+    def env(self) -> CollectiveCrossingEnv:
         """Create a test environment."""
         config = CollectiveCrossingConfig(
             width=10,
@@ -30,7 +29,7 @@ class TestActionAgentValidity:
         )
         return CollectiveCrossingEnv(config=config)
 
-    def test_valid_agent_valid_action(self, env):
+    def test_valid_agent_valid_action(self, env: CollectiveCrossingEnv) -> None:
         """Test that valid agent ID and action pass validation."""
         # Reset environment to get valid agent IDs
         env.reset(seed=42)
@@ -42,7 +41,7 @@ class TestActionAgentValidity:
         # Should not raise any exception
         env._check_action_and_agent_validity(agent_id, action)
 
-    def test_valid_agent_invalid_action(self, env):
+    def test_valid_agent_invalid_action(self, env: CollectiveCrossingEnv) -> None:
         """Test that valid agent ID with invalid action raises ValueError."""
         env.reset(seed=42)
 
@@ -56,7 +55,7 @@ class TestActionAgentValidity:
         assert str(invalid_action) in str(exc_info.value)
         assert agent_id in str(exc_info.value)
 
-    def test_invalid_agent_valid_action(self, env):
+    def test_invalid_agent_valid_action(self, env: CollectiveCrossingEnv) -> None:
         """Test that invalid agent ID with valid action raises ValueError."""
         env.reset(seed=42)
 
@@ -70,7 +69,7 @@ class TestActionAgentValidity:
         assert invalid_agent_id in str(exc_info.value)
         assert "'boarding_0', 'boarding_1', 'exiting_0" in str(exc_info.value)
 
-    def test_invalid_agent_invalid_action(self, env):
+    def test_invalid_agent_invalid_action(self, env: CollectiveCrossingEnv) -> None:
         """Test that invalid agent ID with invalid action raises ValueError."""
         env.reset(seed=42)
 
@@ -84,7 +83,7 @@ class TestActionAgentValidity:
         assert "Unknown agent ID" in str(exc_info.value)
         assert invalid_agent_id in str(exc_info.value)
 
-    def test_all_valid_actions(self, env):
+    def test_all_valid_actions(self, env: CollectiveCrossingEnv) -> None:
         """Test that all valid actions (0-4) pass validation."""
         env.reset(seed=42)
 
@@ -95,7 +94,7 @@ class TestActionAgentValidity:
             # Should not raise any exception
             env._check_action_and_agent_validity(agent_id, action)
 
-    def test_all_agent_types(self, env):
+    def test_all_agent_types(self, env: CollectiveCrossingEnv) -> None:
         """Test that both boarding and exiting agents pass validation."""
         env.reset(seed=42)
 
@@ -117,7 +116,7 @@ class TestActionAgentValidity:
         ]:
             env._check_action_and_agent_validity(agent_id, action)
 
-    def test_negative_action(self, env):
+    def test_negative_action(self, env: CollectiveCrossingEnv) -> None:
         """Test that negative action values raise ValueError."""
         env.reset(seed=42)
 
@@ -130,7 +129,7 @@ class TestActionAgentValidity:
         assert "Invalid action" in str(exc_info.value)
         assert str(negative_action) in str(exc_info.value)
 
-    def test_large_action(self, env):
+    def test_large_action(self, env: CollectiveCrossingEnv) -> None:
         """Test that very large action values raise ValueError."""
         env.reset(seed=42)
 
@@ -143,7 +142,7 @@ class TestActionAgentValidity:
         assert "Invalid action" in str(exc_info.value)
         assert str(large_action) in str(exc_info.value)
 
-    def test_empty_string_agent_id(self, env):
+    def test_empty_string_agent_id(self, env: CollectiveCrossingEnv) -> None:
         """Test that empty string agent ID raises ValueError."""
         env.reset(seed=42)
 
@@ -156,7 +155,7 @@ class TestActionAgentValidity:
         assert "Unknown agent ID" in str(exc_info.value)
         assert empty_agent_id in str(exc_info.value)
 
-    def test_none_agent_id(self, env):
+    def test_none_agent_id(self, env: CollectiveCrossingEnv) -> None:
         """Test that None agent ID raises ValueError."""
         env.reset(seed=42)
 
@@ -168,7 +167,7 @@ class TestActionAgentValidity:
 
         assert "Unknown agent ID" in str(exc_info.value)
 
-    def test_agent_id_with_spaces(self, env):
+    def test_agent_id_with_spaces(self, env: CollectiveCrossingEnv) -> None:
         """Test that agent ID with spaces raises ValueError."""
         env.reset(seed=42)
 

@@ -1,11 +1,12 @@
-"""This file contains the actions for the agents."""
+"""Actions for the agents in the collective crossing environment."""
+
 from enum import Enum
 
 import numpy as np
 
 
 class Actions(Enum):
-    """Available actions for agents"""
+    """Available actions for agents."""
 
     right = 0
     up = 1
