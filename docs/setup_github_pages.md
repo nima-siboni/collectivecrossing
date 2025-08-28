@@ -17,7 +17,7 @@ This guide will help you set up GitHub Pages to host your Collective Crossing do
 The GitHub Actions workflow is already configured in `.github/workflows/docs.yml`. This workflow will:
 
 - Build the documentation when you push to the `main` branch
-- Deploy it to GitHub Pages automatically
+- Deploy it to a `gh-pages` branch automatically
 - Handle pull requests for testing
 
 ### 3. **First Deployment**
@@ -32,6 +32,15 @@ The GitHub Actions workflow is already configured in `.github/workflows/docs.yml
 2. Go to the **Actions** tab on GitHub to monitor the deployment
 3. Once complete, your documentation will be available at:
    `https://nima-siboni.github.io/collectivecrossing/`
+
+### 4. **Configure GitHub Pages Source**
+
+After the first deployment, you need to configure GitHub Pages:
+
+1. Go to your repository → **Settings** → **Pages**
+2. Under **Source**, select **"Deploy from a branch"**
+3. Select **Branch**: `gh-pages` and **Folder**: `/ (root)`
+4. Click **Save**
 
 ## 🛠️ Local Development
 
