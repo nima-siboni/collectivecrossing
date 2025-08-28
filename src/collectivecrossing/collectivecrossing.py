@@ -210,7 +210,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             # Check if agent is done using the configured termination function
             terminateds[agent_id] = self._calculate_terminated(agent_id)
 
-            truncateds[agent_id] = self._truncated_function.is_truncated(self._step_count)
+            # Check if episode should be truncated using the configured truncation function
+            truncateds[agent_id] = self._calculate_truncated(agent_id)
             infos[agent_id] = {
                 "agent_type": self._agents[agent_id].agent_type.value,
                 "in_tram_area": self.is_in_tram_area(agent_id),
@@ -222,9 +223,9 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         # Check if environment is done
         all_terminated = all(terminateds.values()) if terminateds else False
-
+        all_truncated = all(truncateds.values()) if truncateds else False
         terminateds["__all__"] = all_terminated
-        truncateds["__all__"] = self._truncated_function.is_truncated(self._step_count)
+        truncateds["__all__"] = all_truncated
 
         return observations, rewards, terminateds, truncateds, infos
 
@@ -503,6 +504,21 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         """
         return self._terminated_function.calculate_terminated(agent_id, self)
+
+    def _calculate_truncated(self, agent_id: str) -> bool:
+        """
+        Calculate truncation status for an agent using the configured truncation function.
+
+        Args:
+        ----
+            agent_id: The ID of the agent.
+
+        Returns:
+        -------
+            True if the episode should be truncated, False otherwise.
+
+        """
+        return self._truncated_function.calculate_truncated(agent_id, self)
 
     def get_agent_destination_position(self, agent_id: str) -> np.ndarray:
         """

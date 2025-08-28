@@ -26,7 +26,7 @@ class TestTruncationLogic:
             (100000, 100000, True),  # Large numbers within bounds
         ],
     )
-    def test_is_truncated(self, current_step: int, max_steps: int, expected: bool) -> None:
+    def test_calculate_truncated(self, current_step: int, max_steps: int, expected: bool) -> None:
         """Test the truncation function with various inputs."""
         # Create a basic config
         config = CollectiveCrossingConfig(
@@ -44,7 +44,12 @@ class TestTruncationLogic:
         )
 
         env = CollectiveCrossingEnv(config)
-        result = env._truncated_function.is_truncated(current_step)
+        # Set the step count to simulate the current step
+        env._step_count = current_step
+
+        # Test with a valid agent ID
+        agent_id = "boarding_0"
+        result = env._truncated_function.calculate_truncated(agent_id, env)
         assert result is expected, (
             f"Expected {expected} for step {current_step} with max {max_steps}, got {result}"
         )
