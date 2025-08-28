@@ -20,6 +20,7 @@ The `CollectiveCrossingEnv` simulates a minimal tram boarding scenario where coo
 - **Flexible reward system** 🎁 supports multiple reward strategies (default, simple distance, binary)
 - **Customizable termination** ⏹️ configurable episode termination conditions
 - **Adaptive truncation** ⏱️ flexible episode truncation policies
+- **Configurable observations** 👁️ customizable observation functions and spaces
 
 ## 🚀 Quick Start
 
@@ -29,6 +30,7 @@ from collectivecrossing.configs import CollectiveCrossingConfig
 from collectivecrossing.reward_configs import DefaultRewardConfig
 from collectivecrossing.terminated_configs import AllAtDestinationTerminatedConfig
 from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
+from collectivecrossing.observation_configs import DefaultObservationConfig
 
 # Create environment with configurable systems
 reward_config = DefaultRewardConfig(
@@ -40,6 +42,7 @@ reward_config = DefaultRewardConfig(
 
 terminated_config = AllAtDestinationTerminatedConfig()
 truncated_config = MaxStepsTruncatedConfig(max_steps=100)
+observation_config = DefaultObservationConfig()
 
 config = CollectiveCrossingConfig(
     width=12, height=8, division_y=4,
@@ -48,7 +51,8 @@ config = CollectiveCrossingConfig(
     render_mode="rgb_array",
     reward_config=reward_config,
     terminated_config=terminated_config,
-    truncated_config=truncated_config
+    truncated_config=truncated_config,
+    observation_config=observation_config
 )
 
 env = CollectiveCrossingEnv(config=config)
@@ -74,6 +78,7 @@ observations, infos = env.reset(seed=42)
 - **Flexible reward system** multiple reward strategies with custom configurations
 - **Customizable termination** configurable episode ending conditions
 - **Adaptive truncation** flexible episode timeout policies
+- **Configurable observations** customizable observation functions and spaces
 
 ## 🛠️ Installation
 

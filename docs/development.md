@@ -49,6 +49,7 @@ from collectivecrossing.configs import CollectiveCrossingConfig
 from collectivecrossing.reward_configs import DefaultRewardConfig
 from collectivecrossing.terminated_configs import AllAtDestinationTerminatedConfig
 from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
+from collectivecrossing.observation_configs import DefaultObservationConfig
 
 def test_basic_environment():
     # Create configuration with configurable systems
@@ -61,6 +62,7 @@ def test_basic_environment():
     
     terminated_config = AllAtDestinationTerminatedConfig()
     truncated_config = MaxStepsTruncatedConfig(max_steps=50)
+    observation_config = DefaultObservationConfig()
     
     config = CollectiveCrossingConfig(
         width=10, height=8, division_y=4,
@@ -68,7 +70,8 @@ def test_basic_environment():
         num_boarding_agents=3, num_exiting_agents=2,
         reward_config=reward_config,
         terminated_config=terminated_config,
-        truncated_config=truncated_config
+        truncated_config=truncated_config,
+        observation_config=observation_config
     )
     
     env = CollectiveCrossingEnv(config=config)
@@ -127,8 +130,24 @@ def test_max_steps_truncation():
     truncated_func = MaxStepsTruncatedFunction(config)
     
     # Test truncation logic
-    truncated = truncated_func.check_truncation(step_count, episode_info)
+    truncated = truncated_func.calculate_truncated(agent_id, env)
     assert isinstance(truncated, bool)
+```
+
+#### Testing Observation Functions
+
+```python
+from collectivecrossing.observations import DefaultObservationFunction
+from collectivecrossing.observation_configs import DefaultObservationConfig
+
+def test_default_observation_function():
+    config = DefaultObservationConfig()
+    observation_func = DefaultObservationFunction(config)
+    
+    # Test observation generation
+    observation = observation_func.get_agent_observation(agent_id, env)
+    assert isinstance(observation, np.ndarray)
+    assert observation.dtype == np.int32
 ```
 
 ### Trajectory Testing

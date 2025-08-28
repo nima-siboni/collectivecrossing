@@ -11,7 +11,6 @@
 ### Smart Collision Avoidance
 - **🛡️ Collision prevention** prevents agents from occupying the same space
 - **Intelligent pathfinding** agents navigate around obstacles
-- **Collision detection** with appropriate penalties and rewards
 - **Spatial awareness** agents respect each other's movement
 
 ### Configurable Geometry
@@ -47,12 +46,6 @@
 - **Distance penalty factors** 📐 configurable distance-based penalties
 - **Goal completion rewards** 🎯 rewards for successful goal achievement
 
-### Reward System Architecture
-- **Type-safe configurations** 🔒 Pydantic-based reward configs
-- **Automatic validation** ✅ parameter validation and bounds checking
-- **Extensible design** 🔧 easy to add new reward strategies
-- **Performance optimized** ⚡ efficient reward computation
-
 ## ⏹️ Termination System Features
 
 ### Configurable Termination Conditions
@@ -64,14 +57,7 @@
 ### Termination Parameters
 - **Maximum steps per agent** 📊 individual agent step limits
 - **Completion requirements** ✅ configurable completion criteria
-- **Timeout penalties** ⚠️ penalties for incomplete agents
 - **Flexible termination logic** 🧠 customizable termination rules
-
-### Termination System Architecture
-- **Type-safe configurations** 🔒 Pydantic-based termination configs
-- **Automatic validation** ✅ parameter validation and bounds checking
-- **Extensible design** 🔧 easy to add new termination strategies
-- **Performance optimized** ⚡ efficient termination checking
 
 ## ⏱️ Truncation System Features
 
@@ -84,14 +70,17 @@
 ### Truncation Parameters
 - **Maximum episode steps** 📊 overall episode step limits
 - **Early truncation thresholds** 🎯 percentage-based early termination
-- **Agent activity requirements** 👥 require all agents to be active
 - **Flexible truncation logic** 🧠 customizable truncation rules
 
-### Truncation System Architecture
-- **Type-safe configurations** 🔒 Pydantic-based truncation configs
-- **Automatic validation** ✅ parameter validation and bounds checking
-- **Extensible design** 🔧 easy to add new truncation strategies
-- **Performance optimized** ⚡ efficient truncation checking
+## 👁️ Observation System Features
+
+### Configurable Observation Functions
+- **Agent positions** current location of all agents
+- **Tram door information** door position and boundaries
+- **Environment state** current grid state and geometry
+- **Multi-agent awareness** positions of other agents
+- **Type-safe observation spaces** gym-compatible observation spaces
+- **Custom observation strategies** implement custom observation logic
 
 ## ⚙️ Configuration Features
 
@@ -106,9 +95,7 @@
 - **Boundary checking** validates all coordinates within grid
 - **Agent count limits** reasonable limits for performance
 - **Render mode validation** ensures valid rendering options
-- **Reward parameter validation** validates reward function parameters
-- **Termination parameter validation** validates termination conditions
-- **Truncation parameter validation** validates truncation policies
+- **Parameter validation** validates reward, termination, truncation, and observation parameters
 
 ### Clear Error Messages
 - **💬 Descriptive validation failures** helpful error messages
@@ -121,7 +108,7 @@
 - **Optional parameters** only specify what you need
 - **Configuration inheritance** extend existing configurations
 - **Environment-specific configs** different configs for different scenarios
-- **Modular configuration** separate configs for rewards, termination, truncation
+- **Modular configuration** separate configs for rewards, termination, truncation, observations
 
 ## 🏗️ Architecture Features
 
@@ -139,9 +126,7 @@
 
 ### Environment Extensions
 - **🎁 Extensible configuration system** modify environment behavior
-- **Custom reward functions** implement custom reward strategies
-- **Custom termination functions** implement custom termination logic
-- **Custom truncation functions** implement custom truncation policies
+- **Custom functions** implement custom reward, termination, truncation, and observation logic
 
 ### Performance Optimized
 - **Fast execution** optimized for training speed
@@ -152,35 +137,14 @@
 ## 🎯 Key Capabilities
 
 ### Training Support
-- **Episode management** proper episode termination
+- **Episode management** proper episode termination and truncation
 - **Step counting** track episode progress
-- **Truncation handling** handle episode timeouts
 - **Seed management** reproducible environments
-- **Flexible reward systems** multiple reward strategies
-- **Configurable termination** various termination conditions
-- **Adaptive truncation** flexible timeout policies
+- **Flexible systems** multiple reward, termination, truncation, and observation strategies
 
-### Observation System
-- **Agent positions** current location of all agents
-- **Goal information** target destinations
-- **Environment state** current grid state
-- **Collision data** collision detection information
-
-### Reward System
-- **Multiple reward strategies** default, simple distance, binary
-- **Configurable parameters** adjustable reward values
-- **Distance-based rewards** penalties based on goal distance
-- **Goal completion rewards** rewards for successful completion
-- **Collision penalties** penalties for agent collisions
-
-### Termination System
-- **Flexible termination** configurable termination conditions
-- **Individual termination** per-agent termination logic
-- **Collective termination** all-agents termination logic
-- **Custom termination** extensible termination functions
-
-### Truncation System
-- **Flexible truncation** configurable truncation policies
-- **Step-based truncation** maximum step limits
-- **Early truncation** percentage-based early termination
-- **Custom truncation** extensible truncation functions
+### System Architecture
+All systems (Reward, Termination, Truncation, Observation) feature:
+- **Type-safe configurations** 🔒 Pydantic-based configs
+- **Automatic validation** ✅ parameter validation and bounds checking
+- **Extensible design** 🔧 easy to add new strategies
+- **Performance optimized** ⚡ efficient computation and checking

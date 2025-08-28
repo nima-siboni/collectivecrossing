@@ -71,6 +71,7 @@ from collectivecrossing.configs import CollectiveCrossingConfig
 from collectivecrossing.reward_configs import DefaultRewardConfig
 from collectivecrossing.terminated_configs import AllAtDestinationTerminatedConfig
 from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
+from collectivecrossing.observation_configs import DefaultObservationConfig
 
 # Create a simple configuration with configurable systems
 reward_config = DefaultRewardConfig(
@@ -82,6 +83,7 @@ reward_config = DefaultRewardConfig(
 
 terminated_config = AllAtDestinationTerminatedConfig()
 truncated_config = MaxStepsTruncatedConfig(max_steps=50)
+observation_config = DefaultObservationConfig()
 
 config = CollectiveCrossingConfig(
     width=10, height=8, division_y=4,
@@ -89,7 +91,8 @@ config = CollectiveCrossingConfig(
     num_boarding_agents=3, num_exiting_agents=2,
     reward_config=reward_config,
     terminated_config=terminated_config,
-    truncated_config=truncated_config
+    truncated_config=truncated_config,
+    observation_config=observation_config
 )
 
 # Create and test environment
