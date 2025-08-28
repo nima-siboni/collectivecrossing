@@ -1,8 +1,12 @@
 """Truncation functions for the collective crossing environment."""
 
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 from collectivecrossing.truncated_configs import TruncatedConfig
+
+if TYPE_CHECKING:
+    from collectivecrossing.collectivecrossing import CollectiveCrossingEnv
 
 
 class TruncatedFunction(ABC):
@@ -13,13 +17,14 @@ class TruncatedFunction(ABC):
         self.truncated_config = truncated_config
 
     @abstractmethod
-    def is_truncated(self, current_step_count: int) -> bool:
+    def calculate_truncated(self, agent_id: str, env: "CollectiveCrossingEnv") -> bool:
         """
-        Determine if the episode should be truncated.
+        Calculate truncation status for an agent.
 
         Args:
         ----
-            current_step_count: The current step count.
+            agent_id: The ID of the agent.
+            env: The environment instance.
 
         Returns:
         -------
@@ -32,7 +37,7 @@ class TruncatedFunction(ABC):
 class MaxStepsTruncatedFunction(TruncatedFunction):
     """Truncation function that truncates when max_steps is reached."""
 
-    def is_truncated(self, current_step_count: int) -> bool:
+    def calculate_truncated(self, agent_id: str, env: "CollectiveCrossingEnv") -> bool:
         """
         Return True if the episode is truncated, False otherwise.
 
@@ -41,26 +46,28 @@ class MaxStepsTruncatedFunction(TruncatedFunction):
 
         Args:
         ----
-            current_step_count: The current step count.
+            agent_id: The ID of the agent.
+            env: The environment instance.
 
         Returns:
         -------
             True if the episode is truncated, False otherwise.
 
         """
-        return current_step_count >= self.truncated_config.max_steps
+        return env._step_count >= self.truncated_config.max_steps
 
 
 class CustomTruncatedFunction(TruncatedFunction):
     """Custom truncation function that can be extended with custom logic."""
 
-    def is_truncated(self, current_step_count: int) -> bool:
+    def calculate_truncated(self, agent_id: str, env: "CollectiveCrossingEnv") -> bool:
         """
         Return truncated.
 
         Args:
         ----
-            current_step_count: The current step count.
+            agent_id: The ID of the agent.
+            env: The environment instance.
 
         Returns:
         -------
@@ -68,7 +75,7 @@ class CustomTruncatedFunction(TruncatedFunction):
 
         """
         # Basic max steps logic
-        if current_step_count >= self.truncated_config.max_steps:
+        if env._step_count >= self.truncated_config.max_steps:
             return True
 
         # Add custom logic here if needed

@@ -401,11 +401,59 @@ The environment supports the following actions:
 
 ## Observation Space
 
-Observations include:
-- Agent positions
-- Goal positions
-- Environment state
-- Collision information
+The environment provides configurable observation functions that can be customized for different use cases.
+
+### Default Observation Function
+
+The default observation function provides:
+- **Agent's own position** (x, y coordinates)
+- **Tram door information** (door center x, division line y, door boundaries)
+- **Other agents' positions** (positions of all other agents in the environment)
+
+### Observation Structure
+
+```python
+from collectivecrossing.observation_configs import DefaultObservationConfig
+
+# Create observation configuration
+observation_config = DefaultObservationConfig()
+
+config = CollectiveCrossingConfig(
+    # ... other parameters ...
+    observation_config=observation_config
+)
+```
+
+### Custom Observation Functions
+
+You can create custom observation functions by extending the `ObservationFunction` base class:
+
+```python
+from collectivecrossing.observation_configs import ObservationConfig
+from collectivecrossing.observations import ObservationFunction
+
+class CustomObservationConfig(ObservationConfig):
+    observation_function: str = "custom"
+    
+    def get_observation_function_name(self) -> str:
+        return "custom"
+
+class CustomObservationFunction(ObservationFunction):
+    def get_agent_observation(self, agent_id: str, env: "CollectiveCrossingEnv") -> np.ndarray:
+        # Implement your custom observation logic here
+        # Return observation as numpy array
+        pass
+```
+
+### Observation Space Properties
+
+```python
+# Get observation space for all agents
+observation_spaces = env.observation_spaces
+
+# Get observation space for a specific agent
+agent_obs_space = env.get_observation_space("boarding_0")
+```
 
 ## Reward System
 

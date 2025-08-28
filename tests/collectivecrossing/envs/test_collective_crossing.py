@@ -233,3 +233,176 @@ def test_action_space() -> None:
     invalid_actions = dict.fromkeys(observations.keys(), 10)  # Invalid action
     with pytest.raises(ValueError):
         env.step(invalid_actions)
+
+
+def test_observation_config() -> None:
+    """Test that observation configuration works correctly."""
+    from collectivecrossing.observation_configs import (
+        DefaultObservationConfig,
+        get_observation_config,
+    )
+
+    # Test default observation config
+    config = DefaultObservationConfig()
+    assert config.observation_function == "default"
+    assert config.get_observation_function_name() == "default"
+
+    # Test getting observation config by name
+    config_from_name = get_observation_config("default")
+    assert isinstance(config_from_name, DefaultObservationConfig)
+    assert config_from_name.observation_function == "default"
+
+    # Test invalid observation function name
+    with pytest.raises(ValueError, match="Unknown observation function"):
+        get_observation_config("invalid_function")
+
+
+def test_default_observation_function() -> None:
+    """Test that the default observation function works correctly."""
+    from collectivecrossing.observation_configs import DefaultObservationConfig
+    from collectivecrossing.observations import DefaultObservationFunction, get_observation_function
+
+    # Test creating observation function
+    config = DefaultObservationConfig()
+    obs_function = get_observation_function(config)
+    assert isinstance(obs_function, DefaultObservationFunction)
+    assert obs_function.observation_config.get_observation_function_name() == "default"
+
+    # Test invalid observation function name by creating a mock config
+    class InvalidObservationConfig(DefaultObservationConfig):
+        def get_observation_function_name(self) -> str:
+            return "invalid_function"
+
+    with pytest.raises(ValueError, match="Unknown observation function"):
+        get_observation_function(InvalidObservationConfig())
+
+
+def test_observation_structure() -> None:
+    """Test that observations have the correct structure."""
+    from collectivecrossing.observation_configs import DefaultObservationConfig
+
+    env = CollectiveCrossingEnv(
+        config=CollectiveCrossingConfig(
+            width=10,
+            height=6,
+            division_y=3,
+            tram_door_x=5,
+            tram_door_width=2,
+            tram_length=8,
+            num_boarding_agents=2,
+            num_exiting_agents=1,
+            exiting_destination_area_y=0,
+            boarding_destination_area_y=4,
+            observation_config=DefaultObservationConfig(),
+            truncated_config=MaxStepsTruncatedConfig(max_steps=100),
+        )
+    )
+
+    observations, _ = env.reset(seed=42)
+
+    # Check that all agents have observations
+    assert len(observations) == 3  # 2 boarding + 1 exiting
+
+    # Check observation structure for each agent
+    for _agent_id, obs in observations.items():
+        # Observation should be a numpy array
+        assert isinstance(obs, np.ndarray)
+        assert obs.dtype == np.int32
+
+        # Calculate expected observation size:
+        # 2 (agent position) + 4 (tram door info) + 2 * num_agents (other agent positions)
+        expected_size = 2 + 4 + 2 * 3  # 3 agents total
+        assert obs.shape == (expected_size,)
+
+        # Check that agent position is at the beginning
+        agent_pos = obs[:2]
+        assert 0 <= agent_pos[0] < env.config.width
+        assert 0 <= agent_pos[1] < env.config.height
+
+        # Check tram door info (positions 2-5)
+        tram_door_info = obs[2:6]
+        assert tram_door_info[0] == env.config.tram_door_x  # Door center X
+        assert tram_door_info[1] == env.config.division_y  # Division line Y
+        assert tram_door_info[2] == env.tram_door_left  # Door left boundary
+        assert tram_door_info[3] == env.tram_door_right  # Door right boundary
+
+        # Check other agent positions (positions 6 onwards)
+        other_agent_positions = obs[6:]
+        assert len(other_agent_positions) == 2 * 3  # 2 coordinates per agent, 3 agents total
+
+
+def test_observation_consistency() -> None:
+    """Test that observations are consistent across steps."""
+    from collectivecrossing.observation_configs import DefaultObservationConfig
+
+    env = CollectiveCrossingEnv(
+        config=CollectiveCrossingConfig(
+            width=10,
+            height=6,
+            division_y=3,
+            tram_door_x=5,
+            tram_door_width=2,
+            tram_length=8,
+            num_boarding_agents=1,
+            num_exiting_agents=1,
+            exiting_destination_area_y=0,
+            boarding_destination_area_y=4,
+            observation_config=DefaultObservationConfig(),
+            truncated_config=MaxStepsTruncatedConfig(max_steps=100),
+        )
+    )
+
+    observations, _ = env.reset(seed=42)
+
+    # Get initial observations
+    initial_obs = observations.copy()
+
+    # Take a step
+    actions = dict.fromkeys(observations.keys(), 4)  # Wait action
+    new_observations, _, _, _, _ = env.step(actions)
+
+    # Check that observation structure remains the same
+    for agent_id in initial_obs.keys():
+        assert initial_obs[agent_id].shape == new_observations[agent_id].shape
+        assert initial_obs[agent_id].dtype == new_observations[agent_id].dtype
+
+        # Check that tram door info remains constant
+        initial_tram_info = initial_obs[agent_id][2:6]
+        new_tram_info = new_observations[agent_id][2:6]
+        assert np.array_equal(initial_tram_info, new_tram_info)
+
+
+def test_observation_function_integration() -> None:
+    """Test that the observation function integrates correctly with the environment."""
+    from collectivecrossing.observation_configs import DefaultObservationConfig
+    from collectivecrossing.observations import DefaultObservationFunction
+
+    # Create environment with custom observation config
+    config = CollectiveCrossingConfig(
+        width=10,
+        height=6,
+        division_y=3,
+        tram_door_x=5,
+        tram_door_width=2,
+        tram_length=8,
+        num_boarding_agents=1,
+        num_exiting_agents=1,
+        exiting_destination_area_y=0,
+        boarding_destination_area_y=4,
+        observation_config=DefaultObservationConfig(),
+        truncated_config=MaxStepsTruncatedConfig(max_steps=100),
+    )
+
+    env = CollectiveCrossingEnv(config=config)
+
+    # Check that the environment uses the correct observation function
+    assert isinstance(env._observation_function, DefaultObservationFunction)
+    assert env._observation_function.observation_config.get_observation_function_name() == "default"
+
+    # Test that observations are generated correctly
+    observations, _ = env.reset(seed=42)
+
+    for agent_id, obs in observations.items():
+        # Verify that the observation matches what the function would produce
+        expected_obs = env._observation_function.get_agent_observation(agent_id, env)
+        assert np.array_equal(obs, expected_obs)

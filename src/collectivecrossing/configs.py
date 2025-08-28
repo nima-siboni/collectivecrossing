@@ -2,6 +2,7 @@
 
 from pydantic import Field, model_validator
 
+from collectivecrossing.observation_configs import DefaultObservationConfig, ObservationConfig
 from collectivecrossing.reward_configs import DefaultRewardConfig, RewardConfig
 from collectivecrossing.terminated_configs import (
     IndividualAtDestinationTerminatedConfig,
@@ -57,6 +58,10 @@ class CollectiveCrossingConfig(ConfigClass):
     )
     boarding_destination_area_y: int = Field(
         description="Y-coordinate of boarding destination area (in tram area)"
+    )
+    observation_config: ObservationConfig = Field(
+        description="Configuration for the observation function",
+        default_factory=DefaultObservationConfig,
     )
     reward_config: RewardConfig = Field(
         description="Configuration for the reward function",
