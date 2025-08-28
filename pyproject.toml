@@ -29,6 +29,8 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "mypy==1.17.1",
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.18",
 ]
 
 [tool.pytest.ini_options]

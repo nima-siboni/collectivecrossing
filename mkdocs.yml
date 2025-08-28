@@ -1,0 +1,29 @@
+site_name: Collective Crossing
+site_description: A multi-agent reinforcement learning environment for simulating collective behavior in tram boarding/exiting scenarios
+site_author: Nima Siboni
+site_url: https://nima-siboni.github.io/collectivecrossing/
+
+# Repository
+repo_name: nima-siboni/collectivecrossing
+repo_url: https://github.com/nima-siboni/collectivecrossing
+
+# Theme
+theme:
+  name: material
+
+# Navigation
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: installation.md
+    - Usage Guide: usage.md
+  - Development:
+    - Development Guide: development.md
+    - Features Overview: features.md
+  - Additional Resources:
+    - Trajectory Testing: trajectory_testing.md
+    - GitHub Pages Setup: setup_github_pages.md
+
+# Plugins
+plugins:
+  - search
