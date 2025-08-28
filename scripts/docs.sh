@@ -95,10 +95,10 @@ deploy_docs() {
     print_status "Building documentation for deployment..."
     uv run mkdocs build
     print_success "Documentation built successfully"
-    print_status "To deploy to GitHub Pages:"
-    print_status "1. Commit and push your changes"
-    print_status "2. GitHub Actions will automatically deploy the documentation"
-    print_status "3. Your docs will be available at: https://nima-siboni.github.io/collectivecrossing/"
+    print_status "Deploying to GitHub Pages..."
+    uv run mkdocs gh-deploy
+    print_success "Documentation deployed successfully!"
+    print_status "Your docs are available at: https://nima-siboni.github.io/collectivecrossing/"
 }
 
 # Function to check for broken links

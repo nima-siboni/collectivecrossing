@@ -22,7 +22,7 @@ nav:
     - Features Overview: features.md
   - Additional Resources:
     - Trajectory Testing: trajectory_testing.md
-    - GitHub Pages Setup: setup_github_pages.md
+    - Local Deployment Setup: setup_local_deployment.md
 
 # Plugins
 plugins:
