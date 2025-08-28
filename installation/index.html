@@ -429,6 +429,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#testing-the-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing the Installation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       Troubleshooting
@@ -802,6 +811,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#testing-the-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing the Installation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       Troubleshooting
@@ -881,6 +899,9 @@ uv run pytest
 
 # Check code quality
 uv run ruff check . --config tool-config.toml
+
+# Run type checking
+uv run mypy src/collectivecrossing/
 </code></pre>
 <h2 id="alternative-installation-methods">Alternative Installation Methods</h2>
 <h3 id="using-pip-not-recommended">Using pip (not recommended)</h3>
@@ -891,18 +912,55 @@ uv run ruff check . --config tool-config.toml
 conda activate collectivecrossing
 uv sync
 </code></pre>
+<h2 id="testing-the-installation">Testing the Installation</h2>
+<p>After installation, you can test that everything works correctly:</p>
+<pre><code class="language-python"># Test basic environment creation
+from collectivecrossing import CollectiveCrossingEnv
+from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.reward_configs import DefaultRewardConfig
+from collectivecrossing.terminated_configs import AllAtDestinationTerminatedConfig
+from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
+
+# Create a simple configuration with configurable systems
+reward_config = DefaultRewardConfig(
+    boarding_destination_reward=15.0,
+    tram_door_reward=10.0,
+    tram_area_reward=5.0,
+    distance_penalty_factor=0.1
+)
+
+terminated_config = AllAtDestinationTerminatedConfig()
+truncated_config = MaxStepsTruncatedConfig(max_steps=50)
+
+config = CollectiveCrossingConfig(
+    width=10, height=8, division_y=4,
+    tram_door_x=5, tram_door_width=2, tram_length=8,
+    num_boarding_agents=3, num_exiting_agents=2,
+    reward_config=reward_config,
+    terminated_config=terminated_config,
+    truncated_config=truncated_config
+)
+
+# Create and test environment
+env = CollectiveCrossingEnv(config=config)
+observations, infos = env.reset(seed=42)
+print(f&quot;Environment created successfully with {len(observations)} agents&quot;)
+</code></pre>
 <h2 id="troubleshooting">Troubleshooting</h2>
 <h3 id="common-issues">Common Issues</h3>
 <ol>
 <li><strong>uv not found</strong>: Install uv from <a href="https://docs.astral.sh/uv/">https://docs.astral.sh/uv/</a></li>
 <li><strong>Python version</strong>: Ensure you have Python 3.10 or higher</li>
 <li><strong>Permission errors</strong>: Use <code>uv sync --user</code> or check your Python environment</li>
+<li><strong>Import errors</strong>: Make sure all dependencies are properly installed</li>
+<li><strong>Test failures</strong>: Run <code>uv run pytest -v</code> for detailed error information</li>
 </ol>
 <h3 id="getting-help">Getting Help</h3>
 <p>If you encounter issues during installation, please:
 1. Check the <a href="https://github.com/nima-siboni/collectivecrossing/issues">GitHub Issues</a>
 2. Create a new issue with your error details
-3. Include your Python version and operating system</p>
+3. Include your Python version and operating system
+4. Provide the complete error message and stack trace</p>
 
 
 
