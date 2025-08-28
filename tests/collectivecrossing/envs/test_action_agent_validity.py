@@ -5,6 +5,7 @@ import pytest
 
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 from collectivecrossing.types import AgentType
 
 
@@ -23,7 +24,7 @@ class TestActionAgentValidity:
             tram_length=8,
             num_boarding_agents=2,
             num_exiting_agents=1,
-            max_steps=100,
+            truncated_config=MaxStepsTruncatedConfig(max_steps=100),
             exiting_destination_area_y=1,
             boarding_destination_area_y=7,
         )

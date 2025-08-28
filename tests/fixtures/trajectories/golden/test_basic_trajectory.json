@@ -9,7 +9,8 @@
     "num_boarding_agents": 2,
     "num_exiting_agents": 1,
     "exiting_destination_area_y": 0,
-    "boarding_destination_area_y": 5
+    "boarding_destination_area_y": 5,
+    "max_steps": 50
   },
   "initial_observations": {
     "boarding_0": [
@@ -183,17 +184,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -313,17 +320,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -443,17 +456,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -573,17 +592,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -703,17 +728,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -833,17 +864,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -963,17 +1000,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -1093,17 +1136,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -1223,17 +1272,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -1353,17 +1408,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -1483,17 +1544,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -1613,17 +1680,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -1743,17 +1816,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -1873,17 +1952,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -2003,17 +2088,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     }
