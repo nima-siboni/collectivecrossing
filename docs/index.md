@@ -18,19 +18,38 @@ The `CollectiveCrossingEnv` simulates a minimal tram boarding scenario where coo
 - **Exiting agents** 🚶‍♀️ start inside the tram and navigate to the exit
 - **Simple collision avoidance** 🛡️ prevents agents from occupying the same space, which makes the passing through the tram door a bottleneck and a challenge
 - **Configurable geometry** 🏗️ allows customization of tram size, door position, and environment
+- **Flexible reward system** 🎁 supports multiple reward strategies (default, simple distance, binary)
+- **Customizable termination** ⏹️ configurable episode termination conditions
+- **Adaptive truncation** ⏱️ flexible episode truncation policies
 
 ## 🚀 Quick Start
 
 ```python
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.reward_configs import DefaultRewardConfig
+from collectivecrossing.terminated_configs import AllAtDestinationTerminatedConfig
+from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 
-# Create environment
+# Create environment with configurable systems
+reward_config = DefaultRewardConfig(
+    boarding_destination_reward=15.0,
+    tram_door_reward=10.0,
+    tram_area_reward=5.0,
+    distance_penalty_factor=0.1
+)
+
+terminated_config = AllAtDestinationTerminatedConfig()
+truncated_config = MaxStepsTruncatedConfig(max_steps=100)
+
 config = CollectiveCrossingConfig(
     width=12, height=8, division_y=4,
     tram_door_x=6, tram_door_width=2, tram_length=10,
     num_boarding_agents=5, num_exiting_agents=3,
-    max_steps=100, render_mode="rgb_array"
+    render_mode="rgb_array",
+    reward_config=reward_config,
+    terminated_config=terminated_config,
+    truncated_config=truncated_config
 )
 
 env = CollectiveCrossingEnv(config=config)
@@ -45,6 +64,9 @@ observations, infos = env.reset(seed=42)
 - **Ray RLlib compatible** uses MultiAgentEnv API
 - **Multiple rendering modes** ASCII and RGB visualization
 - **Type-safe configuration** using Pydantic v2
+- **Flexible reward system** multiple reward strategies with custom configurations
+- **Customizable termination** configurable episode ending conditions
+- **Adaptive truncation** flexible episode timeout policies
 
 ## 📚 Documentation
 
