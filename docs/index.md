@@ -56,6 +56,9 @@ observations, infos = env.reset(seed=42)
 - **[Development Guide](development.md)** - Testing, contributing, and development guidelines
 - **[Features Overview](features.md)** - Comprehensive feature descriptions
 
+### Deployment
+- **[Local Deployment](setup_local_deployment.md)** - Simple deployment guide
+
 ## 🛠️ Installation
 
 ```bash
@@ -66,6 +69,15 @@ uv sync
 ```
 
 See [Installation Guide](installation.md) for detailed instructions.
+
+## 🚀 Quick Deploy
+
+```bash
+# Deploy documentation to GitHub Pages
+./scripts/docs.sh deploy
+```
+
+See [Local Deployment Guide](setup_local_deployment.md) for details.
 
 ## 🧪 Testing
 
