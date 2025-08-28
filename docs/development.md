@@ -30,10 +30,13 @@ tests/
 │       ├── test_collective_crossing.py    # Main environment tests
 │       ├── test_action_agent_validity.py  # Action validation tests
 │       ├── test_dummy.py                  # Dummy environment tests
-│       ├── test_trajectory_vcr.py         # Trajectory tests
-│       └── test_truncateds.py             # Truncation tests
+│       ├── test_rewards.py                # Reward function tests
+│       ├── test_terminateds.py            # Termination function tests
+│       ├── test_truncateds.py             # Truncation function tests
+│       └── test_trajectory_vcr.py         # Trajectory tests
 └── fixtures/
     └── trajectories/
+        ├── current/                       # Current test data
         └── golden/                        # Golden test data
 ```
 
@@ -43,13 +46,29 @@ tests/
 import pytest
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.reward_configs import DefaultRewardConfig
+from collectivecrossing.terminated_configs import AllAtDestinationTerminatedConfig
+from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 
 def test_basic_environment():
+    # Create configuration with configurable systems
+    reward_config = DefaultRewardConfig(
+        boarding_destination_reward=15.0,
+        tram_door_reward=10.0,
+        tram_area_reward=5.0,
+        distance_penalty_factor=0.1
+    )
+    
+    terminated_config = AllAtDestinationTerminatedConfig()
+    truncated_config = MaxStepsTruncatedConfig(max_steps=50)
+    
     config = CollectiveCrossingConfig(
         width=10, height=8, division_y=4,
         tram_door_x=5, tram_door_width=2, tram_length=8,
         num_boarding_agents=3, num_exiting_agents=2,
-        max_steps=50
+        reward_config=reward_config,
+        terminated_config=terminated_config,
+        truncated_config=truncated_config
     )
     
     env = CollectiveCrossingEnv(config=config)
@@ -58,6 +77,70 @@ def test_basic_environment():
     assert len(observations) == 5  # 3 boarding + 2 exiting agents
     assert not env.terminated
     assert not env.truncated
+```
+
+### Testing New Features
+
+#### Testing Reward Functions
+
+```python
+from collectivecrossing.rewards import DefaultRewardFunction
+from collectivecrossing.reward_configs import DefaultRewardConfig
+
+def test_default_reward_function():
+    config = DefaultRewardConfig(
+        boarding_destination_reward=15.0,
+        tram_door_reward=10.0,
+        tram_area_reward=5.0,
+        distance_penalty_factor=0.1
+    )
+    
+    reward_func = DefaultRewardFunction(config)
+    # Test reward computation
+    reward = reward_func.compute_reward(agent_state, action, next_state)
+    assert isinstance(reward, float)
+```
+
+#### Testing Termination Functions
+
+```python
+from collectivecrossing.terminateds import AllAtDestinationTerminatedFunction
+from collectivecrossing.terminated_configs import AllAtDestinationTerminatedConfig
+
+def test_all_at_destination_termination():
+    config = AllAtDestinationTerminatedConfig()
+    terminated_func = AllAtDestinationTerminatedFunction(config)
+    
+    # Test termination logic
+    terminated = terminated_func.check_termination(agent_states, episode_info)
+    assert isinstance(terminated, bool)
+```
+
+#### Testing Truncation Functions
+
+```python
+from collectivecrossing.truncateds import MaxStepsTruncatedFunction
+from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
+
+def test_max_steps_truncation():
+    config = MaxStepsTruncatedConfig(max_steps=100)
+    truncated_func = MaxStepsTruncatedFunction(config)
+    
+    # Test truncation logic
+    truncated = truncated_func.check_truncation(step_count, episode_info)
+    assert isinstance(truncated, bool)
+```
+
+### Trajectory Testing
+
+The project includes comprehensive trajectory testing to ensure environment behavior consistency:
+
+```bash
+# Run trajectory tests
+uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py
+
+# Update golden trajectories (if needed)
+uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py --update-golden
 ```
 
 ## Code Quality Tools
@@ -114,14 +197,15 @@ collectivecrossing/
 │   ├── ⚙️ configs.py                 # Configuration classes with validation
 │   ├── 🎯 actions.py                 # Action definitions and mappings
 │   ├── 🏷️ types.py                   # Type definitions (AgentType, etc.)
+│   ├── 🎁 reward_configs.py          # Reward function configurations
+│   ├── 🎁 rewards.py                 # Reward function implementations
+│   ├── ⏹️ terminated_configs.py      # Termination function configurations
+│   ├── ⏹️ terminateds.py             # Termination function implementations
+│   ├── ⏱️ truncated_configs.py       # Truncation function configurations
+│   ├── ⏱️ truncateds.py              # Truncation function implementations
 │   ├── 📁 utils/
 │   │   ├── 📐 geometry.py            # Geometry utilities (TramBoundaries)
 │   │   └── 🔧 pydantic.py            # Pydantic configuration utilities
-│   ├── 📁 wrappers/
-│   │   ├── 🎁 clip_reward.py         # Reward clipping wrapper
-│   │   ├── 🎲 discrete_actions.py    # Discrete action space wrapper
-│   │   ├── ⚖️ reacher_weighted_reward.py  # Weighted reward wrapper
-│   │   └── 📍 relative_position.py   # Relative positioning wrapper
 │   └── 📁 tests/                     # Environment-specific tests
 ├── 📁 tests/                         # Main test suite
 ├── 📁 examples/                      # Usage examples
@@ -198,80 +282,98 @@ uv run twine upload dist/*
 Use conventional commit messages:
 
 ```
-type(scope): description
-
-[optional body]
-
-[optional footer]
+feat: add new reward function configuration
+fix: resolve termination logic bug
+docs: update usage examples
+test: add tests for truncation functions
+refactor: improve configuration validation
 ```
 
-Examples:
-- `feat(env): add new rendering mode`
-- `fix(config): validate tram door position`
-- `docs(readme): update installation instructions`
-- `test(env): add collision detection tests`
+### Adding New Features
 
-### Pull Request Guidelines
+When adding new features, follow these guidelines:
 
-- Include a clear description of the changes
-- Add tests for new functionality
-- Update documentation if needed
-- Ensure all tests pass
-- Follow the existing code style
+1. **Configuration First** - Add configuration classes for new features
+2. **Type Safety** - Use Pydantic for configuration validation
+3. **Testing** - Write comprehensive tests for new functionality
+4. **Documentation** - Update documentation with examples
+5. **Backward Compatibility** - Maintain compatibility with existing APIs
 
-## Debugging
+### Adding New Reward Functions
+
+```python
+# 1. Create reward configuration
+class CustomRewardConfig(RewardConfig):
+    custom_parameter: float = Field(default=1.0, description="Custom parameter")
+
+# 2. Create reward function
+class CustomRewardFunction:
+    def __init__(self, config: CustomRewardConfig):
+        self.config = config
+    
+    def compute_reward(self, agent_state, action, next_state):
+        # Implement reward logic
+        return reward_value
+
+# 3. Add to registry
+REWARD_CONFIGS["custom"] = CustomRewardConfig
+REWARD_FUNCTIONS["custom"] = CustomRewardFunction
+```
+
+### Adding New Termination Functions
+
+```python
+# 1. Create termination configuration
+class CustomTerminatedConfig(TerminatedConfig):
+    custom_parameter: bool = Field(default=True, description="Custom parameter")
+
+# 2. Create termination function
+class CustomTerminatedFunction:
+    def __init__(self, config: CustomTerminatedConfig):
+        self.config = config
+    
+    def check_termination(self, agent_states, episode_info):
+        # Implement termination logic
+        return terminated
+
+# 3. Add to registry
+TERMINATED_CONFIGS["custom"] = CustomTerminatedConfig
+TERMINATED_FUNCTIONS["custom"] = CustomTerminatedFunction
+```
+
+### Adding New Truncation Functions
+
+```python
+# 1. Create truncation configuration
+class CustomTruncatedConfig(TruncatedConfig):
+    custom_parameter: int = Field(default=100, description="Custom parameter")
+
+# 2. Create truncation function
+class CustomTruncatedFunction:
+    def __init__(self, config: CustomTruncatedConfig):
+        self.config = config
+    
+    def check_truncation(self, step_count, episode_info):
+        # Implement truncation logic
+        return truncated
+
+# 3. Add to registry
+TRUNCATED_CONFIGS["custom"] = CustomTruncatedConfig
+TRUNCATED_FUNCTIONS["custom"] = CustomTruncatedFunction
+```
+
+## Troubleshooting
 
 ### Common Issues
 
-1. **Import errors**: Make sure you're in the correct Python environment
-2. **Configuration errors**: Check parameter validation messages
-3. **Test failures**: Run tests with `-v` flag for verbose output
+1. **Test failures** - Check if golden trajectories need updating
+2. **Configuration errors** - Verify Pydantic validation rules
+3. **Import errors** - Ensure all dependencies are installed
+4. **Type checking errors** - Add proper type hints
 
-### Debug Tools
+### Getting Help
 
-```bash
-# Run with debug logging
-uv run python -m pytest --log-cli-level=DEBUG
-
-# Use pdb for debugging
-uv run python -m pdb -m pytest test_file.py::test_function
-
-# Profile code performance
-uv run python -m cProfile -o profile.stats your_script.py
-```
-
-## Performance Optimization
-
-### Profiling
-
-```python
-import cProfile
-import pstats
-
-# Profile your code
-profiler = cProfile.Profile()
-profiler.enable()
-
-# Your code here
-env = CollectiveCrossingEnv(config)
-for _ in range(1000):
-    env.step(actions)
-
-profiler.disable()
-stats = pstats.Stats(profiler)
-stats.sort_stats('cumulative')
-stats.print_stats(10)
-```
-
-### Memory Usage
-
-```python
-import tracemalloc
-
-tracemalloc.start()
-# Your code here
-current, peak = tracemalloc.get_traced_memory()
-print(f"Current memory usage: {current / 1024 / 1024:.1f} MB")
-print(f"Peak memory usage: {peak / 1024 / 1024:.1f} MB")
-tracemalloc.stop()
-```
+- Check existing issues on GitHub
+- Create a new issue with detailed error information
+- Include your Python version and operating system
+- Provide minimal reproduction examples

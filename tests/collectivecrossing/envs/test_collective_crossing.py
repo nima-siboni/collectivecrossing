@@ -5,6 +5,7 @@ import pytest
 
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 
 
 def test_environment_initialization() -> None:
@@ -21,7 +22,7 @@ def test_environment_initialization() -> None:
             num_exiting_agents=2,
             exiting_destination_area_y=0,
             boarding_destination_area_y=7,
-            max_steps=100,
+            truncated_config=MaxStepsTruncatedConfig(max_steps=100),
             render_mode="human",
         )
     )
@@ -51,7 +52,7 @@ def test_environment_reset() -> None:
             num_exiting_agents=2,
             exiting_destination_area_y=0,
             boarding_destination_area_y=7,
-            max_steps=100,
+            truncated_config=MaxStepsTruncatedConfig(max_steps=100),
             render_mode="human",
         )
     )
@@ -85,7 +86,7 @@ def test_agent_movement() -> None:
             num_exiting_agents=1,
             exiting_destination_area_y=0,
             boarding_destination_area_y=7,
-            max_steps=100,
+            truncated_config=MaxStepsTruncatedConfig(max_steps=100),
             render_mode="human",
         )
     )
@@ -126,7 +127,7 @@ def test_agent_termination() -> None:
             num_exiting_agents=1,
             exiting_destination_area_y=0,
             boarding_destination_area_y=5,
-            max_steps=100,
+            truncated_config=MaxStepsTruncatedConfig(max_steps=100),
             render_mode="human",
         )
     )
@@ -165,7 +166,7 @@ def test_rendering() -> None:
             num_exiting_agents=1,
             exiting_destination_area_y=0,
             boarding_destination_area_y=4,
-            max_steps=100,
+            truncated_config=MaxStepsTruncatedConfig(max_steps=100),
             render_mode="human",
         )
     )
@@ -217,7 +218,7 @@ def test_action_space() -> None:
             num_exiting_agents=1,
             exiting_destination_area_y=0,
             boarding_destination_area_y=4,
-            max_steps=100,
+            truncated_config=MaxStepsTruncatedConfig(max_steps=100),
             render_mode="human",
         )
     )

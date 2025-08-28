@@ -2,6 +2,12 @@
 
 from pydantic import Field, model_validator
 
+from collectivecrossing.reward_configs import DefaultRewardConfig, RewardConfig
+from collectivecrossing.terminated_configs import (
+    IndividualAtDestinationTerminatedConfig,
+    TerminatedConfig,
+)
+from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig, TruncatedConfig
 from collectivecrossing.utils.pydantic import ConfigClass
 
 
@@ -23,6 +29,9 @@ class CollectiveCrossingConfig(ConfigClass):
         max_steps: Maximum number of steps
         exiting_destination_area_y: Y-coordinate of exiting destination area (bottom border)
         boarding_destination_area_y: Y-coordinate of boarding destination area (in tram area)
+        reward_config: Configuration for the reward function
+        terminated_config: Configuration for the termination function
+        truncated_config: Configuration for the truncation function
 
     """
 
@@ -42,12 +51,24 @@ class CollectiveCrossingConfig(ConfigClass):
         default=None,
         examples=["human", "rgb_array", None],
     )
-    max_steps: int = Field(description="Maximum number of steps", ge=1, le=1000)
+
     exiting_destination_area_y: int = Field(
         description="Y-coordinate of exiting destination area (bottom border)"
     )
     boarding_destination_area_y: int = Field(
         description="Y-coordinate of boarding destination area (in tram area)"
+    )
+    reward_config: RewardConfig = Field(
+        description="Configuration for the reward function",
+        default_factory=DefaultRewardConfig,
+    )
+    terminated_config: TerminatedConfig = Field(
+        description="Configuration for the termination function",
+        default_factory=IndividualAtDestinationTerminatedConfig,
+    )
+    truncated_config: TruncatedConfig = Field(
+        description="Configuration for the truncation function",
+        default_factory=MaxStepsTruncatedConfig,
     )
 
     @model_validator(mode="after")

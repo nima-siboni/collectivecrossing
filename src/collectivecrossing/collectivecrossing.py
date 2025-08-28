@@ -16,6 +16,9 @@ from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 from collectivecrossing.actions import ACTION_TO_DIRECTION
 from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.rewards import get_reward_function
+from collectivecrossing.terminateds import get_terminated_function
+from collectivecrossing.truncateds import get_truncated_function
 from collectivecrossing.types import Agent, AgentType
 from collectivecrossing.utils.geometry import TramBoundaries, calculate_tram_boundaries
 
@@ -62,6 +65,15 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         # Action mapping
         self._action_to_direction = ACTION_TO_DIRECTION
+
+        # Initialize reward function
+        self._reward_function = get_reward_function(self.config.reward_config)
+
+        # Initialize termination function
+        self._terminated_function = get_terminated_function(self.config.terminated_config)
+
+        # Initialize truncation function
+        self._truncated_function = get_truncated_function(self.config.truncated_config)
 
         # Define observation and action spaces
         self._setup_spaces()
@@ -181,33 +193,34 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         # because RLlib allows to return obs, rewards, terminateds, truncateds, infos for any
         # agent in the environment.
 
-        # TODO: remove this later?
+        # Deactivate active agents that have reached their destination.
         for agent_id in self._agents.keys():
-            if self._agents[agent_id].active and self._is_agent_terminated(agent_id):
+            if self._agents[agent_id].active and self.has_agent_reached_destination(agent_id):
                 self._agents[agent_id].deactivate()
 
         for agent_id in self._agents.keys():
-            if self._agents[agent_id].active:
-                # Calculate reward
-                reward = self._calculate_reward(agent_id)
-                rewards[agent_id] = reward
+            # Calculate reward
+            reward = self._calculate_reward(agent_id)
+            rewards[agent_id] = reward
 
-                # Check if agent is done
-                terminateds[agent_id] = self._is_agent_terminated(agent_id)
+            # Check if agent is done using the configured termination function
+            terminateds[agent_id] = self._calculate_terminated(agent_id)
 
-                truncateds[agent_id] = self._is_truncated(self._step_count, self.config.max_steps)
-                infos[agent_id] = {
-                    "agent_type": self._agents[agent_id].agent_type.value,
-                    "in_tram_area": self._is_in_tram_area(self._get_agent_position(agent_id)),
-                    "at_door": self._is_at_tram_door(self._get_agent_position(agent_id)),
-                }
-                observations[agent_id] = self._get_agent_observation(agent_id)
+            truncateds[agent_id] = self._truncated_function.is_truncated(self._step_count)
+            infos[agent_id] = {
+                "agent_type": self._agents[agent_id].agent_type.value,
+                "in_tram_area": self.is_in_tram_area(agent_id),
+                "at_door": self.is_at_tram_door(agent_id),
+                "active": self._agents[agent_id].active,
+                "at_destination": self.has_agent_reached_destination(agent_id),
+            }
+            observations[agent_id] = self._get_agent_observation(agent_id)
 
         # Check if environment is done
         all_terminated = all(terminateds.values()) if terminateds else False
 
         terminateds["__all__"] = all_terminated
-        truncateds["__all__"] = self._is_truncated(self._step_count, self.config.max_steps)
+        truncateds["__all__"] = self._truncated_function.is_truncated(self._step_count)
 
         return observations, rewards, terminateds, truncateds, infos
 
@@ -313,25 +326,6 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         if self._is_move_valid(agent_id, current_pos, new_pos):
             # Update position
             self._agents[agent_id].update_position(new_pos)
-
-    @staticmethod
-    def _is_truncated(current_step_count: int, max_steps: int) -> bool:
-        """
-        Return True if the episode is truncated, False otherwise.
-
-        The logic is that the episode is truncated if the step count is greater than the max steps.
-
-        Args:
-        ----
-            current_step_count: The current step count.
-            max_steps: The maximum number of steps.
-
-        Returns:
-        -------
-            True if the episode is truncated, False otherwise.
-
-        """
-        return current_step_count >= max_steps
 
     def close(self) -> None:
         """Close the environment."""
@@ -457,12 +451,22 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 return True
         return False
 
-    def _is_in_tram_area(self, pos: np.ndarray) -> bool:
+    def is_in_boarding_destination_area(self, agent_id: str) -> bool:
+        """Check if a position is in the boarding destination area."""
+        return self._get_agent_position(agent_id)[1] == self.config.boarding_destination_area_y
+
+    def is_in_exiting_destination_area(self, agent_id: str) -> bool:
+        """Check if a position is in the exiting destination area."""
+        return self._get_agent_position(agent_id)[1] == self.config.exiting_destination_area_y
+
+    def is_in_tram_area(self, agent_id: str) -> bool:
         """Check if a position is in the tram area (upper part within tram boundaries)."""
+        pos = self._get_agent_position(agent_id)
         return pos[1] >= self.config.division_y and self.tram_left <= pos[0] <= self.tram_right
 
-    def _is_at_tram_door(self, pos: np.ndarray) -> bool:
+    def is_at_tram_door(self, agent_id: str) -> bool:
         """Check if a position is at the tram door."""
+        pos = self._get_agent_position(agent_id)
         return (
             pos[1] == self.config.division_y
             and self.tram_door_left <= pos[0] <= self.tram_door_right
@@ -490,23 +494,9 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         return False
 
-    def _is_in_exiting_destination_area(self, pos: np.ndarray) -> bool:
-        """Check if a position is in the exiting destination area."""
-        return pos[1] == self.config.exiting_destination_area_y
-
-    def _is_in_boarding_destination_area(self, pos: np.ndarray) -> bool:
-        """Check if a position is in the boarding destination area."""
-        return pos[1] == self.config.boarding_destination_area_y
-
     def _calculate_reward(self, agent_id: str) -> float:
         """
-        Calculate reward for an agent.
-
-        The reward is calculated based on the agent's position and type:
-        - Boarding agents get positive reward for reaching tram door and boarding destination area
-        - Exiting agents get positive reward for reaching exiting destination area
-        - Boarding agents get negative reward for moving towards the door
-        - Exiting agents get negative reward for moving towards the exit
+        Calculate reward for an agent using the configured reward function.
 
         Args:
         ----
@@ -517,40 +507,11 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             The reward for the agent.
 
         """
-        agent_pos = self._get_agent_position(agent_id)
-        agent_type = self._agents[agent_id].agent_type
+        return self._reward_function.calculate_reward(agent_id, self)
 
-        if agent_type == AgentType.BOARDING:
-            # Boarding agents get positive reward for reaching tram door and boarding destination
-            # area
-            if self._is_in_boarding_destination_area(agent_pos):
-                return 15.0  # Successfully reached boarding destination area
-            elif self._is_at_tram_door(agent_pos):
-                return 10.0  # Successfully reached tram door
-            elif self._is_in_tram_area(agent_pos):
-                return 5.0  # Good progress - in tram area
-            else:
-                # Small reward for moving towards the door
-                distance_to_door = abs(agent_pos[0] - self.config.tram_door_x) + (
-                    self.config.division_y - agent_pos[1]
-                )
-                return -distance_to_door * 0.1
-        else:  # EXITING
-            # Exiting agents get positive reward for reaching exiting destination area
-            if self._is_in_exiting_destination_area(agent_pos):
-                return 10.0  # Successfully reached exiting destination area
-            elif not self._is_in_tram_area(agent_pos):
-                return 5.0  # Good progress - exited tram area
-            else:
-                # Small reward for moving towards exit
-                distance_to_exit = abs(agent_pos[0] - self.config.tram_door_x) + (
-                    agent_pos[1] - self.config.division_y
-                )
-                return distance_to_exit * 0.1
-
-    def _is_agent_terminated(self, agent_id: str) -> bool:
+    def _calculate_terminated(self, agent_id: str) -> bool:
         """
-        Check if an agent has completed its goal.
+        Calculate termination status for an agent using the configured termination function.
 
         Args:
         ----
@@ -558,18 +519,54 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         Returns:
         -------
-            True if the agent is terminated, otherwise False.
+            True if the agent should be terminated, False otherwise.
 
         """
-        agent_pos = self._get_agent_position(agent_id)
+        return self._terminated_function.calculate_terminated(agent_id, self)
+
+    def get_agent_destination_position(self, agent_id: str) -> np.ndarray:
+        """
+        Get the destination position for an agent.
+
+        Args:
+        ----
+            agent_id: The ID of the agent.
+
+        Returns:
+        -------
+            The destination position as a numpy array.
+
+        """
+        agent_type = self._agents[agent_id].agent_type
+
+        if agent_type == AgentType.BOARDING:
+            # Boarding agents go to the boarding destination area
+            return np.array([self.config.tram_door_x, self.config.boarding_destination_area_y])
+        else:  # EXITING
+            # Exiting agents go to the exiting destination area
+            return np.array([self.config.tram_door_x, self.config.exiting_destination_area_y])
+
+    def has_agent_reached_destination(self, agent_id: str) -> bool:
+        """
+        Check if an agent has reached its destination.
+
+        Args:
+        ----
+            agent_id: The ID of the agent.
+
+        Returns:
+        -------
+            True if the agent has reached its destination, otherwise False.
+
+        """
         agent_type = self._agents[agent_id].agent_type
 
         if agent_type == AgentType.BOARDING:
             # Boarding agents are done when they reach the boarding destination area
-            return self._is_in_boarding_destination_area(agent_pos)
+            return self.is_in_boarding_destination_area(agent_id)
         else:  # EXITING
             # Exiting agents are done when they reach the exiting destination area
-            return self._is_in_exiting_destination_area(agent_pos)
+            return self.is_in_exiting_destination_area(agent_id)
 
     def _check_action_and_agent_validity(self, agent_id: str, action: int) -> None:
         """

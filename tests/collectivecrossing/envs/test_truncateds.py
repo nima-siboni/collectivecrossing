@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Tests for termination and truncation logic in CollectiveCrossingEnv."""
+"""Tests for truncation logic in CollectiveCrossingEnv."""
 
 import pytest
 
 from collectivecrossing.collectivecrossing import CollectiveCrossingEnv
+from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 
 
 class TestTruncationLogic:
-    """Test cases for the _is_truncated static method."""
+    """Test cases for the truncation function."""
 
     @pytest.mark.parametrize(
         "current_step,max_steps,expected",
@@ -18,15 +20,31 @@ class TestTruncationLogic:
             (10, 10, True),  # At max steps
             (15, 10, True),  # Above max steps
             # Edge cases
-            (0, 0, True),  # Zero max steps
-            (5, 0, True),  # Above zero max steps
+            (0, 1, False),  # Zero step count, min max_steps
+            (1, 1, True),  # At max steps
             (0, 10, False),  # Zero step count
-            (1000000, 999999, True),  # Large numbers
+            (100000, 100000, True),  # Large numbers within bounds
         ],
     )
     def test_is_truncated(self, current_step: int, max_steps: int, expected: bool) -> None:
-        """Test the _is_truncated method with various inputs."""
-        result = CollectiveCrossingEnv._is_truncated(current_step, max_steps)
+        """Test the truncation function with various inputs."""
+        # Create a basic config
+        config = CollectiveCrossingConfig(
+            width=10,
+            height=8,
+            division_y=4,
+            tram_door_x=5,
+            tram_door_width=2,
+            tram_length=6,
+            num_boarding_agents=1,
+            num_exiting_agents=1,
+            exiting_destination_area_y=2,
+            boarding_destination_area_y=6,
+            truncated_config=MaxStepsTruncatedConfig(max_steps=max_steps),
+        )
+
+        env = CollectiveCrossingEnv(config)
+        result = env._truncated_function.is_truncated(current_step)
         assert result is expected, (
             f"Expected {expected} for step {current_step} with max {max_steps}, got {result}"
         )

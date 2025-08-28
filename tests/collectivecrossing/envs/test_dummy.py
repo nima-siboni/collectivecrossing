@@ -1,6 +1,7 @@
 """Dummy tests for the collective crossing environment."""
 
 from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 
 
 def test_dummy() -> None:
@@ -23,7 +24,7 @@ def test_dummy() -> None:
             num_exiting_agents=1,
             exiting_destination_area_y=0,
             boarding_destination_area_y=3,
-            max_steps=100,
+            truncated_config=MaxStepsTruncatedConfig(max_steps=100),
             render_mode="human",
         )
     )
