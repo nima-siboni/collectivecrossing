@@ -8,14 +8,14 @@
 [![Coverage](https://img.shields.io/badge/coverage-76%25-green)](https://github.com/nima-siboni/collectivecrossing/actions/workflows/test.yml)
 [![mypy](https://img.shields.io/badge/mypy-checked-blue)](https://github.com/nima-siboni/collectivecrossing)
 
-A multi-agent reinforcement learning environment for simulating collective behavior in tram boarding/exiting scenarios. This project provides a grid-world environment where multiple agents interact to achieve their goals while avoiding collisions.
+A multi-agent reinforcement learning environment for simulating collective behavior in tram boarding/exiting scenarios. This project provides a grid-world environment where multiple agents interact to achieve their goals while sharing some resources together.
 
 ## 🎯 Overview
 
-The `CollectiveCrossingEnv` simulates a minimal tram boarding scenario where:
+The `CollectiveCrossingEnv` simulates a minimal tram boarding scenario where coordination is essential to find the optimal collective behavior:
 - **Boarding agents** 🚶‍♂️ start in the platform area and navigate to the tram door
 - **Exiting agents** 🚶‍♀️ start inside the tram and navigate to the exit
-- **Smart collision avoidance** 🛡️ prevents agents from occupying the same space
+- **Simple collision avoidance** 🛡️ prevents agents from occupying the same space, which makes the passing through the tram door a bottleneck and a challenge
 - **Configurable geometry** 🏗️ allows customization of tram size, door position, and environment
 
 ## 🚀 Quick Start
