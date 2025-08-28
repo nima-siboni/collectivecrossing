@@ -15,8 +15,6 @@
         <link rel="canonical" href="https://nima-siboni.github.io/collectivecrossing/setup_github_pages/">
       
       
-        <link rel="prev" href="../trajectory_testing/">
-      
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -24,7 +22,7 @@
     
     
       
-        <title>GitHub Pages Setup - Collective Crossing</title>
+        <title>Setting Up GitHub Pages with MkDocs - Collective Crossing</title>
       
     
     
@@ -102,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              GitHub Pages Setup
+              Setting Up GitHub Pages with MkDocs
             
           </span>
         </div>
@@ -423,20 +421,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -452,7 +448,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             Additional Resources
@@ -486,281 +482,20 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    GitHub Pages Setup
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../setup_local_deployment/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    GitHub Pages Setup
+    Local Deployment Setup
     
   </span>
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#quick-setup" class="md-nav__link">
-    <span class="md-ellipsis">
-      🚀 Quick Setup
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="🚀 Quick Setup">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-enable-github-pages" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Enable GitHub Pages
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-configure-github-actions" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Configure GitHub Actions
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-first-deployment" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. First Deployment
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#local-development" class="md-nav__link">
-    <span class="md-ellipsis">
-      🛠️ Local Development
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="🛠️ Local Development">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#using-the-documentation-script" class="md-nav__link">
-    <span class="md-ellipsis">
-      Using the Documentation Script
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#manual-commands" class="md-nav__link">
-    <span class="md-ellipsis">
-      Manual Commands
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#project-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      📁 Project Structure
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      ⚙️ Configuration
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="⚙️ Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#mkdocs-configuration-mkdocsyml" class="md-nav__link">
-    <span class="md-ellipsis">
-      MkDocs Configuration (mkdocs.yml)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#customization" class="md-nav__link">
-    <span class="md-ellipsis">
-      🔧 Customization
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="🔧 Customization">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#adding-new-pages" class="md-nav__link">
-    <span class="md-ellipsis">
-      Adding New Pages
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#changing-the-theme" class="md-nav__link">
-    <span class="md-ellipsis">
-      Changing the Theme
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#adding-plugins" class="md-nav__link">
-    <span class="md-ellipsis">
-      Adding Plugins
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      🚨 Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="🚨 Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#common-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      Common Issues
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#getting-help" class="md-nav__link">
-    <span class="md-ellipsis">
-      Getting Help
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#analytics-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      📈 Analytics (Optional)
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#continuous-deployment" class="md-nav__link">
-    <span class="md-ellipsis">
-      🔄 Continuous Deployment
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      📝 Best Practices
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#success" class="md-nav__link">
-    <span class="md-ellipsis">
-      🎉 Success!
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -831,6 +566,15 @@
   <a href="#3-first-deployment" class="md-nav__link">
     <span class="md-ellipsis">
       3. First Deployment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-configure-github-pages-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Configure GitHub Pages Source
     </span>
   </a>
   
@@ -1052,7 +796,7 @@
 <p>The GitHub Actions workflow is already configured in <code>.github/workflows/docs.yml</code>. This workflow will:</p>
 <ul>
 <li>Build the documentation when you push to the <code>main</code> branch</li>
-<li>Deploy it to GitHub Pages automatically</li>
+<li>Deploy it to a <code>gh-pages</code> branch automatically</li>
 <li>Handle pull requests for testing</li>
 </ul>
 <h3 id="3-first-deployment">3. <strong>First Deployment</strong></h3>
@@ -1069,6 +813,14 @@
 </li>
 <li>Once complete, your documentation will be available at:
    <code>https://nima-siboni.github.io/collectivecrossing/</code></li>
+</ol>
+<h3 id="4-configure-github-pages-source">4. <strong>Configure GitHub Pages Source</strong></h3>
+<p>After the first deployment, you need to configure GitHub Pages:</p>
+<ol>
+<li>Go to your repository → <strong>Settings</strong> → <strong>Pages</strong></li>
+<li>Under <strong>Source</strong>, select <strong>"Deploy from a branch"</strong></li>
+<li>Select <strong>Branch</strong>: <code>gh-pages</code> and <strong>Folder</strong>: <code>/ (root)</code></li>
+<li>Click <strong>Save</strong></li>
 </ol>
 <h2 id="local-development">🛠️ Local Development</h2>
 <h3 id="using-the-documentation-script">Using the Documentation Script</h3>
