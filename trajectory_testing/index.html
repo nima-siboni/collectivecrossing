@@ -1,0 +1,1744 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A multi-agent reinforcement learning environment for simulating collective behavior in tram boarding/exiting scenarios">
+      
+      
+        <meta name="author" content="Nima Siboni">
+      
+      
+        <link rel="canonical" href="https://nima-siboni.github.io/collectivecrossing/trajectory_testing/">
+      
+      
+        <link rel="prev" href="../features/">
+      
+      
+        <link rel="next" href="../setup_github_pages/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+    
+    
+      
+        <title>Trajectory Testing - Collective Crossing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#trajectory-testing-with-vcr" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Collective Crossing" class="md-header__button md-logo" aria-label="Collective Crossing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Collective Crossing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Trajectory Testing
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/nima-siboni/collectivecrossing" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    nima-siboni/collectivecrossing
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Collective Crossing" class="md-nav__button md-logo" aria-label="Collective Crossing" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Collective Crossing
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/nima-siboni/collectivecrossing" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    nima-siboni/collectivecrossing
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Usage Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Development
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Development
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Development Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Features Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Additional Resources
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Additional Resources
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Trajectory Testing
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Trajectory Testing
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ How It Works
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ How It Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vcr-video-cassette-recorder-concept" class="md-nav__link">
+    <span class="md-ellipsis">
+      📼 VCR (Video Cassette Recorder) Concept
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧩 Key Components
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      📁 Directory Structure
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      📝 Version Control
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📝 Version Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-to-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ What to Commit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-not-to-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      ❌ What NOT to Commit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#golden-baseline-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Golden Baseline Lifecycle
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-creating-golden-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. 🏆 Creating Golden Baselines
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-comparing-against-golden-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. 🔍 Comparing Against Golden Baselines
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-version-specific-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. 📊 Version-Specific Testing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-running-all-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. 🧪 Running All Tests
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-new-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 Creating New Versions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 Creating New Versions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-create-version-specific-vcr" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: 🆕 Create Version-Specific VCR
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-record-trajectories" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: 🎙️ Record Trajectories
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-compare-with-previous-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: 🔄 Compare with Previous Version
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-golden-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      🏆 Creating Golden Baselines
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏆 Creating Golden Baselines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-1-using-test-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Method 1: 🧪 Using Test Functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-2-manual-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Method 2: ✏️ Manual Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-3-command-line-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      Method 3: 💻 Command Line Script
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trajectory-data-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Trajectory Data Structure
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      💡 Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-when-to-create-golden-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. 🏆 When to Create Golden Baselines
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-test-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. 🎯 Test Coverage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. 🔧 Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. 🐛 Debugging
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#understanding-test-skipping" class="md-nav__link">
+    <span class="md-ellipsis">
+      🤔 Understanding Test Skipping
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚨 Common Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debugging-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      🛠️ Debugging Commands
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-with-cicd" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Integration with CI/CD
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Advanced Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Advanced Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-action-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Custom Action Sequences
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-environment-configurations" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Multiple Environment Configurations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup_github_pages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    GitHub Pages Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ How It Works
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ How It Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vcr-video-cassette-recorder-concept" class="md-nav__link">
+    <span class="md-ellipsis">
+      📼 VCR (Video Cassette Recorder) Concept
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧩 Key Components
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      📁 Directory Structure
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      📝 Version Control
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📝 Version Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-to-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ What to Commit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-not-to-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      ❌ What NOT to Commit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#golden-baseline-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Golden Baseline Lifecycle
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-creating-golden-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. 🏆 Creating Golden Baselines
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-comparing-against-golden-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. 🔍 Comparing Against Golden Baselines
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-version-specific-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. 📊 Version-Specific Testing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-running-all-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. 🧪 Running All Tests
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-new-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 Creating New Versions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 Creating New Versions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-create-version-specific-vcr" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: 🆕 Create Version-Specific VCR
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-record-trajectories" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: 🎙️ Record Trajectories
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-compare-with-previous-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: 🔄 Compare with Previous Version
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-golden-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      🏆 Creating Golden Baselines
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏆 Creating Golden Baselines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-1-using-test-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Method 1: 🧪 Using Test Functions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-2-manual-creation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Method 2: ✏️ Manual Creation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-3-command-line-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      Method 3: 💻 Command Line Script
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trajectory-data-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Trajectory Data Structure
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      💡 Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💡 Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-when-to-create-golden-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. 🏆 When to Create Golden Baselines
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-test-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. 🎯 Test Coverage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. 🔧 Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. 🐛 Debugging
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#understanding-test-skipping" class="md-nav__link">
+    <span class="md-ellipsis">
+      🤔 Understanding Test Skipping
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚨 Common Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debugging-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      🛠️ Debugging Commands
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-with-cicd" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Integration with CI/CD
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Advanced Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Advanced Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom-action-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Custom Action Sequences
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-environment-configurations" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Multiple Environment Configurations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="trajectory-testing-with-vcr">🎬 Trajectory Testing with VCR</h1>
+<p>This document explains the VCR-style trajectory testing system used to ensure consistency during refactoring of the CollectiveCrossing environment.</p>
+<h2 id="overview">📋 Overview</h2>
+<p>The trajectory testing system records environment interactions (actions → observations, rewards, terminations) and replays them to verify that refactored code produces identical behavior. This prevents regressions during code changes.</p>
+<h2 id="how-it-works">⚙️ How It Works</h2>
+<h3 id="vcr-video-cassette-recorder-concept">📼 VCR (Video Cassette Recorder) Concept</h3>
+<p>The system works like a VCR for environment interactions:</p>
+<ol>
+<li><strong>🎙️ Record Mode</strong>: Capture complete environment state at each step</li>
+<li><strong>▶️ Replay Mode</strong>: Feed the same actions and verify identical outputs</li>
+<li><strong>🔍 Comparison</strong>: Detect any behavioral changes during refactoring</li>
+</ol>
+<h3 id="key-components">🧩 Key Components</h3>
+<ul>
+<li><strong>🎯 TrajectoryVCR Class</strong>: Main recorder/replayer</li>
+<li><strong>🏆 Golden Baselines</strong>: Known good trajectories from working code</li>
+<li><strong>📊 Version-Specific Trajectories</strong>: Track changes across versions</li>
+<li><strong>💾 JSON Storage</strong>: Trajectories stored as structured data files</li>
+</ul>
+<h2 id="directory-structure">📁 Directory Structure</h2>
+<pre><code>tests/fixtures/trajectories/
+├── 🏆 golden/                    # Golden baselines (known good)
+│   ├── golden_basic_trajectory.json
+│   └── ...
+├── 🔄 current/                   # Current version trajectories
+│   ├── test_basic_trajectory.json
+│   └── ...
+├── 📦 v1.0/                      # Version-specific trajectories
+│   └── ...
+└── 📦 v2.0/
+    └── ...
+</code></pre>
+<h2 id="version-control">📝 Version Control</h2>
+<h3 id="what-to-commit">✅ What to Commit</h3>
+<ul>
+<li><strong>🏆 <code>golden/</code> directory</strong>: Golden baselines should be committed to version control</li>
+<li><strong>📋 Test files</strong>: All test files should be committed</li>
+</ul>
+<h3 id="what-not-to-commit">❌ What NOT to Commit</h3>
+<ul>
+<li><strong>🔄 <code>current/</code> directory</strong>: Current trajectories are temporary test artifacts</li>
+<li><strong>📦 Version-specific directories</strong>: These are generated during testing</li>
+</ul>
+<p>The <code>current/</code> directory is automatically ignored by <code>.gitignore</code>:</p>
+<pre><code class="language-gitignore"># VCR trajectory test artifacts
+tests/fixtures/trajectories/current/
+</code></pre>
+<h3 id="golden-baseline-lifecycle">🔄 Golden Baseline Lifecycle</h3>
+<ol>
+<li><strong>🏆 Create</strong>: Golden baselines are created from known-good code</li>
+<li><strong>📝 Commit</strong>: Golden baselines are committed to version control</li>
+<li><strong>🧪 Test</strong>: Tests compare current behavior against golden baselines</li>
+<li><strong>🔄 Update</strong>: Golden baselines are updated when behavior intentionally changes</li>
+</ol>
+<h2 id="usage">🚀 Usage</h2>
+<h3 id="1-creating-golden-baselines">1. 🏆 Creating Golden Baselines</h3>
+<p>Golden baselines are trajectories from known good code that serve as reference points.</p>
+<pre><code class="language-bash"># Create golden baseline from working code
+uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_create_golden_baseline -v
+</code></pre>
+<p><strong>When to create golden baselines:</strong>
+- 🔧 Before starting major refactoring
+- 🐛 After fixing bugs in working code
+- ✅ When you have a stable, tested version</p>
+<p><strong>Important</strong>: Tests now preserve existing golden baselines. They will only create new ones if they don't exist, preventing accidental overwrites.</p>
+<h3 id="2-comparing-against-golden-baselines">2. 🔍 Comparing Against Golden Baselines</h3>
+<p>Compare current code behavior against golden baselines to detect regressions.</p>
+<pre><code class="language-bash"># Compare current trajectory with golden baseline
+uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_golden_baseline_comparison -v
+</code></pre>
+<p><strong>What this catches:</strong>
+- 🤖 Changes in agent behavior
+- 🎯 Reward calculation changes
+- 🛑 Termination condition changes
+- 👁️ Observation space changes</p>
+<p><strong>Test Behavior</strong>: This test requires the golden baseline to exist and will fail with a clear error message if it's missing.</p>
+<h3 id="3-version-specific-testing">3. 📊 Version-Specific Testing</h3>
+<p>Track changes across different versions of your code.</p>
+<pre><code class="language-bash"># Test version-specific trajectories
+uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_version_specific_trajectories -v
+</code></pre>
+<h3 id="4-running-all-tests">4. 🧪 Running All Tests</h3>
+<pre><code class="language-bash"># Run all trajectory VCR tests
+uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py -v
+</code></pre>
+<h2 id="creating-new-versions">📦 Creating New Versions</h2>
+<h3 id="step-1-create-version-specific-vcr">Step 1: 🆕 Create Version-Specific VCR</h3>
+<pre><code class="language-python">from tests.collectivecrossing.envs.test_trajectory_vcr import TrajectoryVCR
+
+# Create VCR for new version
+vcr_new = TrajectoryVCR(version=&quot;v2.1&quot;)
+</code></pre>
+<h3 id="step-2-record-trajectories">Step 2: 🎙️ Record Trajectories</h3>
+<pre><code class="language-python"># Record trajectory for new version
+trajectory = vcr_new.record_trajectory(env, actions_sequence, &quot;new_feature_test&quot;)
+</code></pre>
+<h3 id="step-3-compare-with-previous-version">Step 3: 🔄 Compare with Previous Version</h3>
+<pre><code class="language-python"># Compare with previous version
+vcr_old = TrajectoryVCR(version=&quot;v2.0&quot;)
+vcr_old._compare_trajectories(old_trajectory, new_trajectory, &quot;v2.0&quot;, &quot;v2.1&quot;)
+</code></pre>
+<h2 id="creating-golden-baselines">🏆 Creating Golden Baselines</h2>
+<h3 id="method-1-using-test-functions">Method 1: 🧪 Using Test Functions</h3>
+<pre><code class="language-bash"># Run the golden baseline creation test
+uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_create_golden_baseline -v
+</code></pre>
+<h3 id="method-2-manual-creation">Method 2: ✏️ Manual Creation</h3>
+<pre><code class="language-python">from tests.collectivecrossing.envs.test_trajectory_vcr import TrajectoryVCR, create_test_environment, generate_deterministic_actions
+
+# Create VCR
+vcr = TrajectoryVCR()
+
+# Create environment
+env = create_test_environment()
+observations, _ = env.reset(seed=42)
+
+# Generate actions
+actions_sequence = generate_deterministic_actions(observations, num_steps=20)
+
+# Create golden baseline
+trajectory = vcr.create_golden_baseline(env, actions_sequence, &quot;my_golden_baseline&quot;)
+</code></pre>
+<h3 id="method-3-command-line-script">Method 3: 💻 Command Line Script</h3>
+<pre><code class="language-bash"># Run the manual script
+uv run python tests/collectivecrossing/envs/test_trajectory_vcr.py
+</code></pre>
+<h2 id="trajectory-data-structure">📊 Trajectory Data Structure</h2>
+<p>Each trajectory is stored as a JSON file with the following structure:</p>
+<pre><code class="language-json">{
+  &quot;config&quot;: {
+    &quot;width&quot;: 10,
+    &quot;height&quot;: 6,
+    &quot;division_y&quot;: 3,
+    &quot;tram_door_x&quot;: 5,
+    &quot;tram_door_width&quot;: 2,
+    &quot;tram_length&quot;: 8,
+    &quot;num_boarding_agents&quot;: 2,
+    &quot;num_exiting_agents&quot;: 1,
+    &quot;exiting_destination_area_y&quot;: 0,
+    &quot;boarding_destination_area_y&quot;: 5
+  },
+  &quot;initial_observations&quot;: {
+    &quot;boarding_0&quot;: [2, 1, 5, 3, 4, 5, ...],
+    &quot;boarding_1&quot;: [7, 2, 5, 3, 4, 5, ...],
+    &quot;exiting_0&quot;: [4, 4, 5, 3, 4, 5, ...]
+  },
+  &quot;initial_infos&quot;: {
+    &quot;boarding_0&quot;: {&quot;agent_type&quot;: &quot;boarding&quot;},
+    &quot;boarding_1&quot;: {&quot;agent_type&quot;: &quot;boarding&quot;},
+    &quot;exiting_0&quot;: {&quot;agent_type&quot;: &quot;exiting&quot;}
+  },
+  &quot;steps&quot;: [
+    {
+      &quot;step&quot;: 0,
+      &quot;actions&quot;: {
+        &quot;boarding_0&quot;: 0,
+        &quot;boarding_1&quot;: 2,
+        &quot;exiting_0&quot;: 3
+      },
+      &quot;observations&quot;: {
+        &quot;boarding_0&quot;: [2, 1, 5, 3, 4, 5, ...],
+        &quot;boarding_1&quot;: [7, 2, 5, 3, 4, 5, ...],
+        &quot;exiting_0&quot;: [4, 4, 5, 3, 4, 5, ...]
+      },
+      &quot;next_observations&quot;: {
+        &quot;boarding_0&quot;: [3, 1, 5, 3, 4, 5, ...],
+        &quot;boarding_1&quot;: [6, 2, 5, 3, 4, 5, ...],
+        &quot;exiting_0&quot;: [4, 3, 5, 3, 4, 5, ...]
+      },
+      &quot;next_rewards&quot;: {
+        &quot;boarding_0&quot;: -0.3,
+        &quot;boarding_1&quot;: -0.4,
+        &quot;exiting_0&quot;: 0.1
+      },
+      &quot;next_terminated&quot;: {
+        &quot;boarding_0&quot;: false,
+        &quot;boarding_1&quot;: false,
+        &quot;exiting_0&quot;: false,
+        &quot;__all__&quot;: false
+      },
+      &quot;next_truncated&quot;: {
+        &quot;boarding_0&quot;: false,
+        &quot;boarding_1&quot;: false,
+        &quot;exiting_0&quot;: false,
+        &quot;__all__&quot;: false
+      },
+      &quot;next_infos&quot;: {
+        &quot;boarding_0&quot;: {&quot;agent_type&quot;: &quot;boarding&quot;, &quot;in_tram_area&quot;: false, &quot;at_door&quot;: false},
+        &quot;boarding_1&quot;: {&quot;agent_type&quot;: &quot;boarding&quot;, &quot;in_tram_area&quot;: false, &quot;at_door&quot;: false},
+        &quot;exiting_0&quot;: {&quot;agent_type&quot;: &quot;exiting&quot;, &quot;in_tram_area&quot;: true, &quot;at_door&quot;: false}
+      }
+    }
+  ]
+}
+</code></pre>
+<h2 id="best-practices">💡 Best Practices</h2>
+<h3 id="1-when-to-create-golden-baselines">1. 🏆 When to Create Golden Baselines</h3>
+<ul>
+<li><strong>🔧 Before major refactoring</strong>: Create baselines from stable code</li>
+<li><strong>🐛 After bug fixes</strong>: Update baselines to reflect correct behavior</li>
+<li><strong>🚀 Before releases</strong>: Ensure baselines represent intended behavior</li>
+</ul>
+<h3 id="2-test-coverage">2. 🎯 Test Coverage</h3>
+<ul>
+<li><strong>📋 Multiple scenarios</strong>: Create baselines for different environment configurations</li>
+<li><strong>⚠️ Edge cases</strong>: Include trajectories that test boundary conditions</li>
+<li><strong>🛤️ Common paths</strong>: Focus on typical agent behaviors</li>
+</ul>
+<h3 id="3-maintenance">3. 🔧 Maintenance</h3>
+<ul>
+<li><strong>🔄 Regular updates</strong>: Update golden baselines when behavior intentionally changes</li>
+<li><strong>📝 Version control</strong>: Commit trajectory files to track changes over time</li>
+<li><strong>📚 Documentation</strong>: Document why baselines were updated</li>
+</ul>
+<h3 id="4-debugging">4. 🐛 Debugging</h3>
+<p>When tests fail, the system provides detailed information:</p>
+<ul>
+<li><strong>📊 Step-by-step comparison</strong>: Shows exactly where trajectories diverge</li>
+<li><strong>🤖 Agent-specific details</strong>: Identifies which agents behave differently</li>
+<li><strong>🔍 State differences</strong>: Shows observation, reward, and termination differences</li>
+</ul>
+<h2 id="troubleshooting">🔧 Troubleshooting</h2>
+<h3 id="understanding-test-skipping">🤔 Understanding Test Skipping</h3>
+<p>The VCR testing system is designed to <strong>skip tests</strong> when required golden baseline files are missing. This is intentional behavior to prevent false failures when baseline data isn't available.</p>
+<p><strong>Why tests are skipped:</strong>
+- 🏆 <strong>Golden baselines missing</strong>: Tests require specific golden baseline files to compare against
+- 🔍 <strong>No comparison data</strong>: Without baselines, tests can't verify consistency
+- 🛡️ <strong>Prevents false failures</strong>: Skipping is better than failing due to missing data</p>
+<p><strong>Common skipped tests:</strong>
+- <code>test_replay_trajectory</code>: Requires <code>test_basic_trajectory.json</code> in golden directory
+- <code>test_trajectory_consistency</code>: Requires <code>consistency_test.json</code> in golden directory</p>
+<p><strong>How to identify what's missing:</strong></p>
+<pre><code class="language-bash"># Run tests with verbose output to see skip reasons
+uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py -v -rs
+
+# Check what golden baselines exist
+ls tests/fixtures/trajectories/golden/
+
+# Check what current trajectories exist
+ls tests/fixtures/trajectories/current/
+</code></pre>
+<h3 id="common-issues">🚨 Common Issues</h3>
+<ol>
+<li>
+<p><strong>❌ Missing Golden Baseline</strong>
+   <code>pytest.skip: Golden baseline test_name not found. Create golden baseline first.</code>
+   <strong>💡 Solution</strong>: Run the golden baseline creation test first.</p>
+</li>
+<li>
+<p><strong>⏭️ Tests Being Skipped</strong>
+   <code>pytest.skip: Golden cassette test_basic_trajectory not found. Create golden baseline first.
+   pytest.skip: Golden cassette consistency_test not found. Create golden baseline first.</code>
+   <strong>💡 Solution</strong>: These tests require specific golden baseline files. You can resolve this by:</p>
+</li>
+</ol>
+<p><strong>Option A: Create golden baselines automatically</strong>
+   <code>bash
+   # Create all required golden baselines
+   uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_create_golden_baseline -v</code></p>
+<p><strong>Option B: Copy existing current trajectories to golden baselines</strong>
+   <code>bash
+   # Copy specific missing files
+   cp tests/fixtures/trajectories/current/test_basic_trajectory.json tests/fixtures/trajectories/golden/
+   cp tests/fixtures/trajectories/current/consistency_test.json tests/fixtures/trajectories/golden/</code></p>
+<p><strong>Option C: Check what golden baselines exist</strong>
+   ```bash
+   # List existing golden baselines
+   ls tests/fixtures/trajectories/golden/</p>
+<p># List current trajectories that can be copied
+   ls tests/fixtures/trajectories/current/
+   ```</p>
+<ol>
+<li>
+<p><strong>⚙️ Config Mismatch</strong>
+   <code>pytest.fail: Config mismatch between golden and current</code>
+   <strong>💡 Solution</strong>: Ensure environment configuration matches between recording and replay.</p>
+</li>
+<li>
+<p><strong>👁️ Observation Mismatch</strong>
+   <code>pytest.fail: Observation mismatch for agent_id at step N</code>
+   <strong>💡 Solution</strong>: Check for changes in environment logic that affect agent behavior.</p>
+</li>
+<li>
+<p><strong>🔄 Golden Baseline Modified</strong>
+   <code>git status shows modified golden baseline files</code>
+   <strong>💡 Solution</strong>: Tests now preserve golden baselines. If you see modifications, it means:</p>
+</li>
+<li>The test detected a regression (intentional behavior)</li>
+<li>You need to update golden baselines for intentional changes</li>
+<li>Restore golden baselines with <code>git restore tests/fixtures/trajectories/golden/</code></li>
+</ol>
+<h3 id="debugging-commands">🛠️ Debugging Commands</h3>
+<pre><code class="language-bash"># 📋 List available golden baselines
+python -c &quot;from tests.collectivecrossing.envs.test_trajectory_vcr import TrajectoryVCR; vcr = TrajectoryVCR(); print('Golden:', vcr.list_golden_baselines())&quot;
+
+# 📋 List current version trajectories
+python -c &quot;from tests.collectivecrossing.envs.test_trajectory_vcr import TrajectoryVCR; vcr = TrajectoryVCR(); print('Current:', vcr.list_version_trajectories())&quot;
+
+# 🔍 Inspect trajectory file
+cat tests/fixtures/trajectories/golden/golden_basic_trajectory.json | jq '.steps[0]'
+</code></pre>
+<h2 id="integration-with-cicd">🔄 Integration with CI/CD</h2>
+<p>The trajectory testing system integrates with the GitHub Actions workflow:</p>
+<pre><code class="language-yaml"># .github/workflows/test.yml
+- name: Run trajectory tests
+  run: |
+    uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py -v
+</code></pre>
+<p>This ensures that:
+- ✅ Trajectory consistency is checked on every commit
+- 🚨 Regressions are caught before merging
+- 📝 Behavioral changes are documented and reviewed</p>
+<h2 id="advanced-usage">🚀 Advanced Usage</h2>
+<h3 id="custom-action-sequences">🎯 Custom Action Sequences</h3>
+<pre><code class="language-python">def custom_action_sequence(observations, num_steps):
+    &quot;&quot;&quot;Generate custom deterministic actions&quot;&quot;&quot;
+    actions_sequence = []
+    for step in range(num_steps):
+        actions = {}
+        for agent_id in observations.keys():
+            # Custom logic here
+            actions[agent_id] = custom_policy(observations[agent_id])
+        actions_sequence.append(actions)
+    return actions_sequence
+
+# Use custom actions
+trajectory = vcr.record_trajectory(env, custom_action_sequence(observations, 20), &quot;custom_test&quot;)
+</code></pre>
+<h3 id="multiple-environment-configurations">📋 Multiple Environment Configurations</h3>
+<pre><code class="language-python">def test_multiple_configs():
+    configs = [
+        {&quot;width&quot;: 10, &quot;height&quot;: 6, &quot;num_boarding_agents&quot;: 2},
+        {&quot;width&quot;: 15, &quot;height&quot;: 8, &quot;num_boarding_agents&quot;: 4},
+        {&quot;width&quot;: 8, &quot;height&quot;: 4, &quot;num_boarding_agents&quot;: 1}
+    ]
+
+    for i, config in enumerate(configs):
+        env = create_test_environment_with_config(config)
+        trajectory = vcr.create_golden_baseline(env, actions, f&quot;config_{i}&quot;)
+</code></pre>
+<p>This trajectory testing system provides robust regression testing for the CollectiveCrossing environment, ensuring that refactoring doesn't introduce behavioral changes. 🎉</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+    
+  </body>
+</html>
