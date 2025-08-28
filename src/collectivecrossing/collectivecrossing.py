@@ -16,6 +16,7 @@ from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 from collectivecrossing.actions import ACTION_TO_DIRECTION
 from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.observations import get_observation_function
 from collectivecrossing.rewards import get_reward_function
 from collectivecrossing.terminateds import get_terminated_function
 from collectivecrossing.truncateds import get_truncated_function
@@ -65,6 +66,9 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         # Action mapping
         self._action_to_direction = ACTION_TO_DIRECTION
+
+        # Initialize observation function
+        self._observation_function = get_observation_function(self.config.observation_config)
 
         # Initialize reward function
         self._reward_function = get_reward_function(self.config.reward_config)
@@ -388,31 +392,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
     def _get_agent_observation(self, agent_id: str) -> np.ndarray:
         """Get observation for a specific agent."""
-        agent_pos = self._get_agent_position(agent_id)
-
-        # Start with agent's own position and tram door information
-        tram_door_info = np.array(
-            [
-                self.config.tram_door_x,  # Door center X
-                self.config.division_y,  # Division line Y
-                self.tram_door_left,  # Door left boundary
-                self.tram_door_right,  # Door right boundary
-            ]
-        )
-        # TODO: add active status of the agent
-        obs = np.concatenate([agent_pos, tram_door_info])
-
-        # Add positions of all other agents
-        # TODO: is this for all agents or only the active ones?
-        for other_id in self._agents.keys():
-            if other_id != agent_id:
-                other_pos = self._get_agent_position(other_id)
-                obs = np.concatenate([obs, other_pos])
-            else:
-                # Use a placeholder for self (will be masked out)
-                obs = np.concatenate([obs, np.array([-1, -1])])
-
-        return obs.astype(np.int32)
+        return self._observation_function.get_agent_observation(agent_id, self)
 
     def _get_agent_position(self, agent_id: str) -> np.ndarray:
         """Get current position of an agent."""
