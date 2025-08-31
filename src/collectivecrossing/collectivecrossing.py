@@ -651,3 +651,18 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             if not self._agents[agent_id].is_terminated and not self._agents[agent_id].is_truncated
         ]
         return agents_ids
+
+    @property
+    def possible_agents(self) -> list[str]:
+        """
+        Get all the possible agents ids (see definition below).
+
+        possible agents refer to agent IDs which might even show up in your episodes, and RLlib
+        requires setting the self.possible_agents attribute to a list of all possible agent IDs.
+
+        Returns
+        -------
+            The list of all the possible agents ids.
+
+        """
+        return list(self._agents.keys())
