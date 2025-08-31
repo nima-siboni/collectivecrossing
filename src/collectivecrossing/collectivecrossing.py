@@ -624,3 +624,30 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         from collectivecrossing.rendering import draw_matplotlib
 
         draw_matplotlib(self, ax)
+
+    @property
+    def agents(self) -> list[str]:
+        """
+        Get the agents ids.
+
+        Notes
+        -----
+        * RLlib expects to have a list of agent ids present at any point in time as an attribute
+        of the environment.
+
+        * We keep track of **all** the agents in the _agents attribute, not only agents which
+        are present at each timestep. Hence we need to update this attribute at the end of each
+        step.
+
+        Returns
+        -------
+            The list of agent ids which are not terminatd or truncated at any point in time.
+
+        """
+        # Find all the agents which are not terminated or truncated.
+        agents_ids = [
+            agent_id
+            for agent_id in self._agents.keys()
+            if not self._agents[agent_id].is_terminated and not self._agents[agent_id].is_truncated
+        ]
+        return agents_ids
