@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
+import gymnasium as gym
 import numpy as np
 
 from collectivecrossing.observation_configs import ObservationConfig
@@ -83,6 +84,25 @@ class DefaultObservationFunction(ObservationFunction):
                 obs = np.concatenate([obs, np.array([-1, -1])])
 
         return obs.astype(np.int32)
+
+    def return_agent_observation_space(
+        self, agent_id: str, env: "CollectiveCrossingEnv"
+    ) -> gym.Space:
+        """
+        Return the observation space for a specific agent.
+
+        Args:
+        ----
+            agent_id: The ID of the agent.
+            env: The environment instance.
+
+        """
+        return gym.spaces.Box(
+            low=0,
+            high=max(env.config.width, env.config.height) - 1,
+            shape=(2 + 4 + 2 * len(env._agents) - 1,),
+            dtype=np.int32,
+        )
 
 
 # Registry of available observation functions

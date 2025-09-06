@@ -53,8 +53,6 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             config: Configuration object containing environment parameters.
 
         """
-        super().__init__()
-
         self._config = config
 
         # Calculate tram boundaries using the dataclass
@@ -79,8 +77,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         # Initialize truncation function
         self._truncated_function = get_truncated_function(self.config.truncated_config)
 
+        self._agents = self._create_dummy_agents()
+
         # Define observation and action spaces
         self._setup_spaces()
+
+        super().__init__()
 
         # Rendering
         self._window = None
@@ -188,8 +190,6 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             # this function will raise an error if the agent is not active or the action is not
             # valid
             self._check_action_and_agent_validity(agent_id, action)
-
-            # Move agent
             self._move_agent(agent_id, action)
 
         # Calculate rewards, check termination, and update observations for all agents
@@ -204,14 +204,24 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         for agent_id in self._agents.keys():
             # Calculate reward
-            reward = self._calculate_reward(agent_id)
+            reward: float = self._calculate_reward(agent_id)
             rewards[agent_id] = reward
 
+        for agent_id in self._agents.keys():
             # Check if agent is done using the configured termination function
-            terminateds[agent_id] = self._calculate_terminated(agent_id)
+            terminated: bool = self._calculate_terminated(agent_id)
+            terminateds[agent_id] = terminated
+            if terminated:
+                self._agents[agent_id].terminate()
 
+        for agent_id in self._agents.keys():
             # Check if episode should be truncated using the configured truncation function
-            truncateds[agent_id] = self._calculate_truncated(agent_id)
+            truncated: bool = self._calculate_truncated(agent_id)
+            truncateds[agent_id] = truncated
+            if truncated:
+                self._agents[agent_id].truncate()
+
+        for agent_id in self._agents.keys():
             infos[agent_id] = {
                 "agent_type": self._agents[agent_id].agent_type.value,
                 "in_tram_area": self.is_in_tram_area(agent_id),
@@ -219,6 +229,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 "active": self._agents[agent_id].active,
                 "at_destination": self.has_agent_reached_destination(agent_id),
             }
+
+        for agent_id in self._agents.keys():
             observations[agent_id] = self._get_agent_observation(agent_id)
 
         # Check if environment is done
@@ -266,6 +278,46 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             return None
         else:
             raise NotImplementedError(f"Render mode {mode} not supported")
+
+    def _create_dummy_agents(self) -> dict[str, Agent]:
+        """
+        Create dummy agents. Later, this is used to set up the observation and action spaces.
+
+        This function is exactly like reset, but without the position. The ids and types are
+        correct.
+
+        TODO: this is a very dirty hack, bc it has common code with reset. We should refactor this.
+
+
+        Returns
+        -------
+            A dictionary of dummy agents. Dummy agents are agents with correct ids and types,
+            but with positions are set to None.
+
+        """
+        agents: dict[str, Agent] = {}
+        for boarding_agent_counter in range(self.config.num_boarding_agents):
+            pos = np.array([None, None])
+            agent = Agent(
+                id=f"boarding_{boarding_agent_counter}",
+                agent_type=AgentType.BOARDING,
+                position=pos,
+                active=True,
+            )
+            agents[agent.id] = agent
+
+        # Initialize exiting agents (start in upper part, tram area)
+        for exiting_agent_counter in range(self.config.num_exiting_agents):
+            pos = np.array([None, None])
+            agent = Agent(
+                id=f"exiting_{exiting_agent_counter}",
+                agent_type=AgentType.EXITING,
+                position=pos,
+                active=True,
+            )
+            agents[agent.id] = agent
+
+        return agents
 
     def _is_move_valid(self, agent_id: str, current_pos: np.ndarray, new_pos: np.ndarray) -> bool:
         """
@@ -367,29 +419,27 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         return self._tram_boundaries.tram_right
 
     @property
-    def action_space(self) -> gym.Space:
+    def action_spaces(self) -> gym.Space:
         """Get the action space for all agents."""
-        return self._action_space
+        return self._action_spaces
 
     @property
-    def observation_space(self) -> gym.Space:
+    def observation_spaces(self) -> gym.Space:
         """Get the observation space for all agents."""
-        return self._observation_space
+        return self._observation_spaces
 
     def _setup_spaces(self) -> None:
         """Set up observation and action spaces for all agents."""
         # All agents have the same action space (5 actions including wait)
-        self._action_space = spaces.Discrete(5)
+        self._action_spaces = {agent_id: spaces.Discrete(5) for agent_id in self._agents.keys()}
 
+        self._observation_spaces = {}
         # Observation space includes agent position, tram info, and other agents
         # For simplicity, we'll use a flattened representation
-        obs_size = 2 + 6 + len(self._agents) * 2  # agent_pos + tram_info + all_other_agents
-        self._observation_space = spaces.Box(
-            low=0,
-            high=max(self.config.width, self.config.height) - 1,
-            shape=(obs_size,),
-            dtype=np.int32,
-        )
+        for agent_id in self._agents.keys():
+            self._observation_spaces[agent_id] = (
+                self._observation_function.return_agent_observation_space(agent_id, self)
+            )
 
     def _get_agent_observation(self, agent_id: str) -> np.ndarray:
         """Get observation for a specific agent."""

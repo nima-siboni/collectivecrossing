@@ -21,6 +21,8 @@ class Agent:
     agent_type: AgentType
     position: np.ndarray
     active: bool
+    terminated: bool
+    truncated: bool
 
     def __post_init__(self) -> None:
         """Ensure position is a numpy array."""
@@ -58,7 +60,14 @@ class Agent:
         """Check if this is an exiting agent."""
         return self.agent_type == AgentType.EXITING
 
-    @property
-    def is_terminated(self) -> bool:
-        """Check if this agent is terminated (not active)."""
-        return not self.active
+    def terminate(self) -> None:
+        """Mark the agent as terminated (set terminated to True)."""
+        if self.terminated:
+            raise ValueError("Agent is already terminated.")
+        self.terminated = True
+
+    def truncate(self) -> None:
+        """Mark the agent as truncated (set truncated to True)."""
+        if self.truncated:
+            raise ValueError("Agent is already truncated.")
+        self.truncated = True
