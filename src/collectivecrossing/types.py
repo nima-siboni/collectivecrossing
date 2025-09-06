@@ -71,3 +71,13 @@ class Agent:
         if self.truncated:
             raise ValueError("Agent is already truncated.")
         self.truncated = True
+
+    @property
+    def is_terminated(self) -> bool:
+        """Check if the agent is terminated."""
+        return self.terminated
+
+    @property
+    def is_truncated(self) -> bool:
+        """Check if the agent is truncated."""
+        return self.truncated

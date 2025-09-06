@@ -116,6 +116,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                         agent_type=AgentType.BOARDING,
                         position=pos,
                         active=True,
+                        terminated=False,
+                        truncated=False,
                     )
                     self._agents[agent.id] = agent
                     break
@@ -137,6 +139,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                         agent_type=AgentType.EXITING,
                         position=pos,
                         active=True,
+                        terminated=False,
+                        truncated=False,
                     )
                     self._agents[agent.id] = agent
                     break
@@ -303,6 +307,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 agent_type=AgentType.BOARDING,
                 position=pos,
                 active=True,
+                terminated=False,
+                truncated=False,
             )
             agents[agent.id] = agent
 
@@ -314,6 +320,8 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 agent_type=AgentType.EXITING,
                 position=pos,
                 active=True,
+                terminated=False,
+                truncated=False,
             )
             agents[agent.id] = agent
 
