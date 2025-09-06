@@ -19,7 +19,7 @@ env = CollectiveCrossingEnv(
         render_mode="rgb_array",
         exiting_destination_area_y=0,
         boarding_destination_area_y=7,
-        truncated_config=MaxStepsTruncatedConfig(max_steps=20),
+        truncated_config=MaxStepsTruncatedConfig(max_steps=400),
         terminated_config=AllAtDestinationTerminatedConfig(),
     )
 )
