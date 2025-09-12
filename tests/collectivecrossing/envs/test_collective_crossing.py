@@ -310,8 +310,10 @@ def test_observation_structure() -> None:
         assert obs.dtype == np.int32
 
         # Calculate expected observation size:
-        # 2 (agent position) + 4 (tram door info) + 2 * num_agents (other agent positions)
-        expected_size = 2 + 4 + 2 * 3  # 3 agents total
+        # 2 (agent position) +
+        # 4 (tram door info) +
+        # 4 * num_agents (x, y, agent_type, active_status for each agent)
+        expected_size = 2 + 4 + 4 * 3  # 3 agents total
         assert obs.shape == (expected_size,)
 
         # Check that agent position is at the beginning
@@ -326,9 +328,28 @@ def test_observation_structure() -> None:
         assert tram_door_info[2] == env.tram_door_left  # Door left boundary
         assert tram_door_info[3] == env.tram_door_right  # Door right boundary
 
-        # Check other agent positions (positions 6 onwards)
-        other_agent_positions = obs[6:]
-        assert len(other_agent_positions) == 2 * 3  # 2 coordinates per agent, 3 agents total
+        # Check other agent information (positions 6 onwards)
+        # Each agent has 4 values: x, y, agent_type, active_status
+        other_agent_info = obs[6:]
+        assert len(other_agent_info) == 4 * 3  # 4 values per agent, 3 agents total
+
+        # Check that agent types are valid (0 or 1, or -1 for self placeholder)
+        for i in range(3):  # 3 agents
+            agent_type_idx = i * 4 + 2  # agent_type is at index 2 of each agent's 4 values
+            assert other_agent_info[agent_type_idx] in [
+                -1,
+                0,
+                1,
+            ]  # -1=self placeholder, 0=boarding, 1=exiting
+
+        # Check that active statuses are valid (0 or 1, or -1 for self placeholder)
+        for i in range(3):  # 3 agents
+            active_status_idx = i * 4 + 3  # active_status is at index 3 of each agent's 4 values
+            assert other_agent_info[active_status_idx] in [
+                -1,
+                0,
+                1,
+            ]  # -1=self placeholder, 0=inactive, 1=active
 
 
 def test_observation_consistency() -> None:
