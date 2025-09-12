@@ -34,7 +34,7 @@ def test_default_reward_function(basic_config: CollectiveCrossingConfig) -> None
     config = basic_config.model_copy(update={"reward_config": DefaultRewardConfig()})
     env = CollectiveCrossingEnv(config)
     obs, info = env.reset(seed=42)
-    actions = {agent_id: env.action_space.sample() for agent_id in obs.keys()}
+    actions = {agent_id: env.action_spaces[agent_id].sample() for agent_id in obs.keys()}
     obs, rewards, terminateds, truncateds, infos = env.step(actions)
 
     # Check that rewards are returned for all agents
@@ -55,7 +55,7 @@ def test_simple_distance_reward_function(basic_config: CollectiveCrossingConfig)
     )
     env = CollectiveCrossingEnv(config)
     obs, info = env.reset(seed=42)
-    actions = {agent_id: env.action_space.sample() for agent_id in obs.keys()}
+    actions = {agent_id: env.action_spaces[agent_id].sample() for agent_id in obs.keys()}
     obs, rewards, terminateds, truncateds, infos = env.step(actions)
 
     # Simple distance rewards should be negative (distance penalties)
@@ -72,7 +72,7 @@ def test_binary_reward_function(basic_config: CollectiveCrossingConfig) -> None:
     )
     env = CollectiveCrossingEnv(config)
     obs, info = env.reset(seed=42)
-    actions = {agent_id: env.action_space.sample() for agent_id in obs.keys()}
+    actions = {agent_id: env.action_spaces[agent_id].sample() for agent_id in obs.keys()}
     obs, rewards, terminateds, truncateds, infos = env.step(actions)
 
     # Binary rewards should be exactly the configured values
@@ -89,7 +89,7 @@ def test_constant_negative_reward_function(basic_config: CollectiveCrossingConfi
     )
     env = CollectiveCrossingEnv(config)
     obs, info = env.reset(seed=42)
-    actions = {agent_id: env.action_space.sample() for agent_id in obs.keys()}
+    actions = {agent_id: env.action_spaces[agent_id].sample() for agent_id in obs.keys()}
     obs, rewards, terminateds, truncateds, infos = env.step(actions)
 
     # Constant negative rewards should be exactly the configured penalty
@@ -104,7 +104,7 @@ def test_constant_negative_reward_function_default(basic_config: CollectiveCross
     config = basic_config.model_copy(update={"reward_config": ConstantNegativeRewardConfig()})
     env = CollectiveCrossingEnv(config)
     obs, info = env.reset(seed=42)
-    actions = {agent_id: env.action_space.sample() for agent_id in obs.keys()}
+    actions = {agent_id: env.action_spaces[agent_id].sample() for agent_id in obs.keys()}
     obs, rewards, terminateds, truncateds, infos = env.step(actions)
 
     # Default constant negative reward should be -1.0
@@ -124,7 +124,7 @@ def test_constant_negative_reward_consistency(basic_config: CollectiveCrossingCo
 
     # Test multiple steps
     for _step in range(3):
-        actions = {agent_id: env.action_space.sample() for agent_id in obs.keys()}
+        actions = {agent_id: env.action_spaces[agent_id].sample() for agent_id in obs.keys()}
         obs, rewards, terminateds, truncateds, infos = env.step(actions)
 
         # Rewards should be consistent across steps
@@ -166,7 +166,7 @@ def test_custom_default_reward_config(basic_config: CollectiveCrossingConfig) ->
     )
     env = CollectiveCrossingEnv(config)
     obs, info = env.reset(seed=42)
-    actions = {agent_id: env.action_space.sample() for agent_id in obs.keys()}
+    actions = {agent_id: env.action_spaces[agent_id].sample() for agent_id in obs.keys()}
     obs, rewards, terminateds, truncateds, infos = env.step(actions)
 
     # Should work without errors

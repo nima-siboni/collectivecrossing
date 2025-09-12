@@ -37,7 +37,7 @@ def test_all_at_destination_terminated_function(basic_config: CollectiveCrossing
     obs, info = env.reset(seed=42)
 
     # Initially no agent should be terminated
-    actions = {agent_id: env.action_space.sample() for agent_id in obs.keys()}
+    actions = {agent_id: env.action_spaces[agent_id].sample() for agent_id in obs.keys()}
     obs, rewards, terminateds, truncateds, infos = env.step(actions)
 
     # Check that no agent is terminated initially
@@ -64,7 +64,7 @@ def test_individual_at_destination_terminated_function(
     obs, info = env.reset(seed=42)
 
     # Initially no agent should be terminated
-    actions = {agent_id: env.action_space.sample() for agent_id in obs.keys()}
+    actions = {agent_id: env.action_spaces[agent_id].sample() for agent_id in obs.keys()}
     obs, rewards, terminateds, truncateds, infos = env.step(actions)
 
     # Check that no agent is terminated initially
@@ -85,7 +85,7 @@ def test_default_terminated_function(basic_config: CollectiveCrossingConfig) -> 
     obs, info = env.reset(seed=42)
 
     # Initially no agent should be terminated
-    actions = {agent_id: env.action_space.sample() for agent_id in obs.keys()}
+    actions = {agent_id: env.action_spaces[agent_id].sample() for agent_id in obs.keys()}
     obs, rewards, terminateds, truncateds, infos = env.step(actions)
 
     # Check that no agent is terminated initially
@@ -120,7 +120,7 @@ def test_terminated_function_consistency(basic_config: CollectiveCrossingConfig)
     obs_individual, info_individual = env_individual.reset(seed=42)
 
     # Same initial actions should produce different termination behavior
-    actions = {agent_id: env_all.action_space.sample() for agent_id in obs_all.keys()}
+    actions = {agent_id: env_all.action_spaces[agent_id].sample() for agent_id in obs_all.keys()}
 
     # Step both environments
     obs_all, rewards_all, terminateds_all, truncateds_all, infos_all = env_all.step(actions)
