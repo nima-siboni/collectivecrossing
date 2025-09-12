@@ -50,7 +50,7 @@ class DefaultObservationFunction(ObservationFunction):
         - For each other agent:
             - position (x, y)
             - agent type (0=boarding, 1=exiting)
-        active status (0=inactive, 1=active)
+            - active status (0=inactive, 1=active)
 
         Args:
         ----
