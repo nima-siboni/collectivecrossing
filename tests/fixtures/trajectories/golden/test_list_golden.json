@@ -9,7 +9,22 @@
     "num_boarding_agents": 2,
     "num_exiting_agents": 1,
     "exiting_destination_area_y": 0,
-    "boarding_destination_area_y": 5
+    "boarding_destination_area_y": 5,
+    "render_mode": null,
+    "reward_config": {
+      "reward_function": "default",
+      "boarding_destination_reward": 15.0,
+      "tram_door_reward": 10.0,
+      "tram_area_reward": 5.0,
+      "distance_penalty_factor": 0.1
+    },
+    "terminated_config": {
+      "terminated_function": "individual_at_destination"
+    },
+    "truncated_config": {
+      "truncated_function": "max_steps",
+      "max_steps": 50
+    }
   },
   "initial_observations": {
     "boarding_0": [
@@ -21,10 +36,16 @@
       6,
       -1,
       -1,
+      -1,
+      -1,
       6,
       1,
+      0,
+      1,
       3,
-      5
+      5,
+      1,
+      1
     ],
     "boarding_1": [
       6,
@@ -35,10 +56,16 @@
       6,
       0,
       2,
+      0,
+      1,
+      -1,
+      -1,
       -1,
       -1,
       3,
-      5
+      5,
+      1,
+      1
     ],
     "exiting_0": [
       3,
@@ -49,8 +76,14 @@
       6,
       0,
       2,
+      0,
+      1,
       6,
       1,
+      0,
+      1,
+      -1,
+      -1,
       -1,
       -1
     ]
@@ -84,10 +117,16 @@
           6,
           -1,
           -1,
+          -1,
+          -1,
           6,
           1,
+          0,
+          1,
           3,
-          5
+          5,
+          1,
+          1
         ],
         "boarding_1": [
           6,
@@ -98,10 +137,16 @@
           6,
           0,
           2,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1,
           3,
-          5
+          5,
+          1,
+          1
         ],
         "exiting_0": [
           3,
@@ -112,8 +157,14 @@
           6,
           0,
           2,
+          0,
+          1,
           6,
           1,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1
         ]
@@ -128,10 +179,16 @@
           6,
           -1,
           -1,
+          -1,
+          -1,
           5,
           1,
+          0,
+          1,
           3,
-          4
+          4,
+          1,
+          1
         ],
         "boarding_1": [
           5,
@@ -142,10 +199,16 @@
           6,
           1,
           2,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1,
           3,
-          4
+          4,
+          1,
+          1
         ],
         "exiting_0": [
           3,
@@ -156,8 +219,14 @@
           6,
           1,
           2,
+          0,
+          1,
           5,
           1,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1
         ]
@@ -183,17 +252,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -214,10 +289,16 @@
           6,
           -1,
           -1,
+          -1,
+          -1,
           5,
           1,
+          0,
+          1,
           3,
-          4
+          4,
+          1,
+          1
         ],
         "boarding_1": [
           5,
@@ -228,10 +309,16 @@
           6,
           1,
           2,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1,
           3,
-          4
+          4,
+          1,
+          1
         ],
         "exiting_0": [
           3,
@@ -242,8 +329,14 @@
           6,
           1,
           2,
+          0,
+          1,
           5,
           1,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1
         ]
@@ -258,10 +351,16 @@
           6,
           -1,
           -1,
+          -1,
+          -1,
           4,
           1,
+          0,
+          1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "boarding_1": [
           4,
@@ -272,10 +371,16 @@
           6,
           2,
           2,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "exiting_0": [
           3,
@@ -286,8 +391,14 @@
           6,
           2,
           2,
+          0,
+          1,
           4,
           1,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1
         ]
@@ -313,17 +424,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -344,10 +461,16 @@
           6,
           -1,
           -1,
+          -1,
+          -1,
           4,
           1,
+          0,
+          1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "boarding_1": [
           4,
@@ -358,10 +481,16 @@
           6,
           2,
           2,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "exiting_0": [
           3,
@@ -372,8 +501,14 @@
           6,
           2,
           2,
+          0,
+          1,
           4,
           1,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1
         ]
@@ -388,10 +523,16 @@
           6,
           -1,
           -1,
+          -1,
+          -1,
           3,
           1,
+          0,
+          1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "boarding_1": [
           3,
@@ -402,10 +543,16 @@
           6,
           3,
           2,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "exiting_0": [
           3,
@@ -416,8 +563,14 @@
           6,
           3,
           2,
+          0,
+          1,
           3,
           1,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1
         ]
@@ -443,17 +596,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -474,10 +633,16 @@
           6,
           -1,
           -1,
+          -1,
+          -1,
           3,
           1,
+          0,
+          1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "boarding_1": [
           3,
@@ -488,10 +653,16 @@
           6,
           3,
           2,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "exiting_0": [
           3,
@@ -502,8 +673,14 @@
           6,
           3,
           2,
+          0,
+          1,
           3,
           1,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1
         ]
@@ -518,10 +695,16 @@
           6,
           -1,
           -1,
+          -1,
+          -1,
           2,
           1,
+          0,
+          1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "boarding_1": [
           2,
@@ -532,10 +715,16 @@
           6,
           4,
           2,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "exiting_0": [
           3,
@@ -546,8 +735,14 @@
           6,
           4,
           2,
+          0,
+          1,
           2,
           1,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1
         ]
@@ -573,17 +768,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     },
@@ -604,10 +805,16 @@
           6,
           -1,
           -1,
+          -1,
+          -1,
           2,
           1,
+          0,
+          1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "boarding_1": [
           2,
@@ -618,10 +825,16 @@
           6,
           4,
           2,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "exiting_0": [
           3,
@@ -632,8 +845,14 @@
           6,
           4,
           2,
+          0,
+          1,
           2,
           1,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1
         ]
@@ -648,10 +867,16 @@
           6,
           -1,
           -1,
+          -1,
+          -1,
           1,
+          1,
+          0,
           1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "boarding_1": [
           1,
@@ -662,10 +887,16 @@
           6,
           5,
           2,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1,
           3,
-          3
+          3,
+          1,
+          1
         ],
         "exiting_0": [
           3,
@@ -676,8 +907,14 @@
           6,
           5,
           2,
+          0,
           1,
           1,
+          1,
+          0,
+          1,
+          -1,
+          -1,
           -1,
           -1
         ]
@@ -703,17 +940,23 @@
         "boarding_0": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "boarding_1": {
           "agent_type": "boarding",
           "in_tram_area": false,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         },
         "exiting_0": {
           "agent_type": "exiting",
           "in_tram_area": true,
-          "at_door": false
+          "at_door": false,
+          "active": true,
+          "at_destination": false
         }
       }
     }
