@@ -215,14 +215,14 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             # Check if agent is done using the configured termination function
             terminated: bool = self._calculate_terminated(agent_id)
             terminateds[agent_id] = terminated
-            if terminated:
+            if terminated and not self._agents[agent_id].terminated:
                 self._agents[agent_id].terminate()
 
         for agent_id in self._agents.keys():
             # Check if episode should be truncated using the configured truncation function
             truncated: bool = self._calculate_truncated(agent_id)
             truncateds[agent_id] = truncated
-            if truncated:
+            if truncated and not self._agents[agent_id].truncated:
                 self._agents[agent_id].truncate()
 
         for agent_id in self._agents.keys():
