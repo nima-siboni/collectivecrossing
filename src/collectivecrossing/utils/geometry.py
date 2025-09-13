@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+import numpy as np
+
 from collectivecrossing.configs import CollectiveCrossingConfig
 
 
@@ -42,3 +44,15 @@ def calculate_tram_boundaries(config: CollectiveCrossingConfig) -> TramBoundarie
         tram_left=tram_left,
         tram_right=tram_right,
     )
+
+
+def calculate_distance(
+    pos1: tuple[int | None, int | None], pos2: tuple[int | None, int | None]
+) -> float:
+    """Calculate the distance between two positions."""
+    if pos1[0] is None or pos2[0] is None:
+        return abs(pos1[1] - pos2[1])  # type: ignore[operator]
+    if pos1[1] is None or pos2[1] is None:
+        return abs(pos1[0] - pos2[0])
+
+    return np.linalg.norm(np.array(pos1) - np.array(pos2))

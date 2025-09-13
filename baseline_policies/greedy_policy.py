@@ -7,22 +7,30 @@ This policy implements a simple greedy approach where:
 - Agents don't consider other agents and move as directly as possible
 """
 
+import logging
 from typing import Any
 
 import numpy as np
 
 from collectivecrossing.actions import Actions
+from collectivecrossing.collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.types import AgentType
+
+logger = logging.getLogger(__name__)
 
 
 class GreedyPolicy:
-    """Greedy baseline policy that moves agents directly toward their goals."""
+    """Greedy baseline policy that moves agents directly toward their destinations."""
 
-    def __init__(self) -> None:
+    def __init__(self, randomness_factor: float, seed: int) -> None:
         """Initialize the greedy policy."""
-        pass
+        logger.info(
+            f"Initializing greedy policy with randomness factor {randomness_factor} and seed {seed}"
+        )
+        self.randomness_factor = randomness_factor
+        self.random_state = np.random.RandomState(seed)
 
-    def get_action(self, agent_id: str, observation: np.ndarray, env: Any) -> int:
+    def get_action(self, agent_id: str, observation: np.ndarray, env: CollectiveCrossingEnv) -> int:
         """
         Get the greedy action for an agent based on its observation.
 
@@ -45,8 +53,18 @@ class GreedyPolicy:
         # Get destination position
         destination = env.get_agent_destination_position(agent_id)
 
+        # calculate the door's right corner position
+        door_right_corner = np.array(
+            [env.config.tram_door_x + env.config.tram_door_width, env.config.division_y]
+        )
+
+        # calculate the door's left corner position
+        door_left_corner = np.array([env.config.tram_door_x, env.config.division_y])
+
         # Calculate the best direction to move
-        direction = self._calculate_direction(agent_pos, destination, agent_type, env)
+        direction = self._calculate_direction(
+            agent_pos, destination, agent_type, env, door_right_corner, door_left_corner
+        )
 
         # Convert direction to action
         action = self._direction_to_action(direction)
@@ -59,7 +77,13 @@ class GreedyPolicy:
             return self._get_fallback_action(agent_id, agent_pos, destination, agent_type, env)
 
     def _calculate_direction(
-        self, current_pos: np.ndarray, destination: np.ndarray, agent_type: AgentType, env: Any
+        self,
+        current_pos: np.ndarray,
+        destination: np.ndarray,
+        agent_type: AgentType,
+        env: Any,
+        door_right_corner: np.ndarray,
+        door_left_corner: np.ndarray,
     ) -> np.ndarray:
         """
         Calculate the best direction to move toward the destination.
@@ -70,30 +94,27 @@ class GreedyPolicy:
             destination: Destination position.
             agent_type: Type of the agent (boarding or exiting).
             env: The environment instance.
+            door_right_corner: The right corner position of the door.
+            door_left_corner: The left corner position of the door.
 
         Returns:
         -------
             Direction vector [dx, dy] indicating the best move.
 
         """
-        tram_door_pos = np.array([env.config.tram_door_x, env.config.division_y])
-
         # For boarding agents: go to tram door first, then to destination
         if agent_type == AgentType.BOARDING:
-            # If not at tram door yet, go toward tram door
-            if not np.array_equal(current_pos, tram_door_pos):
-                return self._get_direction_vector(current_pos, tram_door_pos)
+            # check if the agent is still in the waiting area
+            if current_pos[1] < env.config.division_y:
+                # check if the agent is betweent the door's right and left corners
+                if current_pos[0] > door_left_corner[0] and current_pos[0] < door_right_corner[0]:
+                    return self._get_direction_vector(current_pos, destination)
+                if current_pos[0] < door_left_corner[0]:
+                    return self._get_direction_vector(current_pos, door_left_corner)
+                if current_pos[0] > door_right_corner[0]:
+                    return self._get_direction_vector(current_pos, door_right_corner)
             else:
-                # At tram door, go toward destination
-                return self._get_direction_vector(current_pos, destination)
-
-        # For exiting agents: go to tram door first, then to destination
-        else:  # EXITING
-            # If still in tram area, go toward tram door
-            if current_pos[1] >= env.config.division_y:
-                return self._get_direction_vector(current_pos, tram_door_pos)
-            else:
-                # Out of tram area, go toward destination
+                # in tram area, go toward destination
                 return self._get_direction_vector(current_pos, destination)
 
     def _get_direction_vector(self, current_pos: np.ndarray, target_pos: np.ndarray) -> np.ndarray:
@@ -365,4 +386,4 @@ def create_greedy_policy() -> GreedyPolicy:
         A GreedyPolicy instance.
 
     """
-    return GreedyPolicy()
+    return GreedyPolicy(randomness_factor=0.0, seed=42)

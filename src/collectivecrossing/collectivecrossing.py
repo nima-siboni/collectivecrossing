@@ -578,9 +578,16 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """
         return self._truncated_function.calculate_truncated(agent_id, self)
 
-    def get_agent_destination_position(self, agent_id: str) -> np.ndarray:
+    def get_agent_destination_position(self, agent_id: str) -> tuple[int | None, int | None]:
         """
         Get the destination position for an agent.
+
+        That the destination position can have two values:
+          - either it is a tuple of two integers (x, y)
+          - or it is a tuple of one integer and None (x, None), or (None, y)
+
+        This formulation is used to allow the destination be a seating area or
+        exit area, as well as one particular position.
 
         Args:
         ----
@@ -592,13 +599,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         """
         agent_type = self._agents[agent_id].agent_type
-
         if agent_type == AgentType.BOARDING:
             # Boarding agents go to the boarding destination area
-            return np.array([self.config.tram_door_x, self.config.boarding_destination_area_y])
+            return (None, self.config.boarding_destination_area_y)
         else:  # EXITING
             # Exiting agents go to the exiting destination area
-            return np.array([self.config.tram_door_x, self.config.exiting_destination_area_y])
+            return (None, self.config.exiting_destination_area_y)
 
     def has_agent_reached_destination(self, agent_id: str) -> bool:
         """

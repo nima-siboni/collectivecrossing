@@ -7,6 +7,7 @@ import numpy as np
 
 from collectivecrossing.reward_configs import RewardConfig
 from collectivecrossing.types import AgentType
+from collectivecrossing.utils.geometry import calculate_distance
 
 if TYPE_CHECKING:
     from collectivecrossing.collectivecrossing import CollectiveCrossingEnv
@@ -112,7 +113,7 @@ class SimpleDistanceRewardFunction(RewardFunction):
         agent_pos = env._get_agent_position(agent_id)
 
         goal_pos = env.get_agent_destination_position(agent_id)
-        distance = np.linalg.norm(agent_pos - goal_pos)
+        distance = calculate_distance(agent_pos, goal_pos)
         return (
             -distance * self.reward_config.distance_penalty_factor
         )  # Negative reward proportional to distance
