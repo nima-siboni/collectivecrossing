@@ -14,7 +14,7 @@ from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 
 
 def run_greedy_policy_with_stats(
-    epsilon: float = 0.1,
+    epsilon: float,
 ) -> tuple[CollectiveCrossingEnv, list[dict[str, tuple[int, int, str]]], list[float]]:
     """Run the greedy policy and collect statistics."""
     print("🚇 Running Greedy Policy Demo")
