@@ -129,11 +129,11 @@ class CollectiveCrossingConfig(ConfigClass):
         # Validate boarding destination area (should be in tram area)
         if (
             self.boarding_destination_area_y < self.division_y
-            or self.boarding_destination_area_y >= self.height
+            or self.boarding_destination_area_y > self.height
         ):
             raise ValueError(
                 f"Boarding destination area y-coordinate ({self.boarding_destination_area_y}) "
-                f"must be within tram area ({self.division_y} to {self.height - 1})"
+                f"must be within tram area ({self.division_y} to {self.height})"
             )
 
     def _validate_environment_bounds(self) -> None:

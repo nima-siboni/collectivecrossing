@@ -482,7 +482,14 @@ class CollectiveCrossingEnv(MultiAgentEnv):
     def _is_valid_position(self, pos: np.ndarray) -> bool:
         """Check if a position is within the grid bounds and not on a wall."""
         # Check grid bounds
-        if not (0 <= pos[0] < self.config.width and 0 <= pos[1] < self.config.height):
+        # Allow y=height if boarding destination equals height
+        max_y = self.config.height
+        if self.config.boarding_destination_area_y == self.config.height:
+            max_y = self.config.height  # Allow y=height for boarding destination
+        else:
+            max_y = self.config.height - 1  # Normal case: y < height
+
+        if not (0 <= pos[0] < self.config.width and 0 <= pos[1] <= max_y):
             return False
 
         # Check if position is on a wall

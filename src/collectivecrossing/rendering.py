@@ -95,16 +95,31 @@ def draw_matplotlib(env: Any, ax: Any) -> None:
 
     # boarding destination area (limited to tram geometry)
     if env.config.boarding_destination_area_y >= env.config.division_y:
-        ax.add_patch(
-            patches.Rectangle(
-                (env.tram_left, env.config.boarding_destination_area_y),
-                env.tram_right - env.tram_left + 1,
-                1,
-                facecolor=colors["boarding_destination_area"],
-                edgecolor="none",
-                alpha=0.8,
+        # If destination equals height, draw seat area below it
+        if env.config.boarding_destination_area_y == env.config.height:
+            # Draw seat area as a single row below the destination (at height-1)
+            ax.add_patch(
+                patches.Rectangle(
+                    (env.tram_left, env.config.height - 1),
+                    env.tram_right - env.tram_left + 1,
+                    1,
+                    facecolor=colors["boarding_destination_area"],
+                    edgecolor="none",
+                    alpha=0.8,
+                )
             )
-        )
+        else:
+            # Normal case: draw destination area at the specified y-coordinate
+            ax.add_patch(
+                patches.Rectangle(
+                    (env.tram_left, env.config.boarding_destination_area_y),
+                    env.tram_right - env.tram_left + 1,
+                    1,
+                    facecolor=colors["boarding_destination_area"],
+                    edgecolor="none",
+                    alpha=0.8,
+                )
+            )
 
     wall_thickness = 0.1
     # Left wall - extend to cover the left door boundary
@@ -241,7 +256,11 @@ def draw_matplotlib(env: Any, ax: Any) -> None:
     # Boarding destination area label
     if env.config.boarding_destination_area_y >= env.config.division_y:
         boarding_center_x = (env.tram_left + env.tram_right) / 2
-        boarding_center_y = env.config.boarding_destination_area_y + 0.5
+        # If destination equals height, place label at height-1 (where seat area is drawn)
+        if env.config.boarding_destination_area_y == env.config.height:
+            boarding_center_y = env.config.height - 0.5
+        else:
+            boarding_center_y = env.config.boarding_destination_area_y + 0.5
         ax.text(
             boarding_center_x,
             boarding_center_y,

@@ -119,44 +119,52 @@ class GreedyPolicy:
         if agent_type == AgentType.BOARDING:
             # check if the agent is still in the waiting area
             if current_pos[1] < env.config.division_y:
-                # Move to positions adjacent to the occupied door positions
-                if current_pos[0] < door_left_corner[0]:
-                    # Move to position just left of the occupied door
-                    target_pos = np.array([door_left_corner[0] - 1, door_left_corner[1]])
-                    return self._get_direction_vector(current_pos, target_pos)
-                elif current_pos[0] > door_right_corner[0]:
-                    # Move to position just right of the occupied door
-                    target_pos = np.array([door_right_corner[0] + 1, door_right_corner[1]])
-                    return self._get_direction_vector(current_pos, target_pos)
-                else:
-                    # Agent is between occupied door positions, move to adjacent door position
-                    # Move to the closest adjacent position (left or right of door)
-                    if current_pos[0] <= (door_left_corner[0] + door_right_corner[0]) // 2:
-                        # Move to left adjacent position
-                        target_pos = np.array([door_left_corner[0] - 1, door_left_corner[1]])
+                # Move toward the door area
+                # If agent is already at the door level (y = division_y - 1), move up
+                if current_pos[1] == env.config.division_y - 1:
+                    # Check if agent is in the door area horizontally
+                    if door_left_corner[0] <= current_pos[0] <= door_right_corner[0]:
+                        # Agent is in door area, move up
+                        target_pos = np.array([current_pos[0], env.config.division_y])
                         return self._get_direction_vector(current_pos, target_pos)
                     else:
-                        # Move to right adjacent position
-                        target_pos = np.array([door_right_corner[0] + 1, door_right_corner[1]])
+                        # Agent is not in door area, move toward door horizontally first
+                        door_center_x = (door_left_corner[0] + door_right_corner[0]) / 2
+                        if current_pos[0] < door_center_x:
+                            target_pos = np.array([door_left_corner[0], current_pos[1]])
+                        else:
+                            target_pos = np.array([door_right_corner[0], current_pos[1]])
                         return self._get_direction_vector(current_pos, target_pos)
+                else:
+                    # Agent is not at door level, move up toward door level
+                    target_pos = np.array([current_pos[0], env.config.division_y - 1])
+                    return self._get_direction_vector(current_pos, target_pos)
             else:
                 # in tram area, go toward destination
                 return self._get_direction_vector(current_pos, destination)
         else:  # EXITING agents
             # For exiting agents: go to tram door first, then to destination
             if current_pos[1] > env.config.division_y:
-                # Move to positions adjacent to the occupied door positions
-                if current_pos[0] < door_left_corner[0]:
-                    # Move to position just left of the occupied door
-                    target_pos = np.array([door_left_corner[0] - 1, door_left_corner[1]])
-                    return self._get_direction_vector(current_pos, target_pos)
-                elif current_pos[0] > door_right_corner[0]:
-                    # Move to position just right of the occupied door
-                    target_pos = np.array([door_right_corner[0] + 1, door_right_corner[1]])
-                    return self._get_direction_vector(current_pos, target_pos)
+                # Move toward the door area
+                # If agent is already at the door level (y = division_y + 1), move down
+                if current_pos[1] == env.config.division_y + 1:
+                    # Check if agent is in the door area horizontally
+                    if door_left_corner[0] <= current_pos[0] <= door_right_corner[0]:
+                        # Agent is in door area, move down
+                        target_pos = np.array([current_pos[0], env.config.division_y])
+                        return self._get_direction_vector(current_pos, target_pos)
+                    else:
+                        # Agent is not in door area, move toward door horizontally first
+                        door_center_x = (door_left_corner[0] + door_right_corner[0]) / 2
+                        if current_pos[0] < door_center_x:
+                            target_pos = np.array([door_left_corner[0], current_pos[1]])
+                        else:
+                            target_pos = np.array([door_right_corner[0], current_pos[1]])
+                        return self._get_direction_vector(current_pos, target_pos)
                 else:
-                    # Agent is between occupied door positions, move toward destination
-                    return self._get_direction_vector(current_pos, destination)
+                    # Agent is not at door level, move down toward door level
+                    target_pos = np.array([current_pos[0], env.config.division_y + 1])
+                    return self._get_direction_vector(current_pos, target_pos)
             else:
                 # in waiting area, go toward destination
                 return self._get_direction_vector(current_pos, destination)
@@ -335,18 +343,9 @@ class GreedyPolicy:
             # Boarding agents: go up first, then toward door
             if current_pos[1] < env.config.division_y:
                 # Still in waiting area, prioritize going up
-                # Check if agent is in the occupied door area
-                if env.config.tram_door_left <= current_pos[0] <= env.config.tram_door_right:
-                    # Agent is in occupied door area, move to adjacent positions
-                    return [
-                        Actions.left.value,  # Move to left adjacent position
-                        Actions.right.value,  # Move to right adjacent position
-                        Actions.up.value,
-                        Actions.down.value,
-                    ]
-                else:
-                    # Agent is outside occupied door area, move toward door
-                    door_center_x = (env.config.tram_door_left + env.config.tram_door_right) // 2
+                door_center_x = (env.config.tram_door_left + env.config.tram_door_right) / 2
+                if abs(current_pos[0] - door_center_x) > 1:
+                    # Far from door, move toward door center
                     if current_pos[0] < door_center_x:
                         return [
                             Actions.right.value,
@@ -361,6 +360,14 @@ class GreedyPolicy:
                             Actions.right.value,
                             Actions.down.value,
                         ]
+                else:
+                    # Close to door, move up
+                    return [
+                        Actions.up.value,
+                        Actions.right.value,
+                        Actions.left.value,
+                        Actions.down.value,
+                    ]
             else:
                 # In tram area, go toward destination
                 if destination[0] is None:
@@ -396,22 +403,25 @@ class GreedyPolicy:
             # Exiting agents: go down first, then toward door
             if current_pos[1] > env.config.division_y:
                 # Still in tram area, prioritize going down
-                door_center_x = (env.config.tram_door_left + env.config.tram_door_right) // 2
-                if current_pos[0] < door_center_x:
-                    return [
-                        Actions.right.value,
-                        Actions.down.value,
-                        Actions.left.value,
-                        Actions.up.value,
-                    ]
-                elif current_pos[0] > door_center_x:
-                    return [
-                        Actions.left.value,
-                        Actions.down.value,
-                        Actions.right.value,
-                        Actions.up.value,
-                    ]
+                door_center_x = (env.config.tram_door_left + env.config.tram_door_right) / 2
+                if abs(current_pos[0] - door_center_x) > 1:
+                    # Far from door, move toward door center
+                    if current_pos[0] < door_center_x:
+                        return [
+                            Actions.right.value,
+                            Actions.down.value,
+                            Actions.left.value,
+                            Actions.up.value,
+                        ]
+                    else:
+                        return [
+                            Actions.left.value,
+                            Actions.down.value,
+                            Actions.right.value,
+                            Actions.up.value,
+                        ]
                 else:
+                    # Close to door, move down
                     return [
                         Actions.down.value,
                         Actions.right.value,
