@@ -504,11 +504,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         return pos[1] >= self.config.division_y and self.tram_left <= pos[0] <= self.tram_right
 
     def is_at_tram_door(self, agent_id: str) -> bool:
-        """Check if a position is at the tram door."""
+        """Check if a position is at the tram door (adjacent to the occupied door positions)."""
         pos = self._get_agent_position(agent_id)
-        return (
-            pos[1] == self.config.division_y
-            and self.tram_door_left <= pos[0] <= self.tram_door_right
+        # Agent is at door if they're at the division line and adjacent
+        # to the occupied door positions
+        return pos[1] == self.config.division_y and (
+            pos[0] == self.tram_door_left - 1 or pos[0] == self.tram_door_right + 1
         )
 
     def _would_cross_tram_wall(self, current_pos: np.ndarray, new_pos: np.ndarray) -> bool:
@@ -517,8 +518,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         if (current_pos[1] < self.config.division_y and new_pos[1] >= self.config.division_y) or (
             current_pos[1] >= self.config.division_y and new_pos[1] < self.config.division_y
         ):
-            # Only allow crossing at the door
-            if not (self.tram_door_left <= new_pos[0] <= self.tram_door_right):
+            # Block movement through occupied door positions
+            # Check if the agent is trying to cross through the occupied door area
+            if (
+                self.tram_door_left <= current_pos[0] <= self.tram_door_right
+                or self.tram_door_left <= new_pos[0] <= self.tram_door_right
+            ):
                 return True
 
         # Check if moving across tram side walls (x = tram_left or x = tram_right)

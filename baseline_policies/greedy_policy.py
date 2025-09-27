@@ -53,13 +53,11 @@ class GreedyPolicy:
         # Get destination position
         destination = env.get_agent_destination_position(agent_id)
 
-        # calculate the door's right corner position
-        door_right_corner = np.array(
-            [env.config.tram_door_x + env.config.tram_door_width, env.config.division_y]
-        )
+        # calculate the door's right corner position (occupied position)
+        door_right_corner = np.array([env.config.tram_door_right, env.config.division_y])
 
-        # calculate the door's left corner position
-        door_left_corner = np.array([env.config.tram_door_x, env.config.division_y])
+        # calculate the door's left corner position (occupied position)
+        door_left_corner = np.array([env.config.tram_door_left, env.config.division_y])
 
         # Calculate the best direction to move
         direction = self._calculate_direction(
@@ -106,16 +104,42 @@ class GreedyPolicy:
         if agent_type == AgentType.BOARDING:
             # check if the agent is still in the waiting area
             if current_pos[1] < env.config.division_y:
-                # check if the agent is betweent the door's right and left corners
-                if current_pos[0] > door_left_corner[0] and current_pos[0] < door_right_corner[0]:
-                    return self._get_direction_vector(current_pos, destination)
+                # Move to positions adjacent to the occupied door positions
                 if current_pos[0] < door_left_corner[0]:
-                    return self._get_direction_vector(current_pos, door_left_corner)
-                if current_pos[0] > door_right_corner[0]:
-                    return self._get_direction_vector(current_pos, door_right_corner)
+                    # Move to position just left of the occupied door
+                    target_pos = np.array([door_left_corner[0] - 1, door_left_corner[1]])
+                    return self._get_direction_vector(current_pos, target_pos)
+                elif current_pos[0] > door_right_corner[0]:
+                    # Move to position just right of the occupied door
+                    target_pos = np.array([door_right_corner[0] + 1, door_right_corner[1]])
+                    return self._get_direction_vector(current_pos, target_pos)
+                else:
+                    # Agent is between occupied door positions, move toward destination
+                    return self._get_direction_vector(current_pos, destination)
             else:
                 # in tram area, go toward destination
                 return self._get_direction_vector(current_pos, destination)
+        else:  # EXITING agents
+            # For exiting agents: go to tram door first, then to destination
+            if current_pos[1] > env.config.division_y:
+                # Move to positions adjacent to the occupied door positions
+                if current_pos[0] < door_left_corner[0]:
+                    # Move to position just left of the occupied door
+                    target_pos = np.array([door_left_corner[0] - 1, door_left_corner[1]])
+                    return self._get_direction_vector(current_pos, target_pos)
+                elif current_pos[0] > door_right_corner[0]:
+                    # Move to position just right of the occupied door
+                    target_pos = np.array([door_right_corner[0] + 1, door_right_corner[1]])
+                    return self._get_direction_vector(current_pos, target_pos)
+                else:
+                    # Agent is between occupied door positions, move toward destination
+                    return self._get_direction_vector(current_pos, destination)
+            else:
+                # in waiting area, go toward destination
+                return self._get_direction_vector(current_pos, destination)
+
+        # Fallback: if we get here, something went wrong, return a default direction
+        return np.array([0, 0])  # Wait action
 
     def _get_direction_vector(self, current_pos: np.ndarray, target_pos: np.ndarray) -> np.ndarray:
         """
@@ -131,7 +155,12 @@ class GreedyPolicy:
             Direction vector [dx, dy] with values in {-1, 0, 1}.
 
         """
-        diff = target_pos - current_pos
+        # Handle case where target_pos has None for x-coordinate
+        if target_pos[0] is None:
+            # Only consider y-direction movement
+            diff = np.array([0, target_pos[1] - current_pos[1]])
+        else:
+            diff = target_pos - current_pos
 
         # Normalize to get direction (only one step at a time)
         dx = 0
@@ -283,14 +312,15 @@ class GreedyPolicy:
             # Boarding agents: go up first, then toward door
             if current_pos[1] < env.config.division_y:
                 # Still in waiting area, prioritize going up
-                if current_pos[0] < env.config.tram_door_x:
+                door_center_x = (env.config.tram_door_left + env.config.tram_door_right) // 2
+                if current_pos[0] < door_center_x:
                     return [
                         Actions.right.value,
                         Actions.up.value,
                         Actions.left.value,
                         Actions.down.value,
                     ]
-                elif current_pos[0] > env.config.tram_door_x:
+                elif current_pos[0] > door_center_x:
                     return [
                         Actions.left.value,
                         Actions.up.value,
@@ -306,7 +336,15 @@ class GreedyPolicy:
                     ]
             else:
                 # In tram area, go toward destination
-                if current_pos[0] < destination[0]:
+                if destination[0] is None:
+                    # Destination has no x-coordinate, just go up
+                    return [
+                        Actions.up.value,
+                        Actions.right.value,
+                        Actions.left.value,
+                        Actions.down.value,
+                    ]
+                elif current_pos[0] < destination[0]:
                     return [
                         Actions.right.value,
                         Actions.up.value,
@@ -331,14 +369,15 @@ class GreedyPolicy:
             # Exiting agents: go down first, then toward door
             if current_pos[1] > env.config.division_y:
                 # Still in tram area, prioritize going down
-                if current_pos[0] < env.config.tram_door_x:
+                door_center_x = (env.config.tram_door_left + env.config.tram_door_right) // 2
+                if current_pos[0] < door_center_x:
                     return [
                         Actions.right.value,
                         Actions.down.value,
                         Actions.left.value,
                         Actions.up.value,
                     ]
-                elif current_pos[0] > env.config.tram_door_x:
+                elif current_pos[0] > door_center_x:
                     return [
                         Actions.left.value,
                         Actions.down.value,
@@ -354,7 +393,15 @@ class GreedyPolicy:
                     ]
             else:
                 # In waiting area, go toward destination
-                if current_pos[0] < destination[0]:
+                if destination[0] is None:
+                    # Destination has no x-coordinate, just go down
+                    return [
+                        Actions.down.value,
+                        Actions.right.value,
+                        Actions.left.value,
+                        Actions.up.value,
+                    ]
+                elif current_pos[0] < destination[0]:
                     return [
                         Actions.right.value,
                         Actions.down.value,

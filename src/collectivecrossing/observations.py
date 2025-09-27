@@ -67,10 +67,11 @@ class DefaultObservationFunction(ObservationFunction):
         # Start with agent's own position and tram door information
         tram_door_info = np.array(
             [
-                env.config.tram_door_x,  # Door center X
+                (env.tram_door_left + env.tram_door_right)
+                // 2,  # Door center X (occupied positions)
                 env.config.division_y,  # Division line Y
-                env.tram_door_left,  # Door left boundary
-                env.tram_door_right,  # Door right boundary
+                env.tram_door_left,  # Door left occupied position
+                env.tram_door_right,  # Door right occupied position
             ]
         )
         obs = np.concatenate([agent_pos, tram_door_info])

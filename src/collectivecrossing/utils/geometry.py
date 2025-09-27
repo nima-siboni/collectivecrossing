@@ -19,7 +19,7 @@ class TramBoundaries:
 
 def calculate_tram_boundaries(config: CollectiveCrossingConfig) -> TramBoundaries:
     """
-    Calculate tram and tram door boundaries based on configuration.
+    Create tram and tram door boundaries from configuration.
 
     Args:
     ----
@@ -30,9 +30,9 @@ def calculate_tram_boundaries(config: CollectiveCrossingConfig) -> TramBoundarie
         TramBoundaries: Dataclass containing all tram boundary values
 
     """
-    # Calculate tram door boundaries
-    tram_door_left = max(0, config.tram_door_x - config.tram_door_width // 2)
-    tram_door_right = min(config.tram_length - 1, config.tram_door_x + config.tram_door_width // 2)
+    # Use tram door boundaries directly from config
+    tram_door_left = config.tram_door_left
+    tram_door_right = config.tram_door_right
 
     # Calculate tram boundaries
     tram_left = 0

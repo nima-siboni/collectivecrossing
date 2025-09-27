@@ -75,7 +75,8 @@ class DefaultRewardFunction(RewardFunction):
                 return self.reward_config.tram_area_reward
             else:
                 # Small reward for moving towards the door
-                distance_to_door = abs(agent_pos[0] - env.config.tram_door_x) + (
+                door_center_x = (env.tram_door_left + env.tram_door_right) // 2
+                distance_to_door = abs(agent_pos[0] - door_center_x) + (
                     env.config.division_y - agent_pos[1]
                 )
                 return -distance_to_door * self.reward_config.distance_penalty_factor
@@ -87,7 +88,8 @@ class DefaultRewardFunction(RewardFunction):
                 return self.reward_config.tram_area_reward  # Use same reward for progress
             else:
                 # Small reward for moving towards exit
-                distance_to_exit = abs(agent_pos[0] - env.config.tram_door_x) + (
+                door_center_x = (env.tram_door_left + env.tram_door_right) // 2
+                distance_to_exit = abs(agent_pos[0] - door_center_x) + (
                     agent_pos[1] - env.config.division_y
                 )
                 return distance_to_exit * self.reward_config.distance_penalty_factor

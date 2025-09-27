@@ -21,8 +21,8 @@ class CollectiveCrossingConfig(ConfigClass):
         width: Width of the environment
         height: Height of the environment
         division_y: Y-coordinate of the horizontal division line
-        tram_door_x: X-coordinate of tram door center
-        tram_door_width: Width of tram door
+        tram_door_left: Left boundary of tram door
+        tram_door_right: Right boundary of tram door
         tram_length: Length of the tram (horizontal dimension)
         num_boarding_agents: Number of boarding agents
         num_exiting_agents: Number of exiting agents
@@ -41,8 +41,8 @@ class CollectiveCrossingConfig(ConfigClass):
     division_y: int = Field(
         description="Y-coordinate of the horizontal division line", ge=1, le=100
     )
-    tram_door_x: int = Field(description="X-coordinate of tram door center", ge=1, le=100)
-    tram_door_width: int = Field(description="Width of tram door", ge=1, le=100)
+    tram_door_left: int = Field(description="Left boundary of tram door", ge=0, le=100)
+    tram_door_right: int = Field(description="Right boundary of tram door", ge=0, le=100)
     tram_length: int = Field(description="Length of the tram (horizontal dimension)", ge=1, le=100)
     num_boarding_agents: int = Field(description="Number of boarding agents", ge=0, le=100)
     num_exiting_agents: int = Field(description="Number of exiting agents", ge=0, le=100)
@@ -94,27 +94,24 @@ class CollectiveCrossingConfig(ConfigClass):
                 f"Tram length ({self.tram_length}) cannot exceed grid width ({self.width})"
             )
 
-        # Validate tram door position within tram boundaries
-        if self.tram_door_x < 0 or self.tram_door_x >= self.tram_length:
+        # Validate tram door boundaries
+        if self.tram_door_left < 0 or self.tram_door_left >= self.tram_length:
             raise ValueError(
-                f"Tram door x-coordinate ({self.tram_door_x}) must be within tram boundaries "
+                f"Tram door left boundary ({self.tram_door_left}) must be within tram boundaries "
                 f"(0 to {self.tram_length - 1})"
             )
 
-        # Validate tram door width
-        if self.tram_door_width > self.tram_length:
+        if self.tram_door_right < 0 or self.tram_door_right >= self.tram_length:
             raise ValueError(
-                f"Tram door width ({self.tram_door_width}) cannot exceed tram length "
-                f"({self.tram_length})"
+                f"Tram door right boundary ({self.tram_door_right}) must be within tram boundaries "
+                f"(0 to {self.tram_length - 1})"
             )
 
-        # Validate tram door doesn't extend beyond tram boundaries
-        door_left = max(0, self.tram_door_x - self.tram_door_width // 2)
-        door_right = min(self.tram_length - 1, self.tram_door_x + self.tram_door_width // 2)
-        if door_left < 0 or door_right >= self.tram_length:
+        # Validate tram door left <= right
+        if self.tram_door_left > self.tram_door_right:
             raise ValueError(
-                f"Tram door boundaries ({door_left} to {door_right}) must be within tram "
-                f"boundaries (0 to {self.tram_length - 1})"
+                f"Tram door left boundary ({self.tram_door_left}) cannot be greater than "
+                f"right boundary ({self.tram_door_right})"
             )
 
     def _validate_destination_areas(self) -> None:
@@ -148,10 +145,16 @@ class CollectiveCrossingConfig(ConfigClass):
                 f"height ({self.height})"
             )
 
-        # Validate tram door x-coordinate is within environment width
-        if self.tram_door_x >= self.width:
+        # Validate tram door boundaries are within environment width
+        if self.tram_door_left >= self.width:
             raise ValueError(
-                f"Tram door x-coordinate ({self.tram_door_x}) must be less than environment "
+                f"Tram door left boundary ({self.tram_door_left}) must be less than environment "
+                f"width ({self.width})"
+            )
+
+        if self.tram_door_right >= self.width:
+            raise ValueError(
+                f"Tram door right boundary ({self.tram_door_right}) must be less than environment "
                 f"width ({self.width})"
             )
 

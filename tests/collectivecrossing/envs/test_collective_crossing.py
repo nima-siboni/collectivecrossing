@@ -15,8 +15,8 @@ def test_environment_initialization() -> None:
             width=10,
             height=8,
             division_y=4,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=4,
+            tram_door_right=5,
             tram_length=8,
             num_boarding_agents=3,
             num_exiting_agents=2,
@@ -30,8 +30,8 @@ def test_environment_initialization() -> None:
     assert env.config.width == 10
     assert env.config.height == 8
     assert env.config.division_y == 4
-    assert env.config.tram_door_x == 5
-    assert env.config.tram_door_width == 2
+    assert env.config.tram_door_left == 4
+    assert env.config.tram_door_right == 5
     assert env.config.num_boarding_agents == 3
     assert env.config.num_exiting_agents == 2
     assert env.config.exiting_destination_area_y == 0
@@ -45,8 +45,8 @@ def test_environment_reset() -> None:
             width=10,
             height=8,
             division_y=4,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=4,
+            tram_door_right=5,
             tram_length=8,
             num_boarding_agents=3,
             num_exiting_agents=2,
@@ -79,8 +79,8 @@ def test_agent_movement() -> None:
             width=10,
             height=8,
             division_y=4,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=4,
+            tram_door_right=5,
             tram_length=8,
             num_boarding_agents=3,
             num_exiting_agents=1,
@@ -120,8 +120,8 @@ def test_agent_termination() -> None:
             width=8,
             height=6,
             division_y=3,
-            tram_door_x=4,
-            tram_door_width=2,
+            tram_door_left=3,
+            tram_door_right=4,
             tram_length=8,
             num_boarding_agents=1,
             num_exiting_agents=1,
@@ -159,8 +159,8 @@ def test_rendering() -> None:
             width=10,
             height=6,
             division_y=3,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=4,
+            tram_door_right=5,
             tram_length=8,
             num_boarding_agents=2,
             num_exiting_agents=1,
@@ -211,8 +211,8 @@ def test_action_space() -> None:
             width=10,
             height=6,
             division_y=3,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=4,
+            tram_door_right=5,
             tram_length=8,
             num_boarding_agents=2,
             num_exiting_agents=1,
@@ -286,8 +286,8 @@ def test_observation_structure() -> None:
             width=10,
             height=6,
             division_y=3,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=4,
+            tram_door_right=5,
             tram_length=8,
             num_boarding_agents=2,
             num_exiting_agents=1,
@@ -323,7 +323,7 @@ def test_observation_structure() -> None:
 
         # Check tram door info (positions 2-5)
         tram_door_info = obs[2:6]
-        assert tram_door_info[0] == env.config.tram_door_x  # Door center X
+        assert tram_door_info[0] == (env.tram_door_left + env.tram_door_right) // 2  # Door center X
         assert tram_door_info[1] == env.config.division_y  # Division line Y
         assert tram_door_info[2] == env.tram_door_left  # Door left boundary
         assert tram_door_info[3] == env.tram_door_right  # Door right boundary
@@ -361,8 +361,8 @@ def test_observation_consistency() -> None:
             width=10,
             height=6,
             division_y=3,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=4,
+            tram_door_right=5,
             tram_length=8,
             num_boarding_agents=1,
             num_exiting_agents=1,
@@ -403,8 +403,8 @@ def test_observation_function_integration() -> None:
         width=10,
         height=6,
         division_y=3,
-        tram_door_x=5,
-        tram_door_width=2,
+        tram_door_left=4,
+        tram_door_right=5,
         tram_length=8,
         num_boarding_agents=1,
         num_exiting_agents=1,

@@ -58,8 +58,8 @@ class TrajectoryVCR:
                 "width": env.config.width,
                 "height": env.config.height,
                 "division_y": env.config.division_y,
-                "tram_door_x": env.config.tram_door_x,
-                "tram_door_width": env.config.tram_door_width,
+                "tram_door_left": env.config.tram_door_left,
+                "tram_door_right": env.config.tram_door_right,
                 "tram_length": env.config.tram_length,
                 "num_boarding_agents": env.config.num_boarding_agents,
                 "num_exiting_agents": env.config.num_exiting_agents,
@@ -80,15 +80,23 @@ class TrajectoryVCR:
 
         # Record each step
         for step_num, actions in enumerate(actions_sequence):
+            # Filter out actions for inactive agents
+            active_actions = {
+                agent_id: action
+                for agent_id, action in actions.items()
+                if agent_id in env._agents and env._agents[agent_id].active
+            }
+
             # Record current state
             step_data = {
                 "step": step_num,
-                "actions": actions,
+                "actions": actions,  # Keep original actions for record
+                "active_actions": active_actions,  # Add filtered actions
                 "observations": {k: v.tolist() for k, v in observations.items()},
             }
 
-            # Take step
-            observations, rewards, terminated, truncated, infos = env.step(actions)
+            # Take step with only active agents
+            observations, rewards, terminated, truncated, infos = env.step(active_actions)
 
             # Store step data (with results from the step)
             step_data["next_observations"] = {k: v.tolist() for k, v in observations.items()}
@@ -319,8 +327,8 @@ def create_test_environment() -> CollectiveCrossingEnv:
             width=10,
             height=6,
             division_y=3,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=4,  # Occupied position (old door left)
+            tram_door_right=6,  # Occupied position (old door right)
             tram_length=8,
             num_boarding_agents=2,
             num_exiting_agents=1,
@@ -346,20 +354,30 @@ def generate_deterministic_actions(
                 obs = observations[agent_id]
                 x, y = obs[:2]
 
-                # Move towards door
-                if x < 5:  # Door is at x=5
+                # Move towards door (positions 3, 5, or 7 are adjacent to occupied door at 4,6)
+                if x < 3:  # Move towards left door position
                     actions[agent_id] = 0  # Right
-                elif x > 5:
+                elif x > 7:  # Move towards right door position
                     actions[agent_id] = 2  # Left
-                elif y < 3:  # Division line is at y=3
-                    actions[agent_id] = 1  # Up
-                else:
-                    actions[agent_id] = 4  # Wait
+                elif x == 3 or x == 5 or x == 7:  # At door positions, move up
+                    if y < 3:  # Division line is at y=3
+                        actions[agent_id] = 1  # Up
+                    else:
+                        actions[agent_id] = 4  # Wait
+                else:  # Between door positions (4,6) - move to adjacent door
+                    if x < 4:
+                        actions[agent_id] = 0  # Right
+                    elif x == 4:  # At left occupied door
+                        actions[agent_id] = 0  # Right to position 5
+                    elif x == 6:  # At right occupied door
+                        actions[agent_id] = 2  # Left to position 5
+                    else:  # x == 5, at center door position
+                        actions[agent_id] = 1  # Up
             else:  # Exiting agents
                 obs = observations[agent_id]
                 x, y = obs[:2]
 
-                # Move towards exit
+                # Move towards exit, but stop after reaching destination
                 if y > 0:
                     actions[agent_id] = 3  # Down
                 else:
