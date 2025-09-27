@@ -112,6 +112,10 @@ class SimpleDistanceRewardFunction(RewardFunction):
             The reward for the agent.
 
         """
+        # if the agent is terminated or truncated, return None
+        if env._agents[agent_id].terminated or env._agents[agent_id].truncated:
+            return None
+
         agent_pos = env._get_agent_position(agent_id)
 
         goal_pos = env.get_agent_destination_position(agent_id)
@@ -124,7 +128,7 @@ class SimpleDistanceRewardFunction(RewardFunction):
 class BinaryRewardFunction(RewardFunction):
     """Binary reward function - only rewards for goal completion."""
 
-    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float:
+    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float | None:
         """
         Calculate binary reward - only positive reward for goal completion.
 
@@ -138,6 +142,10 @@ class BinaryRewardFunction(RewardFunction):
             The reward for the agent.
 
         """
+        # if the agent is terminated or truncated, return None
+        if env._agents[agent_id].terminated or env._agents[agent_id].truncated:
+            return None
+
         agent_pos = env._get_agent_position(agent_id)
 
         goal_pos = env.get_agent_destination_position(agent_id)
