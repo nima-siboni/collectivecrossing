@@ -45,6 +45,21 @@ class GreedyPolicy:
             The action to take (0-4: right, up, left, down, wait).
 
         """
+        # Epsilon-greedy: with probability randomness_factor, take a random action
+        if self.randomness_factor > 0.0 and self.random_state.random() < self.randomness_factor:
+            # Take a random valid action
+            valid_actions = []
+            for action in range(5):  # Actions 0-4
+                if self._is_valid_action(agent_id, action, env):
+                    valid_actions.append(action)
+
+            if valid_actions:
+                return self.random_state.choice(valid_actions)
+            else:
+                # If no valid actions, fall back to wait (action 4)
+                return 4
+
+        # Otherwise, use greedy policy
         # Get agent information
         agent = env._get_agent(agent_id)
         agent_pos = agent.position
@@ -436,13 +451,17 @@ class GreedyPolicy:
                     ]
 
 
-def create_greedy_policy() -> GreedyPolicy:
+def create_greedy_policy(epsilon: float = 0.1) -> GreedyPolicy:
     """
-    Create a greedy policy instance.
+    Create a greedy policy instance with epsilon-greedy behavior.
 
-    Returns
+    Args:
+    ----
+        epsilon: Probability of taking a random action instead of greedy action (default: 0.1)
+
+    Returns:
     -------
         A GreedyPolicy instance.
 
     """
-    return GreedyPolicy(randomness_factor=0.0, seed=42)
+    return GreedyPolicy(randomness_factor=epsilon, seed=42)

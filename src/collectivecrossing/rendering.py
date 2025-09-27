@@ -107,11 +107,12 @@ def draw_matplotlib(env: Any, ax: Any) -> None:
         )
 
     wall_thickness = 0.1
+    # Left wall - extend to cover the left door boundary
     if env.tram_door_left > env.tram_left:
         ax.add_patch(
             patches.Rectangle(
                 (env.tram_left, env.config.division_y - wall_thickness / 2),
-                env.tram_door_left - env.tram_left,
+                env.tram_door_left - env.tram_left + 0.5,  # Extend 0.5 into door area
                 wall_thickness,
                 facecolor=colors["tram_wall"],
                 edgecolor="black",
@@ -119,11 +120,15 @@ def draw_matplotlib(env: Any, ax: Any) -> None:
                 alpha=0.9,
             )
         )
+    # Right wall - extend to cover the right door boundary
     if env.tram_door_right < env.tram_right:
         ax.add_patch(
             patches.Rectangle(
-                (env.tram_door_right + 1, env.config.division_y - wall_thickness / 2),
-                env.tram_right - env.tram_door_right,
+                (
+                    env.tram_door_right - 0.5,
+                    env.config.division_y - wall_thickness / 2,
+                ),  # Start 0.5 before door boundary
+                env.tram_right - env.tram_door_right + 1.5,  # Extend to connect with vertical wall
                 wall_thickness,
                 facecolor=colors["tram_wall"],
                 edgecolor="black",
@@ -156,16 +161,20 @@ def draw_matplotlib(env: Any, ax: Any) -> None:
             )
         )
 
-    ax.add_patch(
-        patches.Rectangle(
-            (env.tram_door_left, env.config.division_y),
-            env.tram_door_right - env.tram_door_left + 1,
-            1,
-            facecolor=colors["door"],
-            edgecolor="none",
-            alpha=0.8,
+    # Draw door area - only the passable interior positions
+    # Door boundaries are exclusive, so only show the interior passable area
+    door_width = env.tram_door_right - env.tram_door_left - 1  # Interior width only
+    if door_width > 0:  # Only draw if there's a passable interior
+        ax.add_patch(
+            patches.Rectangle(
+                (env.tram_door_left + 0.5, env.config.division_y),
+                door_width,
+                1,
+                facecolor=colors["door"],
+                edgecolor="none",
+                alpha=0.8,
+            )
         )
-    )
 
     # Add text labels directly on the graph
     # Tram area label
@@ -261,7 +270,7 @@ def draw_matplotlib(env: Any, ax: Any) -> None:
         for r, a in [(0.4, 0.3), (0.3, 0.5), (0.2, 0.8)]:
             ax.add_patch(
                 patches.Circle(
-                    (x + 0.5, y + 0.5),
+                    (x, y),
                     r,
                     facecolor=color,
                     edgecolor=edge_color,
@@ -273,8 +282,8 @@ def draw_matplotlib(env: Any, ax: Any) -> None:
         # Add agent label
         label = agent_id.split("_", 1)[-1] if "_" in agent_id else agent_id
         ax.text(
-            x + 0.5,
-            y + 0.5,
+            x,
+            y,
             label,
             ha="center",
             va="center",
@@ -286,11 +295,14 @@ def draw_matplotlib(env: Any, ax: Any) -> None:
     ax.set_xlim(0, env.config.width)
     ax.set_ylim(0, env.config.height)
     ax.set_aspect("equal")
-    ax.grid(True, alpha=0.3, linestyle="-", linewidth=0.5)
+
+    # Add prominent grid
+    ax.grid(True, alpha=0.7, linestyle="-", linewidth=0.8, color="gray")
+    ax.set_xticks(range(env.config.width + 1))
+    ax.set_yticks(range(env.config.height + 1))
+    ax.tick_params(axis="both", which="major", labelsize=8, colors="darkgray")
+
     ax.set_title("Collective Crossing Environment", fontsize=14, weight="bold", pad=20)
-    # Remove axis labels and ticks
-    ax.set_xticks([])
-    ax.set_yticks([])
 
     # Create legend elements only for agent types (areas are labeled on graph)
     legend_elements = [

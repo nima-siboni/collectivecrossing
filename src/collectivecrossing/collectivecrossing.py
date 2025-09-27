@@ -480,10 +480,25 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         return self._get_agents_by_type(AgentType.EXITING)
 
     def _is_valid_position(self, pos: np.ndarray) -> bool:
-        """Check if a position is within the grid bounds."""
+        """Check if a position is within the grid bounds and not on a wall."""
         # Check grid bounds
         if not (0 <= pos[0] < self.config.width and 0 <= pos[1] < self.config.height):
             return False
+
+        # Check if position is on a wall
+        # Check division line wall (except door area)
+        if pos[1] == self.config.division_y:
+            # If at division line, check if it's in the door area
+            # Make door boundaries exclusive - agents cannot occupy
+            # tram_door_left or tram_door_right
+            if not (self.tram_door_left < pos[0] < self.tram_door_right):
+                return False  # On division line wall, not in door area
+
+        # Check tram side walls
+        if pos[1] >= self.config.division_y:
+            # In tram area, check if position is outside tram boundaries
+            if pos[0] < self.tram_left or pos[0] > self.tram_right:
+                return False  # Outside tram boundaries
 
         return True
 
@@ -524,9 +539,11 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         ):
             # Block movement through the division line EXCEPT at door positions
             # Check if the agent is trying to cross through the door area
+            # Make door boundaries exclusive - agents cannot occupy tram_door_left
+            # or tram_door_right
             if (
-                self.tram_door_left <= current_pos[0] <= self.tram_door_right
-                or self.tram_door_left <= new_pos[0] <= self.tram_door_right
+                self.tram_door_left < current_pos[0] < self.tram_door_right
+                or self.tram_door_left < new_pos[0] < self.tram_door_right
             ):
                 return False  # Allow movement through door area
             else:
