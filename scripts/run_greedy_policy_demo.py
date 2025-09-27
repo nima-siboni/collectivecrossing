@@ -10,6 +10,8 @@ import numpy as np
 from baseline_policies.greedy_policy import create_greedy_policy
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.reward_configs import ConstantNegativeRewardConfig
+from collectivecrossing.terminated_configs import IndividualAtDestinationTerminatedConfig
 from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 
 
@@ -33,6 +35,8 @@ def run_greedy_policy_with_stats(
         exiting_destination_area_y=0,
         boarding_destination_area_y=8,
         truncated_config=MaxStepsTruncatedConfig(max_steps=200),
+        reward_config=ConstantNegativeRewardConfig(step_penalty=-1.0),
+        terminated_config=IndividualAtDestinationTerminatedConfig(),
     )
 
     env = CollectiveCrossingEnv(config)

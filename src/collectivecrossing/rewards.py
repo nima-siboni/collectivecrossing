@@ -21,7 +21,7 @@ class RewardFunction(ABC):
         self.reward_config = reward_config
 
     @abstractmethod
-    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float:
+    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float | None:
         """
         Calculate reward for an agent.
 
@@ -41,7 +41,7 @@ class RewardFunction(ABC):
 class DefaultRewardFunction(RewardFunction):
     """Default reward function implementation."""
 
-    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float:
+    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float | None:
         """
         Calculate reward for an agent.
 
@@ -98,7 +98,7 @@ class DefaultRewardFunction(RewardFunction):
 class SimpleDistanceRewardFunction(RewardFunction):
     """Simple distance-based reward function."""
 
-    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float:
+    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float | None:
         """
         Calculate reward based on distance to goal.
 
@@ -150,7 +150,7 @@ class BinaryRewardFunction(RewardFunction):
 class ConstantNegativeRewardFunction(RewardFunction):
     """Constant negative reward function - provides a fixed negative reward per step."""
 
-    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float:
+    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float | None:
         """
         Calculate constant negative reward - same negative value every step.
 
@@ -164,6 +164,9 @@ class ConstantNegativeRewardFunction(RewardFunction):
             The constant negative reward for the agent.
 
         """
+        # if the agent is terminated or truncated, return None
+        if env._agents[agent_id].terminated or env._agents[agent_id].truncated:
+            return None
         return self.reward_config.step_penalty
 
 

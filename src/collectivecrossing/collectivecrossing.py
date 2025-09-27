@@ -207,23 +207,23 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 self._agents[agent_id].deactivate()
 
         for agent_id in self._agents.keys():
-            # Calculate reward
-            reward: float = self._calculate_reward(agent_id)
-            rewards[agent_id] = reward
+            reward: float | None = self._calculate_reward(agent_id)
+            if reward is not None:
+                rewards[agent_id] = reward
 
         for agent_id in self._agents.keys():
-            # Check if agent is done using the configured termination function
-            terminated: bool = self._calculate_terminated(agent_id)
-            terminateds[agent_id] = terminated
-            if terminated and not self._agents[agent_id].terminated:
-                self._agents[agent_id].terminate()
+            terminated: bool | None = self._calculate_terminated(agent_id)
+            if terminated is not None:
+                terminateds[agent_id] = terminated
+                if terminated and not self._agents[agent_id].terminated:
+                    self._agents[agent_id].terminate()
 
         for agent_id in self._agents.keys():
-            # Check if episode should be truncated using the configured truncation function
-            truncated: bool = self._calculate_truncated(agent_id)
-            truncateds[agent_id] = truncated
-            if truncated and not self._agents[agent_id].truncated:
-                self._agents[agent_id].truncate()
+            truncated: bool | None = self._calculate_truncated(agent_id)
+            if truncated is not None:
+                truncateds[agent_id] = truncated
+                if truncated and not self._agents[agent_id].truncated:
+                    self._agents[agent_id].truncate()
 
         for agent_id in self._agents.keys():
             infos[agent_id] = {
@@ -234,7 +234,9 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 "at_destination": self.has_agent_reached_destination(agent_id),
             }
 
-        for agent_id in self._agents.keys():
+        for agent_id in self.agents:
+            # Note that we only return observations for agents which are not terminated or
+            # truncated, hence we iterate over self.agents instead of self._agents.keys().
             observations[agent_id] = self._get_agent_observation(agent_id)
 
         # Check if environment is done
@@ -567,7 +569,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         return False
 
-    def _calculate_reward(self, agent_id: str) -> float:
+    def _calculate_reward(self, agent_id: str) -> float | None:
         """
         Calculate reward for an agent using the configured reward function.
 
@@ -582,7 +584,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """
         return self._reward_function.calculate_reward(agent_id, self)
 
-    def _calculate_terminated(self, agent_id: str) -> bool:
+    def _calculate_terminated(self, agent_id: str) -> bool | None:
         """
         Calculate termination status for an agent using the configured termination function.
 
@@ -597,7 +599,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """
         return self._terminated_function.calculate_terminated(agent_id, self)
 
-    def _calculate_truncated(self, agent_id: str) -> bool:
+    def _calculate_truncated(self, agent_id: str) -> bool | None:
         """
         Calculate truncation status for an agent using the configured truncation function.
 

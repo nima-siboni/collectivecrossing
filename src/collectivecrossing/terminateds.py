@@ -17,7 +17,7 @@ class TerminatedFunction(ABC):
         self.terminated_config = terminated_config
 
     @abstractmethod
-    def calculate_terminated(self, agent_id: str, env: "CollectiveCrossingEnv") -> bool:
+    def calculate_terminated(self, agent_id: str, env: "CollectiveCrossingEnv") -> bool | None:
         """
         Calculate termination status for an agent.
 
@@ -37,7 +37,7 @@ class TerminatedFunction(ABC):
 class AllAtDestinationTerminatedFunction(TerminatedFunction):
     """All-at-destination termination function implementation."""
 
-    def calculate_terminated(self, agent_id: str, env: "CollectiveCrossingEnv") -> bool:
+    def calculate_terminated(self, agent_id: str, env: "CollectiveCrossingEnv") -> bool | None:
         """
         Calculate termination status for an agent.
 
