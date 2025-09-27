@@ -7,6 +7,7 @@ import numpy as np
 
 from collectivecrossing.reward_configs import RewardConfig
 from collectivecrossing.types import AgentType
+from collectivecrossing.utils.geometry import calculate_distance
 
 if TYPE_CHECKING:
     from collectivecrossing.collectivecrossing import CollectiveCrossingEnv
@@ -20,7 +21,7 @@ class RewardFunction(ABC):
         self.reward_config = reward_config
 
     @abstractmethod
-    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float:
+    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float | None:
         """
         Calculate reward for an agent.
 
@@ -40,7 +41,7 @@ class RewardFunction(ABC):
 class DefaultRewardFunction(RewardFunction):
     """Default reward function implementation."""
 
-    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float:
+    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float | None:
         """
         Calculate reward for an agent.
 
@@ -74,7 +75,8 @@ class DefaultRewardFunction(RewardFunction):
                 return self.reward_config.tram_area_reward
             else:
                 # Small reward for moving towards the door
-                distance_to_door = abs(agent_pos[0] - env.config.tram_door_x) + (
+                door_center_x = (env.tram_door_left + env.tram_door_right) // 2
+                distance_to_door = abs(agent_pos[0] - door_center_x) + (
                     env.config.division_y - agent_pos[1]
                 )
                 return -distance_to_door * self.reward_config.distance_penalty_factor
@@ -86,7 +88,8 @@ class DefaultRewardFunction(RewardFunction):
                 return self.reward_config.tram_area_reward  # Use same reward for progress
             else:
                 # Small reward for moving towards exit
-                distance_to_exit = abs(agent_pos[0] - env.config.tram_door_x) + (
+                door_center_x = (env.tram_door_left + env.tram_door_right) // 2
+                distance_to_exit = abs(agent_pos[0] - door_center_x) + (
                     agent_pos[1] - env.config.division_y
                 )
                 return distance_to_exit * self.reward_config.distance_penalty_factor
@@ -95,7 +98,7 @@ class DefaultRewardFunction(RewardFunction):
 class SimpleDistanceRewardFunction(RewardFunction):
     """Simple distance-based reward function."""
 
-    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float:
+    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float | None:
         """
         Calculate reward based on distance to goal.
 
@@ -112,7 +115,7 @@ class SimpleDistanceRewardFunction(RewardFunction):
         agent_pos = env._get_agent_position(agent_id)
 
         goal_pos = env.get_agent_destination_position(agent_id)
-        distance = np.linalg.norm(agent_pos - goal_pos)
+        distance = calculate_distance(agent_pos, goal_pos)
         return (
             -distance * self.reward_config.distance_penalty_factor
         )  # Negative reward proportional to distance
@@ -147,7 +150,7 @@ class BinaryRewardFunction(RewardFunction):
 class ConstantNegativeRewardFunction(RewardFunction):
     """Constant negative reward function - provides a fixed negative reward per step."""
 
-    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float:
+    def calculate_reward(self, agent_id: str, env: "CollectiveCrossingEnv") -> float | None:
         """
         Calculate constant negative reward - same negative value every step.
 
@@ -161,6 +164,9 @@ class ConstantNegativeRewardFunction(RewardFunction):
             The constant negative reward for the agent.
 
         """
+        # if the agent is terminated or truncated, return None
+        if env._agents[agent_id].terminated or env._agents[agent_id].truncated:
+            return None
         return self.reward_config.step_penalty
 
 

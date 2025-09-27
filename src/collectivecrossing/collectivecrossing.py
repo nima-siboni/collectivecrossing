@@ -207,23 +207,23 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 self._agents[agent_id].deactivate()
 
         for agent_id in self._agents.keys():
-            # Calculate reward
-            reward: float = self._calculate_reward(agent_id)
-            rewards[agent_id] = reward
+            reward: float | None = self._calculate_reward(agent_id)
+            if reward is not None:
+                rewards[agent_id] = reward
 
         for agent_id in self._agents.keys():
-            # Check if agent is done using the configured termination function
-            terminated: bool = self._calculate_terminated(agent_id)
-            terminateds[agent_id] = terminated
-            if terminated:
-                self._agents[agent_id].terminate()
+            terminated: bool | None = self._calculate_terminated(agent_id)
+            if terminated is not None:
+                terminateds[agent_id] = terminated
+                if terminated and not self._agents[agent_id].terminated:
+                    self._agents[agent_id].terminate()
 
         for agent_id in self._agents.keys():
-            # Check if episode should be truncated using the configured truncation function
-            truncated: bool = self._calculate_truncated(agent_id)
-            truncateds[agent_id] = truncated
-            if truncated:
-                self._agents[agent_id].truncate()
+            truncated: bool | None = self._calculate_truncated(agent_id)
+            if truncated is not None:
+                truncateds[agent_id] = truncated
+                if truncated and not self._agents[agent_id].truncated:
+                    self._agents[agent_id].truncate()
 
         for agent_id in self._agents.keys():
             infos[agent_id] = {
@@ -234,7 +234,9 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 "at_destination": self.has_agent_reached_destination(agent_id),
             }
 
-        for agent_id in self._agents.keys():
+        for agent_id in self.agents:
+            # Note that we only return observations for agents which are not terminated or
+            # truncated, hence we iterate over self.agents instead of self._agents.keys().
             observations[agent_id] = self._get_agent_observation(agent_id)
 
         # Check if environment is done
@@ -480,8 +482,34 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         return self._get_agents_by_type(AgentType.EXITING)
 
     def _is_valid_position(self, pos: np.ndarray) -> bool:
-        """Check if a position is within the grid bounds."""
-        return 0 <= pos[0] < self.config.width and 0 <= pos[1] < self.config.height
+        """Check if a position is within the grid bounds and not on a wall."""
+        # Check grid bounds
+        # Allow y=height if boarding destination equals height
+        if self.config.boarding_destination_area_y == self.config.height:
+            # Special case: allow y=height when destination equals height
+            if not (0 <= pos[0] < self.config.width and 0 <= pos[1] <= self.config.height):
+                return False
+        else:
+            # Normal case: y must be < height
+            if not (0 <= pos[0] < self.config.width and 0 <= pos[1] < self.config.height):
+                return False
+
+        # Check if position is on a wall
+        # Check division line wall (except door area)
+        if pos[1] == self.config.division_y:
+            # If at division line, check if it's in the door area
+            # Make door boundaries exclusive - agents cannot occupy
+            # tram_door_left or tram_door_right
+            if not (self.tram_door_left < pos[0] < self.tram_door_right):
+                return False  # On division line wall, not in door area
+
+        # Check tram side walls
+        if pos[1] >= self.config.division_y:
+            # In tram area, check if position is outside tram boundaries
+            if pos[0] < self.tram_left or pos[0] > self.tram_right:
+                return False  # Outside tram boundaries
+
+        return True
 
     def _is_position_occupied(self, pos: np.ndarray, exclude_agent: str | None = None) -> bool:
         """Check if a position is occupied by another active agent."""
@@ -504,11 +532,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         return pos[1] >= self.config.division_y and self.tram_left <= pos[0] <= self.tram_right
 
     def is_at_tram_door(self, agent_id: str) -> bool:
-        """Check if a position is at the tram door."""
+        """Check if a position is at the tram door (adjacent to the occupied door positions)."""
         pos = self._get_agent_position(agent_id)
-        return (
-            pos[1] == self.config.division_y
-            and self.tram_door_left <= pos[0] <= self.tram_door_right
+        # Agent is at door if they're at the division line and adjacent
+        # to the occupied door positions
+        return pos[1] == self.config.division_y and (
+            pos[0] == self.tram_door_left - 1 or pos[0] == self.tram_door_right + 1
         )
 
     def _would_cross_tram_wall(self, current_pos: np.ndarray, new_pos: np.ndarray) -> bool:
@@ -517,23 +546,30 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         if (current_pos[1] < self.config.division_y and new_pos[1] >= self.config.division_y) or (
             current_pos[1] >= self.config.division_y and new_pos[1] < self.config.division_y
         ):
-            # Only allow crossing at the door
-            if not (self.tram_door_left <= new_pos[0] <= self.tram_door_right):
-                return True
+            # Block movement through the division line EXCEPT at door positions
+            # Check if the agent is trying to cross through the door area
+            # Make door boundaries exclusive - agents cannot occupy tram_door_left
+            # or tram_door_right
+            if (
+                self.tram_door_left < current_pos[0] < self.tram_door_right
+                or self.tram_door_left < new_pos[0] < self.tram_door_right
+            ):
+                return False  # Allow movement through door area
+            else:
+                return True  # Block movement through wall (non-door area)
 
         # Check if moving across tram side walls (x = tram_left or x = tram_right)
-        # Only check if the agent is in the tram area (y >= division_y)
-        if current_pos[1] >= self.config.division_y or new_pos[1] >= self.config.division_y:
-            # Check left wall crossing (from inside tram to outside)
-            if self.tram_left <= current_pos[0] <= self.tram_right and new_pos[0] < self.tram_left:
-                return True
-            # Check right wall crossing (from inside tram to outside)
-            if self.tram_left <= current_pos[0] <= self.tram_right and new_pos[0] > self.tram_right:
-                return True
+        # Block any movement that goes outside the tram area
+        # Left wall crossing - block if moving from inside to outside
+        if current_pos[0] >= self.tram_left and new_pos[0] < self.tram_left:
+            return True
+        # Right wall crossing - block if moving from inside to outside
+        if current_pos[0] <= self.tram_right and new_pos[0] > self.tram_right:
+            return True
 
         return False
 
-    def _calculate_reward(self, agent_id: str) -> float:
+    def _calculate_reward(self, agent_id: str) -> float | None:
         """
         Calculate reward for an agent using the configured reward function.
 
@@ -548,7 +584,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """
         return self._reward_function.calculate_reward(agent_id, self)
 
-    def _calculate_terminated(self, agent_id: str) -> bool:
+    def _calculate_terminated(self, agent_id: str) -> bool | None:
         """
         Calculate termination status for an agent using the configured termination function.
 
@@ -563,7 +599,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """
         return self._terminated_function.calculate_terminated(agent_id, self)
 
-    def _calculate_truncated(self, agent_id: str) -> bool:
+    def _calculate_truncated(self, agent_id: str) -> bool | None:
         """
         Calculate truncation status for an agent using the configured truncation function.
 
@@ -578,9 +614,16 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """
         return self._truncated_function.calculate_truncated(agent_id, self)
 
-    def get_agent_destination_position(self, agent_id: str) -> np.ndarray:
+    def get_agent_destination_position(self, agent_id: str) -> tuple[int | None, int | None]:
         """
         Get the destination position for an agent.
+
+        That the destination position can have two values:
+          - either it is a tuple of two integers (x, y)
+          - or it is a tuple of one integer and None (x, None), or (None, y)
+
+        This formulation is used to allow the destination be a seating area or
+        exit area, as well as one particular position.
 
         Args:
         ----
@@ -592,13 +635,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
         """
         agent_type = self._agents[agent_id].agent_type
-
         if agent_type == AgentType.BOARDING:
             # Boarding agents go to the boarding destination area
-            return np.array([self.config.tram_door_x, self.config.boarding_destination_area_y])
+            return (None, self.config.boarding_destination_area_y)
         else:  # EXITING
             # Exiting agents go to the exiting destination area
-            return np.array([self.config.tram_door_x, self.config.exiting_destination_area_y])
+            return (None, self.config.exiting_destination_area_y)
 
     def has_agent_reached_destination(self, agent_id: str) -> bool:
         """

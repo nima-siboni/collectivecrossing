@@ -16,8 +16,8 @@ def basic_config() -> CollectiveCrossingConfig:
         width=10,
         height=8,
         division_y=4,
-        tram_door_x=5,
-        tram_door_width=2,
+        tram_door_left=4,
+        tram_door_right=5,
         tram_length=8,
         num_boarding_agents=1,
         num_exiting_agents=1,
@@ -145,9 +145,9 @@ def test_get_agent_destination_position(basic_config: CollectiveCrossingConfig) 
     exiting_dest = env.get_agent_destination_position("exiting_0")
 
     # Boarding agents should go to boarding destination area
-    assert np.array_equal(boarding_dest, np.array([5, 6]))
+    assert boarding_dest == (None, 6)
     # Exiting agents should go to exiting destination area
-    assert np.array_equal(exiting_dest, np.array([5, 1]))
+    assert exiting_dest == (None, 1)
 
 
 def test_custom_default_reward_config(basic_config: CollectiveCrossingConfig) -> None:

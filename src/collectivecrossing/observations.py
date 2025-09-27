@@ -47,7 +47,10 @@ class DefaultObservationFunction(ObservationFunction):
         The observation includes:
         - Agent's own position (x, y)
         - Tram door information (door center x, division line y, door left, door right)
-        - Positions of all other agents (with placeholder for self)
+        - For each other agent:
+            - position (x, y)
+            - agent type (0=boarding, 1=exiting)
+            - active status (0=inactive, 1=active)
 
         Args:
         ----
@@ -64,24 +67,29 @@ class DefaultObservationFunction(ObservationFunction):
         # Start with agent's own position and tram door information
         tram_door_info = np.array(
             [
-                env.config.tram_door_x,  # Door center X
+                (env.tram_door_left + env.tram_door_right)
+                // 2,  # Door center X (occupied positions)
                 env.config.division_y,  # Division line Y
-                env.tram_door_left,  # Door left boundary
-                env.tram_door_right,  # Door right boundary
+                env.tram_door_left,  # Door left occupied position
+                env.tram_door_right,  # Door right occupied position
             ]
         )
-        # TODO: add active status of the agent
         obs = np.concatenate([agent_pos, tram_door_info])
 
-        # Add positions of all other agents
-        # TODO: is this for all agents or only the active ones?
+        # Add information for all other agents
         for other_id in env._agents.keys():
             if other_id != agent_id:
-                other_pos = env._get_agent_position(other_id)
-                obs = np.concatenate([obs, other_pos])
+                other_agent = env._get_agent(other_id)
+                other_pos = other_agent.position
+                # Agent type: 0 for boarding, 1 for exiting
+                agent_type = 1 if other_agent.is_exiting else 0
+                # Active status: 0 for inactive, 1 for active
+                active_status = 1 if other_agent.active else 0
+                other_info = np.array([other_pos[0], other_pos[1], agent_type, active_status])
+                obs = np.concatenate([obs, other_info])
             else:
-                # Use a placeholder for self (will be masked out)
-                obs = np.concatenate([obs, np.array([-1, -1])])
+                # Use placeholders for self (will be masked out)
+                obs = np.concatenate([obs, np.array([-1, -1, -1, -1])])
 
         return obs.astype(np.int32)
 
@@ -97,10 +105,15 @@ class DefaultObservationFunction(ObservationFunction):
             env: The environment instance.
 
         """
+        # Observation structure:
+        # - Agent's own position: 2 dimensions
+        # - Tram door info: 4 dimensions
+        # - For each agent (including self): 4 dimensions (x, y, agent_type, active_status)
+        # Total: 2 + 4 + 4 * num_agents
         return gym.spaces.Box(
-            low=0,
+            low=-1,  # Allow -1 for placeholders
             high=max(env.config.width, env.config.height) - 1,
-            shape=(2 + 4 + 2 * len(env._agents) - 1,),
+            shape=(2 + 4 + 4 * len(env._agents),),
             dtype=np.int32,
         )
 

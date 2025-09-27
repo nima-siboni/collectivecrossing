@@ -15,8 +15,8 @@ def test_environment_initialization() -> None:
             width=10,
             height=8,
             division_y=4,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=3,  # Relative to tram (tram_left + 3 = 4)
+            tram_door_right=4,  # Relative to tram (tram_left + 4 = 5)
             tram_length=8,
             num_boarding_agents=3,
             num_exiting_agents=2,
@@ -30,8 +30,8 @@ def test_environment_initialization() -> None:
     assert env.config.width == 10
     assert env.config.height == 8
     assert env.config.division_y == 4
-    assert env.config.tram_door_x == 5
-    assert env.config.tram_door_width == 2
+    assert env.config.tram_door_left == 3
+    assert env.config.tram_door_right == 4
     assert env.config.num_boarding_agents == 3
     assert env.config.num_exiting_agents == 2
     assert env.config.exiting_destination_area_y == 0
@@ -45,8 +45,8 @@ def test_environment_reset() -> None:
             width=10,
             height=8,
             division_y=4,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=3,  # Relative to tram (tram_left + 3 = 4)
+            tram_door_right=4,  # Relative to tram (tram_left + 4 = 5)
             tram_length=8,
             num_boarding_agents=3,
             num_exiting_agents=2,
@@ -79,8 +79,8 @@ def test_agent_movement() -> None:
             width=10,
             height=8,
             division_y=4,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=3,  # Relative to tram (tram_left + 3 = 4)
+            tram_door_right=4,  # Relative to tram (tram_left + 4 = 5)
             tram_length=8,
             num_boarding_agents=3,
             num_exiting_agents=1,
@@ -120,8 +120,8 @@ def test_agent_termination() -> None:
             width=8,
             height=6,
             division_y=3,
-            tram_door_x=4,
-            tram_door_width=2,
+            tram_door_left=3,
+            tram_door_right=4,
             tram_length=8,
             num_boarding_agents=1,
             num_exiting_agents=1,
@@ -159,8 +159,8 @@ def test_rendering() -> None:
             width=10,
             height=6,
             division_y=3,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=3,  # Relative to tram (tram_left + 3 = 4)
+            tram_door_right=4,  # Relative to tram (tram_left + 4 = 5)
             tram_length=8,
             num_boarding_agents=2,
             num_exiting_agents=1,
@@ -211,8 +211,8 @@ def test_action_space() -> None:
             width=10,
             height=6,
             division_y=3,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=3,  # Relative to tram (tram_left + 3 = 4)
+            tram_door_right=4,  # Relative to tram (tram_left + 4 = 5)
             tram_length=8,
             num_boarding_agents=2,
             num_exiting_agents=1,
@@ -286,8 +286,8 @@ def test_observation_structure() -> None:
             width=10,
             height=6,
             division_y=3,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=3,  # Relative to tram (tram_left + 3 = 4)
+            tram_door_right=4,  # Relative to tram (tram_left + 4 = 5)
             tram_length=8,
             num_boarding_agents=2,
             num_exiting_agents=1,
@@ -310,8 +310,10 @@ def test_observation_structure() -> None:
         assert obs.dtype == np.int32
 
         # Calculate expected observation size:
-        # 2 (agent position) + 4 (tram door info) + 2 * num_agents (other agent positions)
-        expected_size = 2 + 4 + 2 * 3  # 3 agents total
+        # 2 (agent position) +
+        # 4 (tram door info) +
+        # 4 * num_agents (x, y, agent_type, active_status for each agent)
+        expected_size = 2 + 4 + 4 * 3  # 3 agents total
         assert obs.shape == (expected_size,)
 
         # Check that agent position is at the beginning
@@ -321,14 +323,33 @@ def test_observation_structure() -> None:
 
         # Check tram door info (positions 2-5)
         tram_door_info = obs[2:6]
-        assert tram_door_info[0] == env.config.tram_door_x  # Door center X
+        assert tram_door_info[0] == (env.tram_door_left + env.tram_door_right) // 2  # Door center X
         assert tram_door_info[1] == env.config.division_y  # Division line Y
         assert tram_door_info[2] == env.tram_door_left  # Door left boundary
         assert tram_door_info[3] == env.tram_door_right  # Door right boundary
 
-        # Check other agent positions (positions 6 onwards)
-        other_agent_positions = obs[6:]
-        assert len(other_agent_positions) == 2 * 3  # 2 coordinates per agent, 3 agents total
+        # Check other agent information (positions 6 onwards)
+        # Each agent has 4 values: x, y, agent_type, active_status
+        other_agent_info = obs[6:]
+        assert len(other_agent_info) == 4 * 3  # 4 values per agent, 3 agents total
+
+        # Check that agent types are valid (0 or 1, or -1 for self placeholder)
+        for i in range(3):  # 3 agents
+            agent_type_idx = i * 4 + 2  # agent_type is at index 2 of each agent's 4 values
+            assert other_agent_info[agent_type_idx] in [
+                -1,
+                0,
+                1,
+            ]  # -1=self placeholder, 0=boarding, 1=exiting
+
+        # Check that active statuses are valid (0 or 1, or -1 for self placeholder)
+        for i in range(3):  # 3 agents
+            active_status_idx = i * 4 + 3  # active_status is at index 3 of each agent's 4 values
+            assert other_agent_info[active_status_idx] in [
+                -1,
+                0,
+                1,
+            ]  # -1=self placeholder, 0=inactive, 1=active
 
 
 def test_observation_consistency() -> None:
@@ -340,8 +361,8 @@ def test_observation_consistency() -> None:
             width=10,
             height=6,
             division_y=3,
-            tram_door_x=5,
-            tram_door_width=2,
+            tram_door_left=3,  # Relative to tram (tram_left + 3 = 4)
+            tram_door_right=4,  # Relative to tram (tram_left + 4 = 5)
             tram_length=8,
             num_boarding_agents=1,
             num_exiting_agents=1,
@@ -382,8 +403,8 @@ def test_observation_function_integration() -> None:
         width=10,
         height=6,
         division_y=3,
-        tram_door_x=5,
-        tram_door_width=2,
+        tram_door_left=4,
+        tram_door_right=5,
         tram_length=8,
         num_boarding_agents=1,
         num_exiting_agents=1,

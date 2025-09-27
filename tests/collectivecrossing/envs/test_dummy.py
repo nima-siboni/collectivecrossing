@@ -17,8 +17,8 @@ def test_dummy() -> None:
             width=5,
             height=4,
             division_y=2,
-            tram_door_x=2,
-            tram_door_width=1,
+            tram_door_left=2,
+            tram_door_right=2,
             tram_length=4,
             num_boarding_agents=1,
             num_exiting_agents=1,
@@ -32,8 +32,8 @@ def test_dummy() -> None:
     assert env.config.width == 5
     assert env.config.height == 4
     assert env.config.division_y == 2
-    assert env.config.tram_door_x == 2
-    assert env.config.tram_door_width == 1
+    assert env.config.tram_door_left == 2
+    assert env.config.tram_door_right == 2
     assert env.config.tram_length == 4
     assert env.config.num_boarding_agents == 1
     assert env.config.num_exiting_agents == 1
