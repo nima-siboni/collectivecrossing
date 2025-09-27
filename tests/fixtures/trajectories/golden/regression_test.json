@@ -368,7 +368,7 @@
           0,
           1,
           4,
-          3,
+          4,
           1,
           1
         ],
@@ -388,13 +388,13 @@
           -1,
           -1,
           4,
-          3,
+          4,
           1,
           1
         ],
         "exiting_0": [
           4,
-          3,
+          4,
           5,
           3,
           4,
@@ -416,7 +416,7 @@
       "next_rewards": {
         "boarding_0": -0.4,
         "boarding_1": -0.30000000000000004,
-        "exiting_0": 0.1
+        "exiting_0": 0.2
       },
       "next_terminated": {
         "boarding_0": false,
@@ -483,7 +483,7 @@
           0,
           1,
           4,
-          3,
+          4,
           1,
           1
         ],
@@ -503,13 +503,13 @@
           -1,
           -1,
           4,
-          3,
+          4,
           1,
           1
         ],
         "exiting_0": [
           4,
-          3,
+          4,
           5,
           3,
           4,
@@ -545,7 +545,7 @@
           0,
           1,
           4,
-          2,
+          4,
           1,
           1
         ],
@@ -565,13 +565,13 @@
           -1,
           -1,
           4,
-          2,
+          4,
           1,
           1
         ],
         "exiting_0": [
           4,
-          2,
+          4,
           5,
           3,
           4,
@@ -593,7 +593,7 @@
       "next_rewards": {
         "boarding_0": -0.30000000000000004,
         "boarding_1": -0.4,
-        "exiting_0": 5.0
+        "exiting_0": 0.2
       },
       "next_terminated": {
         "boarding_0": false,
@@ -624,7 +624,7 @@
         },
         "exiting_0": {
           "agent_type": "exiting",
-          "in_tram_area": false,
+          "in_tram_area": true,
           "at_door": false,
           "active": true,
           "at_destination": false
@@ -660,7 +660,7 @@
           0,
           1,
           4,
-          2,
+          4,
           1,
           1
         ],
@@ -680,13 +680,13 @@
           -1,
           -1,
           4,
-          2,
+          4,
           1,
           1
         ],
         "exiting_0": [
           4,
-          2,
+          4,
           5,
           3,
           4,
@@ -707,7 +707,7 @@
       },
       "next_observations": {
         "boarding_0": [
-          3,
+          4,
           2,
           5,
           3,
@@ -722,7 +722,7 @@
           0,
           1,
           4,
-          1,
+          4,
           1,
           1
         ],
@@ -733,7 +733,7 @@
           3,
           4,
           6,
-          3,
+          4,
           2,
           0,
           1,
@@ -742,18 +742,18 @@
           -1,
           -1,
           4,
-          1,
+          4,
           1,
           1
         ],
         "exiting_0": [
           4,
-          1,
+          4,
           5,
           3,
           4,
           6,
-          3,
+          4,
           2,
           0,
           1,
@@ -768,9 +768,9 @@
         ]
       },
       "next_rewards": {
-        "boarding_0": -0.30000000000000004,
+        "boarding_0": -0.2,
         "boarding_1": -0.5,
-        "exiting_0": 5.0
+        "exiting_0": 0.2
       },
       "next_terminated": {
         "boarding_0": false,
@@ -801,7 +801,7 @@
         },
         "exiting_0": {
           "agent_type": "exiting",
-          "in_tram_area": false,
+          "in_tram_area": true,
           "at_door": false,
           "active": true,
           "at_destination": false
@@ -822,7 +822,7 @@
       },
       "observations": {
         "boarding_0": [
-          3,
+          4,
           2,
           5,
           3,
@@ -837,7 +837,7 @@
           0,
           1,
           4,
-          1,
+          4,
           1,
           1
         ],
@@ -848,7 +848,7 @@
           3,
           4,
           6,
-          3,
+          4,
           2,
           0,
           1,
@@ -857,18 +857,18 @@
           -1,
           -1,
           4,
-          1,
+          4,
           1,
           1
         ],
         "exiting_0": [
           4,
-          1,
+          4,
           5,
           3,
           4,
           6,
-          3,
+          4,
           2,
           0,
           1,
@@ -884,7 +884,7 @@
       },
       "next_observations": {
         "boarding_0": [
-          4,
+          5,
           2,
           5,
           3,
@@ -899,9 +899,9 @@
           0,
           1,
           4,
-          0,
+          4,
           1,
-          0
+          1
         ],
         "boarding_1": [
           1,
@@ -910,7 +910,7 @@
           3,
           4,
           6,
-          4,
+          5,
           2,
           0,
           1,
@@ -919,18 +919,18 @@
           -1,
           -1,
           4,
-          0,
+          4,
           1,
-          0
+          1
         ],
         "exiting_0": [
           4,
-          0,
+          4,
           5,
           3,
           4,
           6,
-          4,
+          5,
           2,
           0,
           1,
@@ -945,14 +945,14 @@
         ]
       },
       "next_rewards": {
-        "boarding_0": -0.2,
+        "boarding_0": -0.1,
         "boarding_1": -0.6000000000000001,
-        "exiting_0": 15.0
+        "exiting_0": 0.2
       },
       "next_terminated": {
         "boarding_0": false,
         "boarding_1": false,
-        "exiting_0": true,
+        "exiting_0": false,
         "__all__": false
       },
       "next_truncated": {
@@ -978,10 +978,10 @@
         },
         "exiting_0": {
           "agent_type": "exiting",
-          "in_tram_area": false,
+          "in_tram_area": true,
           "at_door": false,
-          "active": false,
-          "at_destination": true
+          "active": true,
+          "at_destination": false
         }
       }
     }
