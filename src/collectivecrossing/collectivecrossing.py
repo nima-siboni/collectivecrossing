@@ -481,7 +481,11 @@ class CollectiveCrossingEnv(MultiAgentEnv):
 
     def _is_valid_position(self, pos: np.ndarray) -> bool:
         """Check if a position is within the grid bounds."""
-        return 0 <= pos[0] < self.config.width and 0 <= pos[1] < self.config.height
+        # Check grid bounds
+        if not (0 <= pos[0] < self.config.width and 0 <= pos[1] < self.config.height):
+            return False
+
+        return True
 
     def _is_position_occupied(self, pos: np.ndarray, exclude_agent: str | None = None) -> bool:
         """Check if a position is occupied by another active agent."""
@@ -518,23 +522,24 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         if (current_pos[1] < self.config.division_y and new_pos[1] >= self.config.division_y) or (
             current_pos[1] >= self.config.division_y and new_pos[1] < self.config.division_y
         ):
-            # Block movement through occupied door positions
-            # Check if the agent is trying to cross through the occupied door area
+            # Block movement through the division line EXCEPT at door positions
+            # Check if the agent is trying to cross through the door area
             if (
                 self.tram_door_left <= current_pos[0] <= self.tram_door_right
                 or self.tram_door_left <= new_pos[0] <= self.tram_door_right
             ):
-                return True
+                return False  # Allow movement through door area
+            else:
+                return True  # Block movement through wall (non-door area)
 
         # Check if moving across tram side walls (x = tram_left or x = tram_right)
-        # Only check if the agent is in the tram area (y >= division_y)
-        if current_pos[1] >= self.config.division_y or new_pos[1] >= self.config.division_y:
-            # Check left wall crossing (from inside tram to outside)
-            if self.tram_left <= current_pos[0] <= self.tram_right and new_pos[0] < self.tram_left:
-                return True
-            # Check right wall crossing (from inside tram to outside)
-            if self.tram_left <= current_pos[0] <= self.tram_right and new_pos[0] > self.tram_right:
-                return True
+        # Block any movement that goes outside the tram area
+        # Left wall crossing - block if moving from inside to outside
+        if current_pos[0] >= self.tram_left and new_pos[0] < self.tram_left:
+            return True
+        # Right wall crossing - block if moving from inside to outside
+        if current_pos[0] <= self.tram_right and new_pos[0] > self.tram_right:
+            return True
 
         return False
 

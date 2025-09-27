@@ -19,8 +19,8 @@ def test_greedy_policy() -> None:
         width=10,
         height=6,
         division_y=3,
-        tram_door_left=4,
-        tram_door_right=5,
+        tram_door_left=3,  # Relative to tram (tram_left + 3 = 4)
+        tram_door_right=4,  # Relative to tram (tram_left + 4 = 5)
         tram_length=8,
         num_boarding_agents=2,
         num_exiting_agents=1,

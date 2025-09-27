@@ -114,8 +114,16 @@ class GreedyPolicy:
                     target_pos = np.array([door_right_corner[0] + 1, door_right_corner[1]])
                     return self._get_direction_vector(current_pos, target_pos)
                 else:
-                    # Agent is between occupied door positions, move toward destination
-                    return self._get_direction_vector(current_pos, destination)
+                    # Agent is between occupied door positions, move to adjacent door position
+                    # Move to the closest adjacent position (left or right of door)
+                    if current_pos[0] <= (door_left_corner[0] + door_right_corner[0]) // 2:
+                        # Move to left adjacent position
+                        target_pos = np.array([door_left_corner[0] - 1, door_left_corner[1]])
+                        return self._get_direction_vector(current_pos, target_pos)
+                    else:
+                        # Move to right adjacent position
+                        target_pos = np.array([door_right_corner[0] + 1, door_right_corner[1]])
+                        return self._get_direction_vector(current_pos, target_pos)
             else:
                 # in tram area, go toward destination
                 return self._get_direction_vector(current_pos, destination)
@@ -312,28 +320,32 @@ class GreedyPolicy:
             # Boarding agents: go up first, then toward door
             if current_pos[1] < env.config.division_y:
                 # Still in waiting area, prioritize going up
-                door_center_x = (env.config.tram_door_left + env.config.tram_door_right) // 2
-                if current_pos[0] < door_center_x:
+                # Check if agent is in the occupied door area
+                if env.config.tram_door_left <= current_pos[0] <= env.config.tram_door_right:
+                    # Agent is in occupied door area, move to adjacent positions
                     return [
-                        Actions.right.value,
+                        Actions.left.value,  # Move to left adjacent position
+                        Actions.right.value,  # Move to right adjacent position
                         Actions.up.value,
-                        Actions.left.value,
-                        Actions.down.value,
-                    ]
-                elif current_pos[0] > door_center_x:
-                    return [
-                        Actions.left.value,
-                        Actions.up.value,
-                        Actions.right.value,
                         Actions.down.value,
                     ]
                 else:
-                    return [
-                        Actions.up.value,
-                        Actions.right.value,
-                        Actions.left.value,
-                        Actions.down.value,
-                    ]
+                    # Agent is outside occupied door area, move toward door
+                    door_center_x = (env.config.tram_door_left + env.config.tram_door_right) // 2
+                    if current_pos[0] < door_center_x:
+                        return [
+                            Actions.right.value,
+                            Actions.up.value,
+                            Actions.left.value,
+                            Actions.down.value,
+                        ]
+                    else:
+                        return [
+                            Actions.left.value,
+                            Actions.up.value,
+                            Actions.right.value,
+                            Actions.down.value,
+                        ]
             else:
                 # In tram area, go toward destination
                 if destination[0] is None:

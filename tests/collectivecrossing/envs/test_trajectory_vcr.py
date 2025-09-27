@@ -327,8 +327,8 @@ def create_test_environment() -> CollectiveCrossingEnv:
             width=10,
             height=6,
             division_y=3,
-            tram_door_left=4,  # Occupied position (old door left)
-            tram_door_right=6,  # Occupied position (old door right)
+            tram_door_left=3,  # Relative to tram (tram_left + 3 = 4)
+            tram_door_right=5,  # Relative to tram (tram_left + 5 = 6)
             tram_length=8,
             num_boarding_agents=2,
             num_exiting_agents=1,

@@ -30,13 +30,14 @@ def calculate_tram_boundaries(config: CollectiveCrossingConfig) -> TramBoundarie
         TramBoundaries: Dataclass containing all tram boundary values
 
     """
-    # Use tram door boundaries directly from config
-    tram_door_left = config.tram_door_left
-    tram_door_right = config.tram_door_right
+    # Calculate tram boundaries (centered in environment)
+    tram_center = config.width // 2
+    tram_left = tram_center - config.tram_length // 2
+    tram_right = tram_center + config.tram_length // 2
 
-    # Calculate tram boundaries
-    tram_left = 0
-    tram_right = config.tram_length - 1
+    # Convert tram door boundaries from relative to absolute coordinates
+    tram_door_left = tram_left + config.tram_door_left
+    tram_door_right = tram_left + config.tram_door_right
 
     return TramBoundaries(
         tram_door_left=tram_door_left,
