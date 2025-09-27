@@ -124,7 +124,7 @@ def run_greedy_policy_with_stats(
 
 def create_greedy_policy_animation(
     env: CollectiveCrossingEnv,
-    epsilon: float = 0.1,
+    epsilon: float,
 ) -> str:
     """Create animation of the greedy policy run."""
     print("\n🎬 Creating animation...")
