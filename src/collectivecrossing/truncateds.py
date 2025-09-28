@@ -17,7 +17,7 @@ class TruncatedFunction(ABC):
         self.truncated_config = truncated_config
 
     @abstractmethod
-    def calculate_truncated(self, agent_id: str, env: "CollectiveCrossingEnv") -> bool:
+    def calculate_truncated(self, agent_id: str, env: "CollectiveCrossingEnv") -> bool | None:
         """
         Calculate truncation status for an agent.
 
@@ -37,7 +37,7 @@ class TruncatedFunction(ABC):
 class MaxStepsTruncatedFunction(TruncatedFunction):
     """Truncation function that truncates when max_steps is reached."""
 
-    def calculate_truncated(self, agent_id: str, env: "CollectiveCrossingEnv") -> bool:
+    def calculate_truncated(self, agent_id: str, env: "CollectiveCrossingEnv") -> bool | None:
         """
         Return True if the episode is truncated, False otherwise.
 
@@ -54,13 +54,17 @@ class MaxStepsTruncatedFunction(TruncatedFunction):
             True if the episode is truncated, False otherwise.
 
         """
+        # if the agent is terminated or truncated, return None
+        if env._agents[agent_id].terminated or env._agents[agent_id].truncated:
+            return None
+
         return env._step_count >= self.truncated_config.max_steps
 
 
 class CustomTruncatedFunction(TruncatedFunction):
     """Custom truncation function that can be extended with custom logic."""
 
-    def calculate_truncated(self, agent_id: str, env: "CollectiveCrossingEnv") -> bool:
+    def calculate_truncated(self, agent_id: str, env: "CollectiveCrossingEnv") -> bool | None:
         """
         Return truncated.
 
@@ -74,6 +78,10 @@ class CustomTruncatedFunction(TruncatedFunction):
             True if the episode should be truncated, False otherwise.
 
         """
+        # if the agent is terminated or truncated, return None
+        if env._agents[agent_id].terminated or env._agents[agent_id].truncated:
+            return None
+
         # Basic max steps logic
         if env._step_count >= self.truncated_config.max_steps:
             return True
