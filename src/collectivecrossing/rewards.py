@@ -61,6 +61,10 @@ class DefaultRewardFunction(RewardFunction):
             The reward for the agent.
 
         """
+        # if the agent is terminated or truncated, return None
+        if env._agents[agent_id].terminated or env._agents[agent_id].truncated:
+            return None
+
         agent_pos = env._get_agent_position(agent_id)
         agent_type = env._agents[agent_id].agent_type
 
