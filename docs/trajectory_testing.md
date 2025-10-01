@@ -8,48 +8,48 @@ The trajectory testing system records environment interactions (actions → obse
 
 ## ⚙️ How It Works
 
-### 📼 VCR (Video Cassette Recorder) Concept
+### VCR (Video Cassette Recorder) Concept
 
 The system works like a VCR for environment interactions:
 
-1. **🎙️ Record Mode**: Capture complete environment state at each step
-2. **▶️ Replay Mode**: Feed the same actions and verify identical outputs
-3. **🔍 Comparison**: Detect any behavioral changes during refactoring
+1. **Record Mode**: Capture complete environment state at each step
+2. **Replay Mode**: Feed the same actions and verify identical outputs
+3. **Comparison**: Detect any behavioral changes during refactoring
 
-### 🧩 Key Components
+### Key Components
 
-- **🎯 TrajectoryVCR Class**: Main recorder/replayer
-- **🏆 Golden Baselines**: Known good trajectories from working code
-- **📊 Version-Specific Trajectories**: Track changes across versions
-- **💾 JSON Storage**: Trajectories stored as structured data files
+- **TrajectoryVCR Class**: Main recorder/replayer
+- **Golden Baselines**: Known good trajectories from working code
+- **Version-Specific Trajectories**: Track changes across versions
+- **JSON Storage**: Trajectories stored as structured data files
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```
 tests/fixtures/trajectories/
-├── 🏆 golden/                    # Golden baselines (known good)
+├── golden/                    # Golden baselines (known good)
 │   ├── golden_basic_trajectory.json
 │   └── ...
-├── 🔄 current/                   # Current version trajectories
+├── current/                   # Current version trajectories
 │   ├── test_basic_trajectory.json
 │   └── ...
-├── 📦 v1.0/                      # Version-specific trajectories
+├── v1.0/                      # Version-specific trajectories
 │   └── ...
-└── 📦 v2.0/
+└── v2.0/
     └── ...
 ```
 
-## 📝 Version Control
+## Version Control
 
-### ✅ What to Commit
+### What to Commit
 
-- **🏆 `golden/` directory**: Golden baselines should be committed to version control
+- **`golden/` directory**: Golden baselines should be committed to version control
 - **📋 Test files**: All test files should be committed
 
-### ❌ What NOT to Commit
+### What NOT to Commit
 
-- **🔄 `current/` directory**: Current trajectories are temporary test artifacts
-- **📦 Version-specific directories**: These are generated during testing
+- **`current/` directory**: Current trajectories are temporary test artifacts
+- **Version-specific directories**: These are generated during testing
 
 The `current/` directory is automatically ignored by `.gitignore`:
 
@@ -58,16 +58,16 @@ The `current/` directory is automatically ignored by `.gitignore`:
 tests/fixtures/trajectories/current/
 ```
 
-### 🔄 Golden Baseline Lifecycle
+### Golden Baseline Lifecycle
 
-1. **🏆 Create**: Golden baselines are created from known-good code
-2. **📝 Commit**: Golden baselines are committed to version control
-3. **🧪 Test**: Tests compare current behavior against golden baselines
-4. **🔄 Update**: Golden baselines are updated when behavior intentionally changes
+1. **Create**: Golden baselines are created from known-good code
+2. **Commit**: Golden baselines are committed to version control
+3. **Test**: Tests compare current behavior against golden baselines
+4. **Update**: Golden baselines are updated when behavior intentionally changes
 
-## 🚀 Usage
+## Usage
 
-### 1. 🏆 Creating Golden Baselines
+### 1. Creating Golden Baselines
 
 Golden baselines are trajectories from known good code that serve as reference points.
 
@@ -77,13 +77,13 @@ uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_create_
 ```
 
 **When to create golden baselines:**
-- 🔧 Before starting major refactoring
-- 🐛 After fixing bugs in working code
-- ✅ When you have a stable, tested version
+- Before starting major refactoring
+- After fixing bugs in working code
+- When you have a stable, tested version
 
 **Important**: Tests now preserve existing golden baselines. They will only create new ones if they don't exist, preventing accidental overwrites.
 
-### 2. 🔍 Comparing Against Golden Baselines
+### 2. Comparing Against Golden Baselines
 
 Compare current code behavior against golden baselines to detect regressions.
 
@@ -93,14 +93,14 @@ uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_golden_
 ```
 
 **What this catches:**
-- 🤖 Changes in agent behavior
-- 🎯 Reward calculation changes
-- 🛑 Termination condition changes
-- 👁️ Observation space changes
+- Changes in agent behavior
+- Reward calculation changes
+- Termination condition changes
+- Observation space changes
 
 **Test Behavior**: This test requires the golden baseline to exist and will fail with a clear error message if it's missing.
 
-### 3. 📊 Version-Specific Testing
+### 3. Version-Specific Testing
 
 Track changes across different versions of your code.
 
@@ -109,16 +109,16 @@ Track changes across different versions of your code.
 uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_version_specific_trajectories -v
 ```
 
-### 4. 🧪 Running All Tests
+### 4. Running All Tests
 
 ```bash
 # Run all trajectory VCR tests
 uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py -v
 ```
 
-## 📦 Creating New Versions
+## Creating New Versions
 
-### Step 1: 🆕 Create Version-Specific VCR
+### Step 1: Create Version-Specific VCR
 
 ```python
 from tests.collectivecrossing.envs.test_trajectory_vcr import TrajectoryVCR
@@ -127,14 +127,14 @@ from tests.collectivecrossing.envs.test_trajectory_vcr import TrajectoryVCR
 vcr_new = TrajectoryVCR(version="v2.1")
 ```
 
-### Step 2: 🎙️ Record Trajectories
+### Step 2: Record Trajectories
 
 ```python
 # Record trajectory for new version
 trajectory = vcr_new.record_trajectory(env, actions_sequence, "new_feature_test")
 ```
 
-### Step 3: 🔄 Compare with Previous Version
+### Step 3: Compare with Previous Version
 
 ```python
 # Compare with previous version
@@ -142,16 +142,16 @@ vcr_old = TrajectoryVCR(version="v2.0")
 vcr_old._compare_trajectories(old_trajectory, new_trajectory, "v2.0", "v2.1")
 ```
 
-## 🏆 Creating Golden Baselines
+## Creating Golden Baselines
 
-### Method 1: 🧪 Using Test Functions
+### Method 1: Using Test Functions
 
 ```bash
 # Run the golden baseline creation test
 uv run pytest tests/collectivecrossing/envs/test_trajectory_vcr.py::test_create_golden_baseline -v
 ```
 
-### Method 2: ✏️ Manual Creation
+### Method 2: Manual Creation
 
 ```python
 from tests.collectivecrossing.envs.test_trajectory_vcr import TrajectoryVCR, create_test_environment, generate_deterministic_actions
@@ -170,14 +170,14 @@ actions_sequence = generate_deterministic_actions(observations, num_steps=20)
 trajectory = vcr.create_golden_baseline(env, actions_sequence, "my_golden_baseline")
 ```
 
-### Method 3: 💻 Command Line Script
+### Method 3: Command Line Script
 
 ```bash
 # Run the manual script
 uv run python tests/collectivecrossing/envs/test_trajectory_vcr.py
 ```
 
-## 📊 Trajectory Data Structure
+## Trajectory Data Structure
 
 Each trajectory is stored as a JSON file with the following structure:
 
@@ -187,8 +187,8 @@ Each trajectory is stored as a JSON file with the following structure:
     "width": 10,
     "height": 6,
     "division_y": 3,
-    "tram_door_x": 5,
-    "tram_door_width": 2,
+    "tram_door_left": 4,
+    "tram_door_right": 5,
     "tram_length": 8,
     "num_boarding_agents": 2,
     "num_exiting_agents": 1,
@@ -250,44 +250,44 @@ Each trajectory is stored as a JSON file with the following structure:
 }
 ```
 
-## 💡 Best Practices
+## Best Practices
 
 ### 1. 🏆 When to Create Golden Baselines
 
-- **🔧 Before major refactoring**: Create baselines from stable code
-- **🐛 After bug fixes**: Update baselines to reflect correct behavior
-- **🚀 Before releases**: Ensure baselines represent intended behavior
+- **Before major refactoring**: Create baselines from stable code
+- **After bug fixes**: Update baselines to reflect correct behavior
+- **Before releases**: Ensure baselines represent intended behavior
 
 ### 2. 🎯 Test Coverage
 
-- **📋 Multiple scenarios**: Create baselines for different environment configurations
-- **⚠️ Edge cases**: Include trajectories that test boundary conditions
-- **🛤️ Common paths**: Focus on typical agent behaviors
+- **Multiple scenarios**: Create baselines for different environment configurations
+- **Edge cases**: Include trajectories that test boundary conditions
+- **Common paths**: Focus on typical agent behaviors
 
 ### 3. 🔧 Maintenance
 
-- **🔄 Regular updates**: Update golden baselines when behavior intentionally changes
-- **📝 Version control**: Commit trajectory files to track changes over time
-- **📚 Documentation**: Document why baselines were updated
+- **Regular updates**: Update golden baselines when behavior intentionally changes
+- **Version control**: Commit trajectory files to track changes over time
+- **Documentation**: Document why baselines were updated
 
 ### 4. 🐛 Debugging
 
 When tests fail, the system provides detailed information:
 
-- **📊 Step-by-step comparison**: Shows exactly where trajectories diverge
-- **🤖 Agent-specific details**: Identifies which agents behave differently
-- **🔍 State differences**: Shows observation, reward, and termination differences
+- **Step-by-step comparison**: Shows exactly where trajectories diverge
+- **Agent-specific details**: Identifies which agents behave differently
+- **State differences**: Shows observation, reward, and termination differences
 
 ## 🔧 Troubleshooting
 
-### 🤔 Understanding Test Skipping
+### Understanding Test Skipping
 
 The VCR testing system is designed to **skip tests** when required golden baseline files are missing. This is intentional behavior to prevent false failures when baseline data isn't available.
 
 **Why tests are skipped:**
-- 🏆 **Golden baselines missing**: Tests require specific golden baseline files to compare against
-- 🔍 **No comparison data**: Without baselines, tests can't verify consistency
-- 🛡️ **Prevents false failures**: Skipping is better than failing due to missing data
+- **Golden baselines missing**: Tests require specific golden baseline files to compare against
+- **No comparison data**: Without baselines, tests can't verify consistency
+- **Prevents false failures**: Skipping is better than failing due to missing data
 
 **Common skipped tests:**
 - `test_replay_trajectory`: Requires `test_basic_trajectory.json` in golden directory
@@ -307,18 +307,18 @@ ls tests/fixtures/trajectories/current/
 
 ### 🚨 Common Issues
 
-1. **❌ Missing Golden Baseline**
+1. **Missing Golden Baseline**
    ```
    pytest.skip: Golden baseline test_name not found. Create golden baseline first.
    ```
-   **💡 Solution**: Run the golden baseline creation test first.
+   **Solution**: Run the golden baseline creation test first.
 
-2. **⏭️ Tests Being Skipped**
+2. **Tests Being Skipped**
    ```
    pytest.skip: Golden cassette test_basic_trajectory not found. Create golden baseline first.
    pytest.skip: Golden cassette consistency_test not found. Create golden baseline first.
    ```
-   **💡 Solution**: These tests require specific golden baseline files. You can resolve this by:
+   ** Solution**: These tests require specific golden baseline files. You can resolve this by:
    
    **Option A: Create golden baselines automatically**
    ```bash
@@ -346,13 +346,13 @@ ls tests/fixtures/trajectories/current/
    ```
    pytest.fail: Config mismatch between golden and current
    ```
-   **💡 Solution**: Ensure environment configuration matches between recording and replay.
+   **Solution**: Ensure environment configuration matches between recording and replay.
 
 4. **👁️ Observation Mismatch**
    ```
    pytest.fail: Observation mismatch for agent_id at step N
    ```
-   **💡 Solution**: Check for changes in environment logic that affect agent behavior.
+   **Solution**: Check for changes in environment logic that affect agent behavior.
 
 5. **🔄 Golden Baseline Modified**
    ```

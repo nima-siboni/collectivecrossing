@@ -24,7 +24,7 @@ truncated_config = MaxStepsTruncatedConfig(max_steps=100)
 
 config = CollectiveCrossingConfig(
     width=12, height=8, division_y=4,
-    tram_door_x=6, tram_door_width=2, tram_length=10,
+    tram_door_left=5, tram_door_right=6, tram_length=10,
     num_boarding_agents=5, num_exiting_agents=3,
     render_mode="rgb_array",
     reward_config=reward_config,
@@ -71,8 +71,8 @@ config = CollectiveCrossingConfig(
     width=12,                    # Environment width
     height=8,                    # Environment height
     division_y=4,                # Y-coordinate of tram/waiting area division
-    tram_door_x=6,               # X-coordinate of tram door center
-    tram_door_width=2,           # Width of the tram door
+    tram_door_left=5,            # Left boundary of tram door
+    tram_door_right=6,           # Right boundary of tram door
     tram_length=10,              # Length of the tram
     num_boarding_agents=5,       # Number of agents trying to board
     num_exiting_agents=3,        # Number of agents trying to exit
@@ -86,11 +86,11 @@ config = CollectiveCrossingConfig(
 ### Automatic Validation
 
 The configuration system automatically validates:
-- **Tram parameters** 🚇 (door position, width, length)
-- **Destination areas** 🎯 (within valid boundaries)
-- **Environment bounds** 📐 (grid dimensions)
-- **Agent counts** 👥 (reasonable limits)
-- **Render modes** 🎨 (valid options)
+- **Tram parameters** (door position, width, length)
+- **Destination areas** (within valid boundaries)
+- **Environment bounds** (grid dimensions)
+- **Agent counts** (reasonable limits)
+- **Render modes** (valid options)
 
 ```python
 # Invalid configuration will raise descriptive errors
@@ -270,7 +270,7 @@ truncated_config = MaxStepsTruncatedConfig(max_steps=500)
 
 config = CollectiveCrossingConfig(
     width=15, height=10, division_y=5,
-    tram_door_x=7, tram_door_width=3, tram_length=12,
+    tram_door_left=6, tram_door_right=8, tram_length=12,
     num_boarding_agents=6, num_exiting_agents=4,
     exiting_destination_area_y=1, boarding_destination_area_y=8,
     render_mode="rgb_array",
@@ -294,7 +294,7 @@ import matplotlib.pyplot as plt
 # Create environment with RGB rendering
 config = CollectiveCrossingConfig(
     width=12, height=8, division_y=4,
-    tram_door_x=6, tram_door_width=2, tram_length=10,
+    tram_door_left=5, tram_door_right=6, tram_length=10,
     num_boarding_agents=5, num_exiting_agents=3,
     render_mode="rgb_array"
 )
@@ -318,7 +318,7 @@ plt.show()
 # Create environment with ASCII rendering
 config = CollectiveCrossingConfig(
     width=12, height=8, division_y=4,
-    tram_door_x=6, tram_door_width=2, tram_length=10,
+    tram_door_left=5, tram_door_right=6, tram_length=10,
     num_boarding_agents=5, num_exiting_agents=3,
     render_mode="ansi"
 )
