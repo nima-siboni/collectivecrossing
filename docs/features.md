@@ -8,10 +8,9 @@
 - **Dynamic agent management** with configurable agent counts
 - **Individual agent tracking** with unique identifiers
 
-### Smart Collision Avoidance
-- **🛡️ Collision prevention** prevents agents from occupying the same space
-- **Intelligent pathfinding** agents navigate around obstacles
-- **Spatial awareness** agents respect each other's movement
+### Basic Collision Handling
+- **🛡️ Same-cell prevention only** agents are not allowed to occupy the same grid cell
+- **No yielding/coordination** agents do not respect each other explicitly; they can bump and block
 
 ### Configurable Geometry
 - **🏗️ Customizable tram size** adjustable width, length, and position
@@ -20,73 +19,49 @@
 - **Division line customization** tram/waiting area boundary
 
 ### Ray RLlib Compatibility
-- **🚀 MultiAgentEnv API** full compatibility with Ray RLlib
+- **🚀 MultiAgentEnv API** compatible with Ray RLlib interfaces used in examples/tests
 - **Standard gym interface** follows OpenAI Gym conventions
 - **Action space support** discrete action spaces for all agents
 - **Observation space** structured observations for each agent
 
-### Multiple Rendering Modes
-- **🎨 RGB visualization** colorful grid-based rendering
+### Rendering Modes
+- **🎨 RGB visualization** grid-based rendering for images
 - **ASCII rendering** text-based visualization for terminals
-- **Customizable colors** different colors for different agent types
-- **Real-time updates** live visualization during simulation
+- **Simple coloring** different colors for different agent types
+- **Step-by-step updates** render after environment steps
 
 ## 🎁 Reward System Features
 
 ### Flexible Reward Strategies
-- **Default reward system** 🎯 comprehensive rewards for different achievements
-- **Simple distance rewards** 📏 distance-based penalty system
-- **Binary rewards** ⚡ simple goal-reached or not rewards
-- **Custom reward functions** 🔧 extensible reward system
-
-### Configurable Reward Parameters
-- **Boarding destination rewards** 🚶‍♂️ rewards for reaching boarding area
-- **Tram door rewards** 🚪 rewards for reaching tram door
-- **Tram area rewards** 🚇 rewards for being in tram area
-- **Distance penalty factors** 📐 configurable distance-based penalties
-- **Goal completion rewards** 🎯 rewards for successful goal achievement
+- **Default**, **simple distance**, **binary**, and **custom** strategies
+- Configured via `RewardConfig` classes; parameters depend on the chosen strategy
 
 ## ⏹️ Termination System Features
 
 ### Configurable Termination Conditions
-- **All agents at destination** 👥 episode ends when all agents complete
-- **Individual agent termination** 🎯 each agent terminates independently
-- **Custom termination functions** 🔧 extensible termination logic
-- **Timeout-based termination** ⏱️ automatic termination after time limits
-
-### Termination Parameters
-- **Maximum steps per agent** 📊 individual agent step limits
-- **Completion requirements** ✅ configurable completion criteria
-- **Flexible termination logic** 🧠 customizable termination rules
+- **All at destination**, **individual at destination**, and **custom** policies
+- Set via `TerminatedConfig` classes; keep it simple or extend as needed
 
 ## ⏱️ Truncation System Features
 
 ### Flexible Truncation Policies
-- **Maximum steps truncation** 📊 episode truncation after step limit
-- **Custom truncation functions** 🔧 extensible truncation logic
-- **Early truncation thresholds** 🎯 truncate when certain conditions met
-- **Agent activity requirements** 👥 configurable agent participation rules
-
-### Truncation Parameters
-- **Maximum episode steps** 📊 overall episode step limits
-- **Early truncation thresholds** 🎯 percentage-based early termination
-- **Flexible truncation logic** 🧠 customizable truncation rules
+- **Max steps** and **custom** truncation policies
+- Controlled via `TruncatedConfig` classes
 
 ## 👁️ Observation System Features
 
 ### Configurable Observation Functions
-- **Agent positions** current location of all agents
-- **Tram door information** door position and boundaries
-- **Environment state** current grid state and geometry
-- **Multi-agent awareness** positions of other agents
-- **Type-safe observation spaces** gym-compatible observation spaces
-- **Custom observation strategies** implement custom observation logic
+- **Agent positions** each agent observes its own and other agents' positions
+- **Tram door information** door boundaries and division line
+- **Environment geometry** grid dimensions and tram parameters
+- **Gym-style spaces** observation spaces provided per-agent
+- **Custom strategies** can be implemented via new observation configs/functions
 
 ## ⚙️ Configuration Features
 
 ### Type-Safe Configuration
-- **🔒 Pydantic v2 integration** using modern Python validation
-- **Automatic type checking** compile-time error detection
+- **🔒 Pydantic v2 integration** runtime validation of configuration data
+- **Automatic validation** errors raised at model construction time
 - **Immutable configurations** frozen after creation
 - **IDE support** full autocomplete and type hints
 
@@ -110,6 +85,9 @@
 - **Environment-specific configs** different configs for different scenarios
 - **Modular configuration** separate configs for rewards, termination, truncation, observations
 
+### RLlib Integration
+- See the RLlib compatibility guide: [RLlib MultiAgentEnv Compatibility](rllib_multiagent_compatibility.md)
+
 ## 🏗️ Architecture Features
 
 ### Modular Design
@@ -128,11 +106,10 @@
 - **🎁 Extensible configuration system** modify environment behavior
 - **Custom functions** implement custom reward, termination, truncation, and observation logic
 
-### Performance Optimized
-- **Fast execution** optimized for training speed
-- **Memory efficient** minimal memory footprint
-- **Vectorized operations** where possible
-- **Caching strategies** avoid redundant computations
+### Performance Considerations
+- **Reasonable execution speed** suitable for small to medium grid sizes
+- **Straightforward Python** clarity prioritized over micro-optimizations
+- **No heavy vectorization** simple loops over agents and grid
 
 ## 🎯 Key Capabilities
 

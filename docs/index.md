@@ -81,6 +81,7 @@ observations, infos = env.reset(seed=42)
 ### Development
 - **[Development Guide](development.md)** - Testing, contributing, and development guidelines
 - **[Features Overview](features.md)** - Comprehensive feature descriptions
+ - **[RLlib MultiAgentEnv Compatibility](rllib_multiagent_compatibility.md)** - How this env matches RLlib's API
 
 ### Deployment
 - **[Local Deployment](setup_local_deployment.md)** - Simple deployment guide
