@@ -24,6 +24,14 @@ uv sync
 uv sync --dev
 ```
 
+#### Optional: Demo / Training Dependencies
+
+The core package does not require RL training libraries. To run the RLlib demo and training examples, install the optional `demo` group (includes `ray[rllib]` and `torch`):
+
+```bash
+uv sync --group demo
+```
+
 ### 3. Set Up Development Environment
 
 ```bash

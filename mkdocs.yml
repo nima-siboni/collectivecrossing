@@ -20,6 +20,7 @@ nav:
   - Development:
     - Development Guide: development.md
     - Features Overview: features.md
+    - RLlib MultiAgentEnv Compatibility: rllib_multiagent_compatibility.md
   - Additional Resources:
     - Trajectory Testing: trajectory_testing.md
     - Local Deployment Setup: setup_local_deployment.md

@@ -188,6 +188,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         terminateds = {}
         truncateds = {}
         infos = {}
+        self._agents_truncated_or_terminated_this_step = set()
         # Process actions for all agents for which there is an action in the action_dict
         for agent_id, action in action_dict.items():
             # check the validity of the action and the agent
@@ -217,6 +218,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 terminateds[agent_id] = terminated
                 if terminated and not self._agents[agent_id].terminated:
                     self._agents[agent_id].terminate()
+                    self._agents_truncated_or_terminated_this_step.add(agent_id)
 
         for agent_id in self._agents.keys():
             truncated: bool | None = self._calculate_truncated(agent_id)
@@ -224,8 +226,13 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 truncateds[agent_id] = truncated
                 if truncated and not self._agents[agent_id].truncated:
                     self._agents[agent_id].truncate()
+                    self._agents_truncated_or_terminated_this_step.add(agent_id)
 
-        for agent_id in self._agents.keys():
+        for agent_id in set(self.agents) | self._agents_truncated_or_terminated_this_step:
+            # Note that we only return observations for agents which are not terminated or
+            # truncated, hence we iterate over self.agents instead of self._agents.keys().
+            observations[agent_id] = self._get_agent_observation(agent_id)
+
             infos[agent_id] = {
                 "agent_type": self._agents[agent_id].agent_type.value,
                 "in_tram_area": self.is_in_tram_area(agent_id),
@@ -233,12 +240,6 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 "active": self._agents[agent_id].active,
                 "at_destination": self.has_agent_reached_destination(agent_id),
             }
-
-        for agent_id in self.agents:
-            # Note that we only return observations for agents which are not terminated or
-            # truncated, hence we iterate over self.agents instead of self._agents.keys().
-            observations[agent_id] = self._get_agent_observation(agent_id)
-
         # Check if environment is done
         all_terminated = all(terminateds.values()) if terminateds else False
         all_truncated = all(truncateds.values()) if truncateds else False
@@ -443,6 +444,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         # All agents have the same action space (5 actions including wait)
         self._action_spaces = {agent_id: spaces.Discrete(5) for agent_id in self._agents.keys()}
 
+        # RLlib/Gymnasium expect prototype single-agent spaces on the env
+        # Use the common action space for all agents as the prototype
+        any_agent_id = next(iter(self._agents.keys())) if self._agents else None
+        if any_agent_id is not None:
+            self.action_space = self._action_spaces[any_agent_id]
+
         self._observation_spaces = {}
         # Observation space includes agent position, tram info, and other agents
         # For simplicity, we'll use a flattened representation
@@ -450,6 +457,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             self._observation_spaces[agent_id] = (
                 self._observation_function.return_agent_observation_space(agent_id, self)
             )
+
+        # Pick any agent's observation space as the prototype observation space
+        # This is required by Gymnasium's PassiveEnvChecker
+        any_agent_id = next(iter(self._agents.keys())) if self._agents else None
+        if any_agent_id is not None:
+            self.observation_space = self._observation_spaces[any_agent_id]
 
     def _get_agent_observation(self, agent_id: str) -> np.ndarray:
         """Get observation for a specific agent."""

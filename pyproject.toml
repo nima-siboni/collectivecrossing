@@ -8,7 +8,6 @@ authors = [
 dependencies = [
     "gymnasium>=0.29.0",
     "numpy>=1.24.0",
-    "ray[rllib]==2.48.0",
     "matplotlib>=3.7.0",
     "pydantic>=2.11.7",
 ]
@@ -31,6 +30,11 @@ dev = [
     "mypy==1.17.1",
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.6.18",
+]
+
+demo = [
+    "ray[rllib]==2.49.2",
+    "torch>=2.2.0",
 ]
 
 [tool.pytest.ini_options]

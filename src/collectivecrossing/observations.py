@@ -91,7 +91,7 @@ class DefaultObservationFunction(ObservationFunction):
                 # Use placeholders for self (will be masked out)
                 obs = np.concatenate([obs, np.array([-1, -1, -1, -1])])
 
-        return obs.astype(np.int32)
+        return obs.astype(np.float32)
 
     def return_agent_observation_space(
         self, agent_id: str, env: "CollectiveCrossingEnv"
@@ -114,7 +114,7 @@ class DefaultObservationFunction(ObservationFunction):
             low=-1,  # Allow -1 for placeholders
             high=max(env.config.width, env.config.height) - 1,
             shape=(2 + 4 + 4 * len(env._agents),),
-            dtype=np.int32,
+            dtype=np.float32,
         )
 
 
