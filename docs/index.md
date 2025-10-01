@@ -14,13 +14,13 @@ A multi-agent reinforcement learning environment for simulating collective behav
 
 The `CollectiveCrossingEnv` simulates a minimal tram boarding scenario where coordination is essential to find the optimal collective behavior:
 
-- **Boarding agents** 🚶‍♂️ start in the platform area and navigate to the tram door
-- **Exiting agents** 🚶‍♀️ start inside the tram and navigate to the exit
-- **Simple collision avoidance** 🛡️ prevents agents from occupying the same space, which makes the passing through the tram door a bottleneck and a challenge
-- **Configurable geometry** 🏗️ allows customization of tram size, door position, and environment
-- **Flexible reward system** 🎁 supports multiple reward strategies (default, simple distance, binary)
-- **Customizable termination** ⏹️ configurable episode termination conditions
-- **Adaptive truncation** ⏱️ flexible episode truncation policies
+- **Boarding agents** start in the platform area and navigate to the tram door
+- **Exiting agents** start inside the tram and navigate to the exit
+- **Simple collision avoidance** prevents agents from occupying the same space, which makes the passing through the tram door a bottleneck and a challenge
+- **Configurable geometry** allows customization of tram size, door position, and environment
+- **Flexible reward system** supports multiple reward strategies (default, simple distance, binary)
+- **Customizable termination** configurable episode termination conditions
+- **Adaptive truncation** flexible episode truncation policies
 
 ## 🚀 Quick Start
 
@@ -46,7 +46,7 @@ observation_config = DefaultObservationConfig()
 
 config = CollectiveCrossingConfig(
     width=12, height=8, division_y=4,
-    tram_door_x=6, tram_door_width=2, tram_length=10,
+    tram_door_left=5, tram_door_right=6, tram_length=10,
     num_boarding_agents=5, num_exiting_agents=3,
     render_mode="rgb_array",
     reward_config=reward_config,
@@ -81,6 +81,7 @@ observations, infos = env.reset(seed=42)
 ### Development
 - **[Development Guide](development.md)** - Testing, contributing, and development guidelines
 - **[Features Overview](features.md)** - Comprehensive feature descriptions
+ - **[RLlib MultiAgentEnv Compatibility](rllib_multiagent_compatibility.md)** - How this env matches RLlib's API
 
 ### Deployment
 - **[Local Deployment](setup_local_deployment.md)** - Simple deployment guide
