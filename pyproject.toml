@@ -1,7 +1,7 @@
 [project]
 name = "collectivecrossing"
 version = "0.1.1"
-description = "A multi-agent reinforcement learning environment for probibing the overlap of MARL and social sciences"
+description = "A multi-agent reinforcement learning environment for probing the overlap of MARL and social sciences"
 authors = [
     {name = "Nima H. Siboni", email = "semi.ergodic@gmail.com"}
 ]
