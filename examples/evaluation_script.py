@@ -8,6 +8,7 @@ creating an animation GIF of the environment roll-out, modeled after
 
 import logging
 import os
+from typing import Any
 
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
@@ -52,37 +53,31 @@ def convert_observations_for_marl_module(
         exiting agent ids.
 
     """
-    boarding_observations: dict[str, np.ndarray] | None = {
+    boarding_observations: dict[str, np.ndarray] = {
         k: v for k, v in observations.items() if "boarding" in k
     }
-    exiting_observations: dict[str, np.ndarray] | None = {
+    exiting_observations: dict[str, np.ndarray] = {
         k: v for k, v in observations.items() if "exiting" in k
     }
 
     # stack the values of each of the dictionaries on top of each other
     boarding_agent_ids = (
-        list(boarding_observations.keys()) if boarding_observations is not None else []
+        list(boarding_observations.keys()) if len(boarding_observations) > 0 else []
     )
-    exiting_agent_ids = (
-        list(exiting_observations.keys()) if exiting_observations is not None else []
-    )
+    exiting_agent_ids = list(exiting_observations.keys()) if len(exiting_observations) > 0 else []
 
-    boarding_observations = (
-        np.stack(list(boarding_observations.values()))
-        if boarding_observations is not None
-        else None
-    )
+    if len(boarding_observations) > 0:
+        boarding_observations = np.stack(list(boarding_observations.values()))
 
-    exiting_observations = (
-        np.stack(list(exiting_observations.values())) if exiting_observations is not None else None
-    )
+    if len(exiting_observations) > 0:
+        exiting_observations = np.stack(list(exiting_observations.values()))
 
     # convert the observations to torch tensors
-    if boarding_observations is not None:
+    if len(boarding_observations) > 0:
         boarding_observations = {Columns.OBS: torch.from_numpy(boarding_observations)}
     else:
         boarding_observations = {}
-    if exiting_observations is not None:
+    if len(exiting_observations) > 0:
         exiting_observations = {Columns.OBS: torch.from_numpy(exiting_observations)}
     else:
         exiting_observations = {}
@@ -127,7 +122,7 @@ boarding_obss, exiting_obss, boarding_agent_ids, exiting_agent_ids = (
 episode_completed = False
 
 
-def animate(frame: int) -> list[plt.AxesImage]:
+def animate(frame: int) -> list[Any]:
     """Animate the environment."""
     global \
         current_observations, \
