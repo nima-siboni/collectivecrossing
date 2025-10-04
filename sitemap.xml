@@ -2,30 +2,38 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://nima-siboni.github.io/collectivecrossing/</loc>
-         <lastmod>2025-08-28</lastmod>
+         <lastmod>2025-10-04</lastmod>
+    </url>
+    <url>
+         <loc>https://nima-siboni.github.io/collectivecrossing/baselines/</loc>
+         <lastmod>2025-10-04</lastmod>
     </url>
     <url>
          <loc>https://nima-siboni.github.io/collectivecrossing/development/</loc>
-         <lastmod>2025-08-28</lastmod>
+         <lastmod>2025-10-04</lastmod>
     </url>
     <url>
          <loc>https://nima-siboni.github.io/collectivecrossing/features/</loc>
-         <lastmod>2025-08-28</lastmod>
+         <lastmod>2025-10-04</lastmod>
     </url>
     <url>
          <loc>https://nima-siboni.github.io/collectivecrossing/installation/</loc>
-         <lastmod>2025-08-28</lastmod>
+         <lastmod>2025-10-04</lastmod>
+    </url>
+    <url>
+         <loc>https://nima-siboni.github.io/collectivecrossing/rllib_multiagent_compatibility/</loc>
+         <lastmod>2025-10-04</lastmod>
     </url>
     <url>
          <loc>https://nima-siboni.github.io/collectivecrossing/setup_local_deployment/</loc>
-         <lastmod>2025-08-28</lastmod>
+         <lastmod>2025-10-04</lastmod>
     </url>
     <url>
          <loc>https://nima-siboni.github.io/collectivecrossing/trajectory_testing/</loc>
-         <lastmod>2025-08-28</lastmod>
+         <lastmod>2025-10-04</lastmod>
     </url>
     <url>
          <loc>https://nima-siboni.github.io/collectivecrossing/usage/</loc>
-         <lastmod>2025-08-28</lastmod>
+         <lastmod>2025-10-04</lastmod>
     </url>
 </urlset>
