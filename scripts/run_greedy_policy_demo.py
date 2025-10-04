@@ -202,7 +202,7 @@ def create_greedy_policy_animation(
     # Save with PillowWriter for better GIF quality
     from matplotlib.animation import PillowWriter
 
-    writer = PillowWriter(fps=5)  # 5 FPS for smooth playback
+    writer = PillowWriter(fps=5, metadata={"loop": 0})  # 5 FPS, infinite loop
     anim.save(gif_filename, writer=writer, dpi=100)
 
     print(f"Animation saved successfully to {gif_filename}")
