@@ -132,8 +132,13 @@ def animate(frame: int) -> list[Any]:
         exiting_agent_ids, \
         episode_completed
 
+    # If episode is completed, reset environment and start new episode
     if episode_completed:
-        return [img]
+        current_observations, infos = env.reset()
+        boarding_obss, exiting_obss, boarding_agent_ids, exiting_agent_ids = (
+            convert_observations_for_marl_module(current_observations)
+        )
+        episode_completed = False
 
     # Inference for both agent groups
 
