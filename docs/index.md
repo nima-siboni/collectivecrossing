@@ -1,12 +1,13 @@
 # 🚇 Collective Crossing
 
 <p align="center">
-  <img src="./images/collective_crossing_animation.gif" alt="Collective Crossing Animation" width="50%">
+  <img src="./images/waiting_policy_demo.gif" alt="Waiting Policy Demo" width="50%">
 </p>
 
 [![Tests](https://github.com/nima-siboni/collectivecrossing/workflows/Run%20Tests/badge.svg)](https://github.com/nima-siboni/collectivecrossing/actions)
 [![Coverage](https://img.shields.io/badge/coverage-76%25-green)](https://github.com/nima-siboni/collectivecrossing/actions/workflows/test.yml)
 [![mypy](https://img.shields.io/badge/mypy-checked-blue)](https://github.com/nima-siboni/collectivecrossing)
+[![Documentation](https://img.shields.io/badge/docs-github.io-blue)](https://nima-siboni.github.io/collectivecrossing)
 
 A multi-agent reinforcement learning environment for simulating collective behavior in tram boarding/exiting scenarios. This project provides a grid-world environment where multiple agents interact to achieve their goals while sharing some resources together.
 
@@ -74,16 +75,13 @@ observations, infos = env.reset(seed=42)
 
 ## 📚 Documentation
 
-### Getting Started
-- **[Installation Guide](installation.md)** - Complete setup instructions and troubleshooting
-- **[Usage Guide](usage.md)** - How to use the environment and configuration examples
+🌐 **[Live Documentation](https://nima-siboni.github.io/collectivecrossing)** - Complete documentation site
 
-### Development
-- **[Development Guide](development.md)** - Testing, contributing, and development guidelines
+- **[Installation Guide](installation.md)** - Detailed setup instructions
+- **[Usage Guide](usage.md)** - Complete usage examples and configuration
+- **[Baselines](baselines.md)** - Baseline policies and demo scripts
+- **[Development Guide](development.md)** - Testing, contributing, and development
 - **[Features Overview](features.md)** - Comprehensive feature descriptions
- - **[RLlib MultiAgentEnv Compatibility](rllib_multiagent_compatibility.md)** - How this env matches RLlib's API
-
-### Deployment
 - **[Local Deployment](setup_local_deployment.md)** - Simple deployment guide
 
 ## 🛠️ Installation
