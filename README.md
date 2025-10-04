@@ -1,7 +1,7 @@
 # 🚇 Collective Crossing
 
 <p align="center">
-  <img src="docs/images/collective_crossing_animation.gif" alt="Collective Crossing Animation" width="50%">
+  <img src="docs/images/waiting_policy_demo.gif" alt="Waiting Policy Demo" width="50%">
 </p>
 
 [![Tests](https://github.com/nima-siboni/collectivecrossing/workflows/Run%20Tests/badge.svg)](https://github.com/nima-siboni/collectivecrossing/actions)
