@@ -7,6 +7,7 @@
 [![Tests](https://github.com/nima-siboni/collectivecrossing/workflows/Run%20Tests/badge.svg)](https://github.com/nima-siboni/collectivecrossing/actions)
 [![Coverage](https://img.shields.io/badge/coverage-84%25-green)](https://github.com/nima-siboni/collectivecrossing/actions/workflows/test.yml)
 [![mypy](https://img.shields.io/badge/mypy-checked-blue)](https://github.com/nima-siboni/collectivecrossing)
+[![Documentation](https://img.shields.io/badge/docs-github.io-blue)](https://nima-siboni.github.io/collectivecrossing)
 
 A multi-agent reinforcement learning environment for simulating collective behavior in tram boarding/exiting scenarios. This project provides a grid-world environment where multiple agents interact to achieve their goals while sharing some resources together.
 
@@ -60,6 +61,8 @@ observations, infos = env.reset(seed=42)
 ```
 
 ## 📚 Documentation
+
+🌐 **[Live Documentation](https://nima-siboni.github.io/collectivecrossing)** - Complete documentation site
 
 - **[Installation Guide](docs/installation.md)** - Detailed setup instructions
 - **[Usage Guide](docs/usage.md)** - Complete usage examples and configuration
