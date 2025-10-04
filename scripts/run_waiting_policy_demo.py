@@ -252,7 +252,7 @@ def create_waiting_policy_animation(
 def main() -> None:
     """Run the waiting policy demo."""
     # Set epsilon value for randomness (0.0 = pure greedy, 1.0 = pure random)
-    epsilon = 0.10  # 10% random actions
+    epsilon = 0.0  # 10% random actions
 
     # Run waiting policy and collect statistics
     env, agent_positions_history, step_rewards = run_waiting_policy_with_stats(epsilon=epsilon)

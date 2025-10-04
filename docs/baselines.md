@@ -13,6 +13,10 @@ The **Greedy Policy** (`GreedyPolicy`) implements a simple greedy approach where
 - **Behavior**: Agents don't coordinate and move as directly as possible
 - **Randomness**: Supports epsilon-greedy exploration with configurable randomness factor
 
+<p align="center">
+  <img src="images/greedy_policy_demo.gif" alt="Greedy Policy Demo Animation" width="80%">
+</p>
+
 ### Waiting Policy
 
 The **Waiting Policy** (`WaitingPolicy`) implements a coordinated approach that separates exit and entry phases:
@@ -21,6 +25,10 @@ The **Waiting Policy** (`WaitingPolicy`) implements a coordinated approach that 
 - **Phase 2**: Once waiting period ends, agents use greedy movement toward destinations
 - **Coordination**: Creates clear separation between exit and entry phases
 - **Randomness**: Supports epsilon-greedy exploration with configurable randomness factor
+
+<p align="center">
+  <img src="images/waiting_policy_demo.gif" alt="Waiting Policy Demo Animation" width="80%">
+</p>
 
 ## Running Baseline Policies
 
