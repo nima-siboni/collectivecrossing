@@ -204,7 +204,7 @@ plt.tight_layout()
 
 gif_filename = "evaluation.gif"
 logger.info(f"Saving animation to {gif_filename}...")
-writer = PillowWriter(fps=5)
+writer = PillowWriter(fps=5, metadata={"loop": 0})  # 5 FPS, infinite loop
 anim.save(gif_filename, writer=writer, dpi=100)
 logger.info(f"Animation saved successfully to {gif_filename}")
 
