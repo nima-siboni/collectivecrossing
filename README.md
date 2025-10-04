@@ -86,9 +86,17 @@ observations, infos = env.reset(seed=42)
 
 ## 🛠️ Installation
 
+### Quick Install with pip
+
+```bash
+pip install collectivecrossing
+```
+
+### Development Install
+
 ```bash
 # Clone and install
-git clone <repository-url>
+git clone git@github.com:nima-siboni/collectivecrossing.git
 cd collectivecrossing
 uv sync
 ```
