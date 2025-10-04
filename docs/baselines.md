@@ -14,7 +14,7 @@ The **Greedy Policy** (`GreedyPolicy`) implements a simple greedy approach where
 - **Randomness**: Supports epsilon-greedy exploration with configurable randomness factor
 
 <p align="center">
-  <img src="images/greedy_policy_demo.gif" alt="Greedy Policy Demo Animation" width="80%">
+  <img src="../images/greedy_policy_demo.gif" alt="Greedy Policy Demo Animation" width="80%">
 </p>
 
 ### Waiting Policy
@@ -27,7 +27,7 @@ The **Waiting Policy** (`WaitingPolicy`) implements a coordinated approach that 
 - **Randomness**: Supports epsilon-greedy exploration with configurable randomness factor
 
 <p align="center">
-  <img src="images/waiting_policy_demo.gif" alt="Waiting Policy Demo Animation" width="80%">
+  <img src="../images/waiting_policy_demo.gif" alt="Waiting Policy Demo Animation" width="80%">
 </p>
 
 ## Running Baseline Policies
