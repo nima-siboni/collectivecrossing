@@ -1,10 +1,11 @@
 [project]
 name = "collectivecrossing"
 version = "0.1.0"
-description = "A new project"
+description = "A multi-agent reinforcement learning environment for probibing the overlap of MARL and social sciences"
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Nima H. Siboni", email = "semi.ergodic@gmail.com"}
 ]
+keywords = ["reinforcement-learning", "multi-agent", "rl", "gymnasium", "collective-behavior", "social-sciences", "marl"]
 dependencies = [
     "gymnasium>=0.29.0",
     "numpy>=1.24.0",
