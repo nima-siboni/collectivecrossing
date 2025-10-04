@@ -157,9 +157,10 @@ def create_greedy_policy_animation(
         """Animation function."""
         nonlocal current_observations, episode_completed
 
-        # If episode is already completed, just return the current frame
+        # If episode is completed, reset environment and start new episode
         if episode_completed:
-            return [img]
+            current_observations, infos = env.reset()
+            episode_completed = False
 
         # Generate actions using greedy policy for active agents only
         actions = {}

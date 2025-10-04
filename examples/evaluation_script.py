@@ -132,8 +132,13 @@ def animate(frame: int) -> list[Any]:
         exiting_agent_ids, \
         episode_completed
 
+    # If episode is completed, reset environment and start new episode
     if episode_completed:
-        return [img]
+        current_observations, infos = env.reset()
+        boarding_obss, exiting_obss, boarding_agent_ids, exiting_agent_ids = (
+            convert_observations_for_marl_module(current_observations)
+        )
+        episode_completed = False
 
     # Inference for both agent groups
 
@@ -204,7 +209,7 @@ plt.tight_layout()
 
 gif_filename = "evaluation.gif"
 logger.info(f"Saving animation to {gif_filename}...")
-writer = PillowWriter(fps=5)
+writer = PillowWriter(fps=5, metadata={"loop": 0})  # 5 FPS, infinite loop
 anim.save(gif_filename, writer=writer, dpi=100)
 logger.info(f"Animation saved successfully to {gif_filename}")
 
