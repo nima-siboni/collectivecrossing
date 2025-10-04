@@ -307,7 +307,7 @@ def test_observation_structure() -> None:
     for _agent_id, obs in observations.items():
         # Observation should be a numpy array
         assert isinstance(obs, np.ndarray)
-        assert obs.dtype == np.int32
+        assert obs.dtype == np.float32
 
         # Calculate expected observation size:
         # 2 (agent position) +

@@ -1,22 +1,34 @@
-"""Evaluation script for the CollectiveCrossing environment."""
+"""
+Evaluation script for the CollectiveCrossing environment.
+
+This script loads a trained MultiRLModule and runs an evaluation episode while
+creating an animation GIF of the environment roll-out, modeled after
+`scripts/run_greedy_policy_demo.py`.
+"""
 
 import logging
 import os
 
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from matplotlib.animation import PillowWriter
 from ray.rllib.core.columns import Columns
 from ray.rllib.core.rl_module.multi_rl_module import MultiRLModule
 
 from collectivecrossing.collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.reward_configs import ConstantNegativeRewardConfig
+from collectivecrossing.terminated_configs import IndividualAtDestinationTerminatedConfig
+from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 logger.info("Evaluating the CollectiveCrossing environment...")
 
-marl_module_checkpoint_path = os.path.join(os.getcwd(), "marl_module_checkpoints", "8366")
+marl_module_checkpoint_path = os.path.join(os.getcwd(), "marl_module_checkpoints", "1b2c")
 # load the MultiRLModule
 marl_module = MultiRLModule.from_checkpoint(marl_module_checkpoint_path)
 
@@ -40,74 +52,168 @@ def convert_observations_for_marl_module(
         exiting agent ids.
 
     """
-    boarding_observations = {k: v for k, v in observations.items() if "boarding" in k}
-    exiting_observations = {k: v for k, v in observations.items() if "exiting" in k}
+    boarding_observations: dict[str, np.ndarray] | None = {
+        k: v for k, v in observations.items() if "boarding" in k
+    }
+    exiting_observations: dict[str, np.ndarray] | None = {
+        k: v for k, v in observations.items() if "exiting" in k
+    }
 
     # stack the values of each of the dictionaries on top of each other
-    boarding_agent_ids = list(boarding_observations.keys())
-    exiting_agent_ids = list(exiting_observations.keys())
+    boarding_agent_ids = (
+        list(boarding_observations.keys()) if boarding_observations is not None else []
+    )
+    exiting_agent_ids = (
+        list(exiting_observations.keys()) if exiting_observations is not None else []
+    )
 
-    boarding_observations = np.stack(list(boarding_observations.values()))
-    exiting_observations = np.stack(list(exiting_observations.values()))
+    boarding_observations = (
+        np.stack(list(boarding_observations.values()))
+        if boarding_observations is not None
+        else None
+    )
+
+    exiting_observations = (
+        np.stack(list(exiting_observations.values())) if exiting_observations is not None else None
+    )
 
     # convert the observations to torch tensors
-    boarding_observations = {Columns.OBS: torch.from_numpy(boarding_observations)}
-    exiting_observations = {Columns.OBS: torch.from_numpy(exiting_observations)}
+    if boarding_observations is not None:
+        boarding_observations = {Columns.OBS: torch.from_numpy(boarding_observations)}
+    else:
+        boarding_observations = {}
+    if exiting_observations is not None:
+        exiting_observations = {Columns.OBS: torch.from_numpy(exiting_observations)}
+    else:
+        exiting_observations = {}
 
     return boarding_observations, exiting_observations, boarding_agent_ids, exiting_agent_ids
 
 
 env_config = {
-    "width": 12,
+    "width": 15,
     "height": 8,
     "division_y": 4,
-    "tram_door_left": 4,
-    "tram_door_right": 6,
+    "tram_door_left": 4,  # Left boundary of tram door (occupied position)
+    "tram_door_right": 7,  # Right boundary of tram door (occupied position)
     "tram_length": 10,
-    "num_boarding_agents": 10,
-    "num_exiting_agents": 10,
-    "exiting_destination_area_y": 1,
-    "boarding_destination_area_y": 7,
+    "num_boarding_agents": 0,
+    "num_exiting_agents": 4,
+    "exiting_destination_area_y": 0,
+    "boarding_destination_area_y": 8,
+    "truncated_config": MaxStepsTruncatedConfig(max_steps=200),
+    "reward_config": ConstantNegativeRewardConfig(step_penalty=-1.0),
+    "terminated_config": IndividualAtDestinationTerminatedConfig(),
 }
+
 
 env = CollectiveCrossingEnv(config=CollectiveCrossingConfig(**env_config))
 
 observations, infos = env.reset()
 
-# convert the observations to two separate dictionaries
+# Prepare Matplotlib figure for animation
+fig, ax = plt.subplots(figsize=(8, 6))
+ax.axis("off")
 
+# Initial render
+rgb_array = env.render()
+img = ax.imshow(rgb_array)
 
+# Keep mutable state for the animation function
+current_observations = observations
 boarding_obss, exiting_obss, boarding_agent_ids, exiting_agent_ids = (
-    convert_observations_for_marl_module(observations)
+    convert_observations_for_marl_module(current_observations)
 )
+episode_completed = False
 
-terminated_all = False
-truncated_all = False
 
-iteration_count = 0
+def animate(frame: int) -> list[plt.AxesImage]:
+    """Animate the environment."""
+    global \
+        current_observations, \
+        boarding_obss, \
+        exiting_obss, \
+        boarding_agent_ids, \
+        exiting_agent_ids, \
+        episode_completed
 
-while not (terminated_all or truncated_all):
-    iteration_count += 1
-    logger.info(f" Iteration {iteration_count}")
-    boarding_action = np.argmax(
-        marl_module["boarding"].forward_inference(boarding_obss)["action_dist_inputs"].numpy(),
-        axis=1,
-    )
-    exiting_action = np.argmax(
-        marl_module["exiting"].forward_inference(exiting_obss)["action_dist_inputs"].numpy(), axis=1
-    )
+    if episode_completed:
+        return [img]
+
+    # Inference for both agent groups
+
+    if len(boarding_obss) > 0:
+        boarding_logits = (
+            marl_module["boarding"].forward_exploration(boarding_obss)["action_dist_inputs"].numpy()
+        )
+    else:
+        boarding_logits = None
+
+    if len(exiting_obss) > 0:
+        exiting_logits = (
+            marl_module["exiting"].forward_exploration(exiting_obss)["action_dist_inputs"].numpy()
+        )
+    else:
+        exiting_logits = None
+
+    if boarding_logits is not None:
+        boarding_action = np.argmax(boarding_logits, axis=1)
+    else:
+        boarding_action = None
+    if exiting_logits is not None:
+        exiting_action = np.argmax(exiting_logits, axis=1)
+    else:
+        exiting_action = None
 
     actions = {boarding_agent_ids[i]: boarding_action[i] for i in range(len(boarding_agent_ids))}
     actions.update({exiting_agent_ids[i]: exiting_action[i] for i in range(len(exiting_agent_ids))})
 
-    observations, rewards, terminateds, truncateds, infos = env.step(actions)
-    env.render()
+    # Step environment
+    next_observations, rewards, terminateds, truncateds, infos = env.step(actions)
 
-    boarding_obss, exiting_obss, boarding_agent_ids, exiting_agent_ids = (
-        convert_observations_for_marl_module(observations)
-    )
+    # Render and update frame
+    rgb = env.render()
+    img.set_array(rgb)
+    ax.set_title(f"Evaluation - Step {frame + 1}")
 
-    terminated_all = terminateds.get("__all__", False)
-    truncated_all = truncateds.get("__all__", False)
+    # Update observations for next step
+    (
+        boarding_next,
+        exiting_next,
+        boarding_ids_next,
+        exiting_ids_next,
+    ) = convert_observations_for_marl_module(next_observations)
+
+    # Assign back to outer scope vars
+    current_observations = next_observations
+    boarding_obss = boarding_next
+    exiting_obss = exiting_next
+    boarding_agent_ids = boarding_ids_next
+    exiting_agent_ids = exiting_ids_next
+
+    # Check done
+    if terminateds.get("__all__", False) or truncateds.get("__all__", False):
+        episode_completed = True
+        ax.set_title(f"Evaluation - Step {frame + 1} (Episode Complete)")
+
+    return [img]
+
+
+# Create and save animation GIF similar to the demo script
+max_frames = env.config.truncated_config.max_steps
+anim = animation.FuncAnimation(
+    fig, animate, frames=max_frames, interval=200, blit=True, repeat=True
+)
+
+plt.tight_layout()
+
+gif_filename = "evaluation.gif"
+logger.info(f"Saving animation to {gif_filename}...")
+writer = PillowWriter(fps=5)
+anim.save(gif_filename, writer=writer, dpi=100)
+logger.info(f"Animation saved successfully to {gif_filename}")
+
+# Optionally display the animation window (can be commented out in headless runs)
+plt.show()
 
 env.close()

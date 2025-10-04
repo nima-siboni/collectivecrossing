@@ -94,7 +94,7 @@ def test_wall_collision() -> bool:
         expected_block = test_case["should_block"]
 
         # Test the collision detection
-        would_cross = env._would_cross_tram_wall(current_pos, new_pos)
+        would_cross = env._would_hit_tram_wall(current_pos, new_pos)
 
         # Check if result matches expectation
         passed = would_cross == expected_block

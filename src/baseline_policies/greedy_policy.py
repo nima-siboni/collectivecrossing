@@ -68,11 +68,9 @@ class GreedyPolicy:
         # Get destination position
         destination = env.get_agent_destination_position(agent_id)
 
-        # calculate the door's right corner position (occupied position)
-        door_right_corner = np.array([env.config.tram_door_right, env.config.division_y])
-
-        # calculate the door's left corner position (occupied position)
-        door_left_corner = np.array([env.config.tram_door_left, env.config.division_y])
+        # Use absolute door coordinates (environment converts config-relative to absolute)
+        door_right_corner = np.array([env.tram_door_right, env.config.division_y])
+        door_left_corner = np.array([env.tram_door_left, env.config.division_y])
 
         # Calculate the best direction to move
         direction = self._calculate_direction(
@@ -122,18 +120,13 @@ class GreedyPolicy:
                 # Move toward the door area
                 # If agent is already at the door level (y = division_y - 1), move up
                 if current_pos[1] == env.config.division_y - 1:
-                    # Check if agent is in the door area horizontally
-                    if door_left_corner[0] <= current_pos[0] <= door_right_corner[0]:
-                        # Agent is in door area, move up
+                    # Align exactly with interior door column before moving up
+                    door_center_x = (door_left_corner[0] + door_right_corner[0]) // 2
+                    if current_pos[0] == door_center_x:
                         target_pos = np.array([current_pos[0], env.config.division_y])
                         return self._get_direction_vector(current_pos, target_pos)
                     else:
-                        # Agent is not in door area, move toward door horizontally first
-                        door_center_x = (door_left_corner[0] + door_right_corner[0]) / 2
-                        if current_pos[0] < door_center_x:
-                            target_pos = np.array([door_left_corner[0], current_pos[1]])
-                        else:
-                            target_pos = np.array([door_right_corner[0], current_pos[1]])
+                        target_pos = np.array([door_center_x, current_pos[1]])
                         return self._get_direction_vector(current_pos, target_pos)
                 else:
                     # Agent is not at door level, move up toward door level
@@ -148,18 +141,13 @@ class GreedyPolicy:
                 # Move toward the door area
                 # If agent is already at the door level (y = division_y + 1), move down
                 if current_pos[1] == env.config.division_y + 1:
-                    # Check if agent is in the door area horizontally
-                    if door_left_corner[0] <= current_pos[0] <= door_right_corner[0]:
-                        # Agent is in door area, move down
+                    # Align exactly with interior door column before moving down
+                    door_center_x = (door_left_corner[0] + door_right_corner[0]) // 2
+                    if current_pos[0] == door_center_x:
                         target_pos = np.array([current_pos[0], env.config.division_y])
                         return self._get_direction_vector(current_pos, target_pos)
                     else:
-                        # Agent is not in door area, move toward door horizontally first
-                        door_center_x = (door_left_corner[0] + door_right_corner[0]) / 2
-                        if current_pos[0] < door_center_x:
-                            target_pos = np.array([door_left_corner[0], current_pos[1]])
-                        else:
-                            target_pos = np.array([door_right_corner[0], current_pos[1]])
+                        target_pos = np.array([door_center_x, current_pos[1]])
                         return self._get_direction_vector(current_pos, target_pos)
                 else:
                     # Agent is not at door level, move down toward door level
@@ -343,9 +331,9 @@ class GreedyPolicy:
             # Boarding agents: go up first, then toward door
             if current_pos[1] < env.config.division_y:
                 # Still in waiting area, prioritize going up
-                door_center_x = (env.config.tram_door_left + env.config.tram_door_right) / 2
-                if abs(current_pos[0] - door_center_x) > 1:
-                    # Far from door, move toward door center
+                door_center_x = (env.tram_door_left + env.tram_door_right) // 2
+                if current_pos[0] != door_center_x:
+                    # Not aligned with door center, move toward it horizontally
                     if current_pos[0] < door_center_x:
                         return [
                             Actions.right.value,
@@ -361,7 +349,7 @@ class GreedyPolicy:
                             Actions.down.value,
                         ]
                 else:
-                    # Close to door, move up
+                    # Aligned with door center, move up
                     return [
                         Actions.up.value,
                         Actions.right.value,
@@ -403,9 +391,9 @@ class GreedyPolicy:
             # Exiting agents: go down first, then toward door
             if current_pos[1] > env.config.division_y:
                 # Still in tram area, prioritize going down
-                door_center_x = (env.config.tram_door_left + env.config.tram_door_right) / 2
-                if abs(current_pos[0] - door_center_x) > 1:
-                    # Far from door, move toward door center
+                door_center_x = (env.tram_door_left + env.tram_door_right) // 2
+                if current_pos[0] != door_center_x:
+                    # Not aligned with door center, move toward it horizontally
                     if current_pos[0] < door_center_x:
                         return [
                             Actions.right.value,
@@ -421,7 +409,7 @@ class GreedyPolicy:
                             Actions.up.value,
                         ]
                 else:
-                    # Close to door, move down
+                    # Aligned with door center, move down
                     return [
                         Actions.down.value,
                         Actions.right.value,

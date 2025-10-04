@@ -6,13 +6,18 @@ import shutil
 import uuid
 
 import ray
-from ray.rllib.algorithms.ppo import PPOConfig
+from ray.rllib.algorithms.dqn import DQNConfig
 from ray.rllib.core.rl_module.multi_rl_module import MultiRLModuleSpec
 from ray.rllib.core.rl_module.rl_module import RLModuleSpec
 from ray.tune.registry import register_env
 
 from collectivecrossing.collectivecrossing import CollectiveCrossingEnv
-from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.configs import (
+    CollectiveCrossingConfig,
+)
+from collectivecrossing.reward_configs import ConstantNegativeRewardConfig
+from collectivecrossing.terminated_configs import AllAtDestinationTerminatedConfig
+from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -43,23 +48,26 @@ def policy_mapping_fn(agent_id: str, *args, **kwargs) -> str:  # type: ignore
 
 
 env_config = {
-    "width": 12,
+    "width": 15,
     "height": 8,
     "division_y": 4,
-    "tram_door_left": 4,
-    "tram_door_right": 6,
+    "tram_door_left": 2,  # Left boundary of tram door (occupied position)
+    "tram_door_right": 8,  # Right boundary of tram door (occupied position)
     "tram_length": 10,
-    "num_boarding_agents": 10,
-    "num_exiting_agents": 10,
-    "exiting_destination_area_y": 1,
-    "boarding_destination_area_y": 7,
+    "num_boarding_agents": 4,
+    "num_exiting_agents": 4,
+    "exiting_destination_area_y": 0,
+    "boarding_destination_area_y": 8,
+    "truncated_config": MaxStepsTruncatedConfig(max_steps=100),
+    "reward_config": ConstantNegativeRewardConfig(step_penalty=-1.0),
+    "terminated_config": AllAtDestinationTerminatedConfig(),
 }
 
 ray.init()
 
 
 algo = (
-    PPOConfig()
+    DQNConfig()
     .environment(
         env="collective_crossing",
         env_config=env_config,
@@ -73,21 +81,23 @@ algo = (
             }
         )
     )
+    .env_runners(num_env_runners=4)
+    .training(train_batch_size=500)
 ).build()
 
 # Run a minimal training iteration to verify integration
-result = algo.train()
+for i in range(30):
+    result = algo.train()
 
-logger.info(
-    " Episode rewards: %.1f, %.1f, %.1f",
-    result["env_runners"]["episode_return_min"],
-    result["env_runners"]["episode_return_mean"],
-    result["env_runners"]["episode_return_max"],
-)
+    logger.info(
+        " Iteration %d Episode rewards: %.1f, %.1f, %.1f",
+        i,
+        result["env_runners"]["episode_return_min"],
+        result["env_runners"]["episode_return_mean"],
+        result["env_runners"]["episode_return_max"],
+    )
 
 # save the algo
-
-
 save_dir = os.path.join(os.getcwd(), "marl_module_checkpoints", str(uuid.uuid4().hex[:4]))
 if os.path.exists(save_dir):
     shutil.rmtree(save_dir)
