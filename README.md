@@ -63,6 +63,7 @@ observations, infos = env.reset(seed=42)
 
 - **[Installation Guide](docs/installation.md)** - Detailed setup instructions
 - **[Usage Guide](docs/usage.md)** - Complete usage examples and configuration
+- **[Baselines](docs/baselines.md)** - Baseline policies and demo scripts
 - **[Development Guide](docs/development.md)** - Testing, contributing, and development
 - **[Features Overview](docs/features.md)** - Comprehensive feature descriptions
 - **[Local Deployment](docs/setup_local_deployment.md)** - Simple deployment guide
