@@ -28,9 +28,9 @@ def run_greedy_policy_with_stats(
         height=8,
         division_y=4,
         tram_door_left=4,  # Left boundary of tram door (occupied position)
-        tram_door_right=8,  # Right boundary of tram door (occupied position)
+        tram_door_right=7,  # Right boundary of tram door (occupied position)
         tram_length=10,
-        num_boarding_agents=0,
+        num_boarding_agents=5,
         num_exiting_agents=10,
         exiting_destination_area_y=0,
         boarding_destination_area_y=8,

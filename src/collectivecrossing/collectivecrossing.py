@@ -107,9 +107,13 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                     ]
                 )
                 # Avoid positions directly under the door initially
-                if not self._is_position_occupied(pos) and not (
-                    self.tram_door_left <= pos[0] <= self.tram_door_right
-                    and pos[1] == self.config.division_y - 1
+                if (
+                    self._is_valid_position(pos)
+                    and not self._is_position_occupied(pos)
+                    and not (
+                        self.tram_door_left <= pos[0] <= self.tram_door_right
+                        and pos[1] == self.config.division_y - 1
+                    )
                 ):
                     agent = Agent(
                         id=f"boarding_{boarding_agent_counter}",
@@ -133,7 +137,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                         ),  # Upper part
                     ]
                 )
-                if not self._is_position_occupied(pos):
+                if self._is_valid_position(pos) and not self._is_position_occupied(pos):
                     agent = Agent(
                         id=f"exiting_{exiting_agent_counter}",
                         agent_type=AgentType.EXITING,
@@ -188,6 +192,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         terminateds = {}
         truncateds = {}
         infos = {}
+        self._agents_truncated_or_terminated_this_step = set()
         # Process actions for all agents for which there is an action in the action_dict
         for agent_id, action in action_dict.items():
             # check the validity of the action and the agent
@@ -217,6 +222,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 terminateds[agent_id] = terminated
                 if terminated and not self._agents[agent_id].terminated:
                     self._agents[agent_id].terminate()
+                    self._agents_truncated_or_terminated_this_step.add(agent_id)
 
         for agent_id in self._agents.keys():
             truncated: bool | None = self._calculate_truncated(agent_id)
@@ -224,8 +230,13 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 truncateds[agent_id] = truncated
                 if truncated and not self._agents[agent_id].truncated:
                     self._agents[agent_id].truncate()
+                    self._agents_truncated_or_terminated_this_step.add(agent_id)
 
-        for agent_id in self._agents.keys():
+        for agent_id in set(self.agents) | self._agents_truncated_or_terminated_this_step:
+            # Note that we only return observations for agents which are not terminated or
+            # truncated, hence we iterate over self.agents instead of self._agents.keys().
+            observations[agent_id] = self._get_agent_observation(agent_id)
+
             infos[agent_id] = {
                 "agent_type": self._agents[agent_id].agent_type.value,
                 "in_tram_area": self.is_in_tram_area(agent_id),
@@ -233,12 +244,6 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 "active": self._agents[agent_id].active,
                 "at_destination": self.has_agent_reached_destination(agent_id),
             }
-
-        for agent_id in self.agents:
-            # Note that we only return observations for agents which are not terminated or
-            # truncated, hence we iterate over self.agents instead of self._agents.keys().
-            observations[agent_id] = self._get_agent_observation(agent_id)
-
         # Check if environment is done
         all_terminated = all(terminateds.values()) if terminateds else False
         all_truncated = all(truncateds.values()) if truncateds else False
@@ -352,7 +357,7 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         return (
             self._is_valid_position(new_pos)
             and not self._is_position_occupied(new_pos, exclude_agent=agent_id)
-            and not self._would_cross_tram_wall(current_pos, new_pos)
+            and not self._would_hit_tram_wall(current_pos, new_pos)
         )
 
     def _calculate_new_position(self, agent_id: str, action: int) -> np.ndarray:
@@ -443,6 +448,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         # All agents have the same action space (5 actions including wait)
         self._action_spaces = {agent_id: spaces.Discrete(5) for agent_id in self._agents.keys()}
 
+        # RLlib/Gymnasium expect prototype single-agent spaces on the env
+        # Use the common action space for all agents as the prototype
+        any_agent_id = next(iter(self._agents.keys())) if self._agents else None
+        if any_agent_id is not None:
+            self.action_space = self._action_spaces[any_agent_id]
+
         self._observation_spaces = {}
         # Observation space includes agent position, tram info, and other agents
         # For simplicity, we'll use a flattened representation
@@ -450,6 +461,12 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             self._observation_spaces[agent_id] = (
                 self._observation_function.return_agent_observation_space(agent_id, self)
             )
+
+        # Pick any agent's observation space as the prototype observation space
+        # This is required by Gymnasium's PassiveEnvChecker
+        any_agent_id = next(iter(self._agents.keys())) if self._agents else None
+        if any_agent_id is not None:
+            self.observation_space = self._observation_spaces[any_agent_id]
 
     def _get_agent_observation(self, agent_id: str) -> np.ndarray:
         """Get observation for a specific agent."""
@@ -485,28 +502,25 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         """Check if a position is within the grid bounds and not on a wall."""
         # Check grid bounds
         # Allow y=height if boarding destination equals height
-        if self.config.boarding_destination_area_y == self.config.height:
-            # Special case: allow y=height when destination equals height
-            if not (0 <= pos[0] < self.config.width and 0 <= pos[1] <= self.config.height):
-                return False
-        else:
-            # Normal case: y must be < height
-            if not (0 <= pos[0] < self.config.width and 0 <= pos[1] < self.config.height):
-                return False
+        x = pos[0]
+        y = pos[1]
+        if not (0 <= x <= self.config.width and 0 <= y <= self.config.height):
+            return False
 
         # Check if position is on a wall
         # Check division line wall (except door area)
-        if pos[1] == self.config.division_y:
+        if y == self.config.division_y:
             # If at division line, check if it's in the door area
             # Make door boundaries exclusive - agents cannot occupy
             # tram_door_left or tram_door_right
-            if not (self.tram_door_left < pos[0] < self.tram_door_right):
+            if not (self.tram_door_left < x < self.tram_door_right):
                 return False  # On division line wall, not in door area
 
         # Check tram side walls
-        if pos[1] >= self.config.division_y:
+        if y >= self.config.division_y:
             # In tram area, check if position is outside tram boundaries
-            if pos[0] < self.tram_left or pos[0] > self.tram_right:
+            # Note: the agent cannot be >at< the tram left or right boundary
+            if not (self.tram_right > x > self.tram_left):
                 return False  # Outside tram boundaries
 
         return True
@@ -540,20 +554,18 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             pos[0] == self.tram_door_left - 1 or pos[0] == self.tram_door_right + 1
         )
 
-    def _would_cross_tram_wall(self, current_pos: np.ndarray, new_pos: np.ndarray) -> bool:
-        """Check if a move would cross a tram wall."""
+    def _would_hit_tram_wall(self, current_pos: np.ndarray, new_pos: np.ndarray) -> bool:
+        """Check if a move would hit a tram wall."""
+        x_new = new_pos[0]
+        y_new = new_pos[1]
+        # old position components are not needed for current collision checks
         # Check if moving across the division line (y = division_y)
-        if (current_pos[1] < self.config.division_y and new_pos[1] >= self.config.division_y) or (
-            current_pos[1] >= self.config.division_y and new_pos[1] < self.config.division_y
-        ):
+        if y_new == self.config.division_y:
             # Block movement through the division line EXCEPT at door positions
             # Check if the agent is trying to cross through the door area
             # Make door boundaries exclusive - agents cannot occupy tram_door_left
             # or tram_door_right
-            if (
-                self.tram_door_left < current_pos[0] < self.tram_door_right
-                or self.tram_door_left < new_pos[0] < self.tram_door_right
-            ):
+            if self.tram_door_left < x_new < self.tram_door_right:
                 return False  # Allow movement through door area
             else:
                 return True  # Block movement through wall (non-door area)
@@ -561,11 +573,9 @@ class CollectiveCrossingEnv(MultiAgentEnv):
         # Check if moving across tram side walls (x = tram_left or x = tram_right)
         # Block any movement that goes outside the tram area
         # Left wall crossing - block if moving from inside to outside
-        if current_pos[0] >= self.tram_left and new_pos[0] < self.tram_left:
-            return True
-        # Right wall crossing - block if moving from inside to outside
-        if current_pos[0] <= self.tram_right and new_pos[0] > self.tram_right:
-            return True
+        if y_new > self.config.division_y:
+            if x_new == self.tram_left or x_new == self.tram_right:
+                return True
 
         return False
 
@@ -685,9 +695,6 @@ class CollectiveCrossingEnv(MultiAgentEnv):
                 f"Unknown agent ID: {agent_id} in action_dict. The action_dict keys must be a "
                 f"subset of the agents. Current agents: {self._agents.keys()}"
             )
-        # check if the agent is active in the environment
-        if not self._agents[agent_id].active:
-            raise ValueError(f"Agent {agent_id} exists but it is not active in the environment.")
         # check if the action is valid
         if action not in self._action_to_direction:
             raise ValueError(
