@@ -139,14 +139,14 @@ def animate(frame: int) -> list[Any]:
 
     if len(boarding_obss) > 0:
         boarding_logits = (
-            marl_module["boarding"].forward_exploration(boarding_obss)["action_dist_inputs"].numpy()
+            marl_module["boarding"].forward_inference(boarding_obss)["action_dist_inputs"].numpy()
         )
     else:
         boarding_logits = None
 
     if len(exiting_obss) > 0:
         exiting_logits = (
-            marl_module["exiting"].forward_exploration(exiting_obss)["action_dist_inputs"].numpy()
+            marl_module["exiting"].forward_inference(exiting_obss)["action_dist_inputs"].numpy()
         )
     else:
         exiting_logits = None
