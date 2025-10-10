@@ -29,7 +29,7 @@ The `CollectiveCrossingEnv` simulates a minimal tram boarding scenario where coo
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
 from collectivecrossing.reward_configs import DefaultRewardConfig
-from collectivecrossing.terminated_configs import AllAtDestinationTerminatedConfig
+from collectivecrossing.terminated_configs import IndividualAtDestinationTerminatedConfig
 from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 from collectivecrossing.observation_configs import DefaultObservationConfig
 
@@ -41,14 +41,15 @@ reward_config = DefaultRewardConfig(
     distance_penalty_factor=0.1
 )
 
-terminated_config = AllAtDestinationTerminatedConfig()
+terminated_config = IndividualAtDestinationTerminatedConfig()
 truncated_config = MaxStepsTruncatedConfig(max_steps=100)
 observation_config = DefaultObservationConfig()
 
 config = CollectiveCrossingConfig(
     width=12, height=8, division_y=4,
-    tram_door_x=6, tram_door_width=2, tram_length=10,
+    tram_door_left=5, tram_door_right=6, tram_length=10,
     num_boarding_agents=5, num_exiting_agents=3,
+    exiting_destination_area_y=1, boarding_destination_area_y=6,
     render_mode="rgb_array",
     reward_config=reward_config,
     terminated_config=terminated_config,
@@ -58,6 +59,24 @@ config = CollectiveCrossingConfig(
 
 env = CollectiveCrossingEnv(config=config)
 observations, infos = env.reset(seed=42)
+
+# Take actions for all agents
+actions = {
+    "boarding_0": 0,  # Move right
+    "boarding_1": 1,  # Move up
+    "boarding_2": 2,  # Move left
+    "boarding_3": 3,  # Move down
+    "boarding_4": 4,  # Wait
+    "exiting_0": 0,   # Move right
+    "exiting_1": 1,   # Move up
+    "exiting_2": 2,   # Move left
+}
+
+# Step the environment
+observations, rewards, terminated, truncated, infos = env.step(actions)
+
+# Render the environment
+rgb_array = env.render()
 ```
 
 ## 📚 Documentation
@@ -78,11 +97,12 @@ observations, infos = env.reset(seed=42)
 - **Configurable geometry** customizable tram and door positions
 - **Ray RLlib compatible** uses MultiAgentEnv API
 - **Multiple rendering modes** ASCII and RGB visualization
-- **Type-safe configuration** using Pydantic v2
-- **Flexible reward system** multiple reward strategies with custom configurations
-- **Customizable termination** configurable episode ending conditions
-- **Adaptive truncation** flexible episode timeout policies
+- **Type-safe configuration** using Pydantic v2 with automatic validation
+- **Flexible reward system** multiple reward strategies (default, simple distance, binary, constant negative)
+- **Customizable termination** configurable episode ending conditions (individual/all at destination)
+- **Adaptive truncation** flexible episode timeout policies (max steps, custom)
 - **Configurable observations** customizable observation functions and spaces
+- **Comprehensive validation** automatic parameter validation with helpful error messages
 
 ## 🛠️ Installation
 
@@ -99,6 +119,12 @@ pip install collectivecrossing
 git clone git@github.com:nima-siboni/collectivecrossing.git
 cd collectivecrossing
 uv sync
+
+# Install development dependencies
+uv sync --dev
+
+# Optional: Install demo dependencies for RLlib examples
+uv sync --group demo
 ```
 
 See [Installation Guide](docs/installation.md) for detailed instructions.
@@ -120,6 +146,12 @@ uv run pytest
 
 # Run with coverage
 uv run pytest --cov=collectivecrossing
+
+# Run type checking
+uv run mypy src/collectivecrossing/
+
+# Run linting
+uv run ruff check . --config tool-config.toml
 ```
 
 ## 🤝 Contributing
