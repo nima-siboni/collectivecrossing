@@ -103,7 +103,7 @@ class WaitingPolicy:
         self, env: CollectiveCrossingEnv
     ) -> bool:
         """
-        Check if all agents that were inside the tram have exited and reached their destinations.
+        Check if all exiting agents have reached their destinations.
 
         Args:
         ----
@@ -111,7 +111,7 @@ class WaitingPolicy:
 
         Returns:
         -------
-            True if all inside agents have exited and reached destinations, False otherwise.
+            True if all exiting agents have reached destinations, False otherwise.
 
         """
         # Check all agents in the environment
@@ -122,16 +122,10 @@ class WaitingPolicy:
             if other_agent.terminated or other_agent.truncated:
                 continue
 
-            # Check if this agent is an exiting agent (was inside)
+            # Only check exiting agents (the ones that were originally inside)
             if other_agent.agent_type == AgentType.EXITING:
                 # If exiting agent hasn't reached destination, inside agents haven't all exited
                 if not env.has_agent_reached_destination(other_agent_id):
-                    return False
-
-            # Check if this agent is a boarding agent that's currently inside
-            elif other_agent.agent_type == AgentType.BOARDING:
-                if env.is_in_tram_area(other_agent_id):
-                    # There's still a boarding agent inside, so not all inside agents have exited
                     return False
 
         return True

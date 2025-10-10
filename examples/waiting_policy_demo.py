@@ -9,7 +9,11 @@ coordinated movement where outside agents wait for inside agents to exit.
 import logging
 
 from baseline_policies import create_waiting_policy
-from collectivecrossing import CollectiveCrossingEnv, Config
+from collectivecrossing import CollectiveCrossingEnv
+from collectivecrossing.configs import CollectiveCrossingConfig
+from collectivecrossing.reward_configs import ConstantNegativeRewardConfig
+from collectivecrossing.terminated_configs import AllAtDestinationTerminatedConfig
+from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -19,19 +23,24 @@ logger = logging.getLogger(__name__)
 def main() -> None:
     """Run a demonstration of the WaitingPolicy."""
     # Create environment configuration
-    config = Config(
-        width=20,
-        height=15,
-        num_boarding_agents=3,
-        num_exiting_agents=2,
-        tram_width=6,
-        tram_door_width=2,
-        boarding_destination_area_y=14,
-        exiting_destination_area_y=0,
-    )
 
+    env_config = {
+        "width": 15,
+        "height": 8,
+        "division_y": 4,
+        "tram_door_left": 2,  # Left boundary of tram door (occupied position)
+        "tram_door_right": 8,  # Right boundary of tram door (occupied position)
+        "tram_length": 10,
+        "num_boarding_agents": 4,
+        "num_exiting_agents": 4,
+        "exiting_destination_area_y": 0,
+        "boarding_destination_area_y": 8,
+        "truncated_config": MaxStepsTruncatedConfig(max_steps=100),
+        "reward_config": ConstantNegativeRewardConfig(step_penalty=-1.0),
+        "terminated_config": AllAtDestinationTerminatedConfig(),
+    }
     # Create environment
-    env = CollectiveCrossingEnv(config)
+    env = CollectiveCrossingEnv(config=CollectiveCrossingConfig(**env_config))
 
     # Create waiting policy
     waiting_policy = create_waiting_policy(epsilon=0.1)
