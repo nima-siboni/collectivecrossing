@@ -77,7 +77,7 @@ After installation, you can test that everything works correctly:
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
 from collectivecrossing.reward_configs import DefaultRewardConfig
-from collectivecrossing.terminated_configs import AllAtDestinationTerminatedConfig
+from collectivecrossing.terminated_configs import IndividualAtDestinationTerminatedConfig
 from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 from collectivecrossing.observation_configs import DefaultObservationConfig
 
@@ -89,14 +89,15 @@ reward_config = DefaultRewardConfig(
     distance_penalty_factor=0.1
 )
 
-terminated_config = AllAtDestinationTerminatedConfig()
+terminated_config = IndividualAtDestinationTerminatedConfig()
 truncated_config = MaxStepsTruncatedConfig(max_steps=50)
 observation_config = DefaultObservationConfig()
 
 config = CollectiveCrossingConfig(
     width=10, height=8, division_y=4,
-    tram_door_x=5, tram_door_width=2, tram_length=8,
+    tram_door_left=4, tram_door_right=6, tram_length=8,
     num_boarding_agents=3, num_exiting_agents=2,
+    exiting_destination_area_y=0, boarding_destination_area_y=8,
     reward_config=reward_config,
     terminated_config=terminated_config,
     truncated_config=truncated_config,
