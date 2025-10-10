@@ -46,10 +46,16 @@ truncated_config = MaxStepsTruncatedConfig(max_steps=100)
 observation_config = DefaultObservationConfig()
 
 config = CollectiveCrossingConfig(
-    width=12, height=8, division_y=4,
-    tram_door_left=5, tram_door_right=6, tram_length=10,
-    num_boarding_agents=5, num_exiting_agents=3,
-    exiting_destination_area_y=1, boarding_destination_area_y=6,
+    width=12, 
+    height=8, 
+    division_y=4,
+    tram_door_left=5, 
+    tram_door_right=7, 
+    tram_length=9,
+    num_boarding_agents=5, 
+    num_exiting_agents=3,
+    exiting_destination_area_y=0, 
+    boarding_destination_area_y=8,
     render_mode="rgb_array",
     reward_config=reward_config,
     terminated_config=terminated_config,
