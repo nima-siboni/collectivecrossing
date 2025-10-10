@@ -11,7 +11,9 @@ from baseline_policies.waiting_policy import create_waiting_policy
 from collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
 from collectivecrossing.reward_configs import ConstantNegativeRewardConfig
-from collectivecrossing.terminated_configs import IndividualAtDestinationTerminatedConfig
+from collectivecrossing.terminated_configs import (
+    AllAtDestinationTerminatedConfig,
+)
 from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 
 
@@ -23,23 +25,25 @@ def run_waiting_policy_with_stats(
     print("=" * 50)
 
     # Create environment
-    config = CollectiveCrossingConfig(
-        width=15,
-        height=8,
-        division_y=4,
-        tram_door_left=4,  # Left boundary of tram door (occupied position)
-        tram_door_right=7,  # Right boundary of tram door (occupied position)
-        tram_length=10,
-        num_boarding_agents=5,
-        num_exiting_agents=10,
-        exiting_destination_area_y=0,
-        boarding_destination_area_y=8,
-        truncated_config=MaxStepsTruncatedConfig(max_steps=200),
-        reward_config=ConstantNegativeRewardConfig(step_penalty=-1.0),
-        terminated_config=IndividualAtDestinationTerminatedConfig(),
-    )
+    env_config = {
+        "width": 15,
+        "height": 8,
+        "division_y": 4,
+        "tram_door_left": 2,  # Left boundary of tram door (occupied position)
+        "tram_door_right": 8,  # Right boundary of tram door (occupied position)
+        "tram_length": 10,
+        "num_boarding_agents": 4,
+        "num_exiting_agents": 4,
+        "exiting_destination_area_y": 0,
+        "boarding_destination_area_y": 8,
+        "truncated_config": MaxStepsTruncatedConfig(max_steps=200),
+        "reward_config": ConstantNegativeRewardConfig(step_penalty=-1.0),
+        "terminated_config": AllAtDestinationTerminatedConfig(),
+    }
+    # Create environment
+    config = CollectiveCrossingConfig(**env_config)
+    env = CollectiveCrossingEnv(config=config)
 
-    env = CollectiveCrossingEnv(config)
     policy = create_waiting_policy(epsilon=epsilon)
 
     # Reset environment
@@ -93,7 +97,6 @@ def run_waiting_policy_with_stats(
 
         # Execute actions
         observations, rewards, terminateds, truncateds, infos = env.step(actions)
-
         # Track rewards
         step_rewards.append(sum(rewards.values()))
 
@@ -253,7 +256,7 @@ def create_waiting_policy_animation(
 def main() -> None:
     """Run the waiting policy demo."""
     # Set epsilon value for randomness (0.0 = pure greedy, 1.0 = pure random)
-    epsilon = 0.0  # 10% random actions
+    epsilon = 0.1  # 10% random actions
 
     # Run waiting policy and collect statistics
     env, agent_positions_history, step_rewards = run_waiting_policy_with_stats(epsilon=epsilon)

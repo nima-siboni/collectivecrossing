@@ -21,7 +21,9 @@ from ray.rllib.core.rl_module.multi_rl_module import MultiRLModule
 from collectivecrossing.collectivecrossing import CollectiveCrossingEnv
 from collectivecrossing.configs import CollectiveCrossingConfig
 from collectivecrossing.reward_configs import ConstantNegativeRewardConfig
-from collectivecrossing.terminated_configs import IndividualAtDestinationTerminatedConfig
+from collectivecrossing.terminated_configs import (
+    AllAtDestinationTerminatedConfig,
+)
 from collectivecrossing.truncated_configs import MaxStepsTruncatedConfig
 
 logger = logging.getLogger(__name__)
@@ -29,7 +31,7 @@ logging.basicConfig(level=logging.INFO)
 
 logger.info("Evaluating the CollectiveCrossing environment...")
 
-marl_module_checkpoint_path = os.path.join(os.getcwd(), "marl_module_checkpoints", "1b2c")
+marl_module_checkpoint_path = os.path.join(os.getcwd(), "marl_module_checkpoints", "e463")
 # load the MultiRLModule
 marl_module = MultiRLModule.from_checkpoint(marl_module_checkpoint_path)
 
@@ -90,15 +92,15 @@ env_config = {
     "height": 8,
     "division_y": 4,
     "tram_door_left": 4,  # Left boundary of tram door (occupied position)
-    "tram_door_right": 7,  # Right boundary of tram door (occupied position)
+    "tram_door_right": 6,  # Right boundary of tram door (occupied position)
     "tram_length": 10,
-    "num_boarding_agents": 0,
-    "num_exiting_agents": 4,
+    "num_boarding_agents": 2,
+    "num_exiting_agents": 2,
     "exiting_destination_area_y": 0,
     "boarding_destination_area_y": 8,
-    "truncated_config": MaxStepsTruncatedConfig(max_steps=200),
+    "truncated_config": MaxStepsTruncatedConfig(max_steps=100),
     "reward_config": ConstantNegativeRewardConfig(step_penalty=-1.0),
-    "terminated_config": IndividualAtDestinationTerminatedConfig(),
+    "terminated_config": AllAtDestinationTerminatedConfig(),
 }
 
 
@@ -170,7 +172,7 @@ def animate(frame: int) -> list[Any]:
 
     # Step environment
     next_observations, rewards, terminateds, truncateds, infos = env.step(actions)
-
+    print(f"Step {frame + 1} - actions: {actions}")
     # Render and update frame
     rgb = env.render()
     img.set_array(rgb)

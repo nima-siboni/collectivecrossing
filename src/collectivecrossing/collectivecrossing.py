@@ -220,14 +220,22 @@ class CollectiveCrossingEnv(MultiAgentEnv):
             terminated: bool | None = self._calculate_terminated(agent_id)
             if terminated is not None:
                 terminateds[agent_id] = terminated
-                if terminated and not self._agents[agent_id].terminated:
-                    self._agents[agent_id].terminate()
-                    self._agents_truncated_or_terminated_this_step.add(agent_id)
 
         for agent_id in self._agents.keys():
             truncated: bool | None = self._calculate_truncated(agent_id)
             if truncated is not None:
                 truncateds[agent_id] = truncated
+
+        for agent_id in self._agents.keys():
+            terminated = terminateds.get(agent_id, None)
+            if terminated is not None:
+                if terminated and not self._agents[agent_id].terminated:
+                    self._agents[agent_id].terminate()
+                    self._agents_truncated_or_terminated_this_step.add(agent_id)
+
+        for agent_id in self._agents.keys():
+            truncated = truncateds.get(agent_id, None)
+            if truncated is not None:
                 if truncated and not self._agents[agent_id].truncated:
                     self._agents[agent_id].truncate()
                     self._agents_truncated_or_terminated_this_step.add(agent_id)
